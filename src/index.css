@@ -69,3 +69,12 @@ body {
   background: #464554;
   border-radius: 10px;
 }
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

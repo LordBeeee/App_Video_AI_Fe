@@ -1,95 +1,14 @@
-// export default function LoginCard() {
-//   return (
-//     <section className="min-h-screen w-full bg-[#070d1d] flex items-center justify-center px-4">   
-//         <main className="w-full max-w-[480px] z-10">
-//         <div className="glass-panel rounded-xl p-10 flex flex-col items-center gap-8 shadow-2xl">
-//             {/* Brand Logo & Header */}
-//             <div className="text-center space-y-2">
-//             <div className="flex items-center justify-center gap-3 mb-6">
-//                 <span className="material-symbols-outlined text-4xl text-primary">
-//                 {/* auto_awesome */}
-//                 </span>
-//                 <span className="text-xl font-black tracking-tighter text-white font-h2">
-//                 {/* CineAI */}
-//                 </span>
-//             </div>
-
-//             <h1 className="font-h2 text-h2 text-white">Welcome Back</h1>
-
-//             <p className="font-body-sm text-outline-variant uppercase tracking-widest text-[10px]">
-//                 Access your professional engine
-//             </p>
-//             </div>
-
-//             {/* Form */}
-//             <form className="w-full space-y-6">
-//             {/* Email Field */}
-//             <div className="space-y-2">
-//                 <label className="font-label-caps text-on-surface-variant block">
-//                 Email Address
-//                 </label>
-
-//                 <div className="relative group">
-//                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">
-//                     mail
-//                 </span>
-
-//                 <input
-//                     className="w-full bg-surface-container-highest/30 border border-outline-variant rounded-lg py-4 pl-12 pr-4 text-white font-mono-ui focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none"
-//                     placeholder="abc123@gmail.com"
-//                     type="email"
-//                 />
-//                 </div>
-//             </div>
-
-//             {/* Password Field */}
-//             <div className="space-y-2">
-//                 <div className="flex justify-between items-center">
-//                 <label className="font-label-caps text-on-surface-variant block">
-//                     Password
-//                 </label>
-//                 </div>
-
-//                 <div className="relative group">
-//                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">
-//                     lock
-//                 </span>
-
-//                 <input
-//                     className="w-full bg-surface-container-highest/30 border border-outline-variant rounded-lg py-4 pl-12 pr-12 text-white font-mono-ui focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none"
-//                     placeholder="••••••••"
-//                     type="password"
-//                 />
-
-//                 <button
-//                     className="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors"
-//                     type="button"
-//                 >
-//                     <span className="material-symbols-outlined">visibility</span>
-//                 </button>
-//                 </div>
-//             </div>
-
-//             {/* Login Action */}
-//             <button
-//                 className="w-full bg-gradient-to-r from-primary-container to-primary py-4 rounded-lg text-on-primary-container font-label-caps text-sm tracking-[0.2em] neon-glow transition-all active:scale-[0.98]"
-//                 type="submit"
-//             >
-//                 LOGIN TO WORKSPACE
-//             </button>
-//             </form>
-//         </div>
-//         </main>
-//     </section>
-//   );
-// }
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { loginApi } from '../services/auth.service'
-import { saveAuthData } from '../utils/storage'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { loginApi } from '../../services/auth.service'
+import { useAuthStore } from '../../store/auth.store'
 
 export default function LoginCard() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const setSession = useAuthStore((state) => state.setSession)
+
+  const from = location.state?.from?.pathname || '/'
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -109,9 +28,18 @@ export default function LoginCard() {
         password,
       })
 
-      saveAuthData(data)
+      const accessToken = data.accessToken || data.access_token
 
-      navigate('/')
+      if (!accessToken) {
+        throw new Error('Không nhận được access token từ server')
+      }
+
+      setSession({
+        accessToken,
+        user: data.user || null,
+      })
+
+      navigate(from, { replace: true })
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra')
     } finally {
@@ -130,14 +58,14 @@ export default function LoginCard() {
               </span>
 
               <span className="text-xl font-black tracking-tighter text-white font-h2">
-                CineAI
+                {/* CineAI */}
               </span>
             </div>
 
             <h1 className="font-h2 text-h2 text-white">Welcome Back</h1>
 
             <p className="font-body-sm text-outline-variant uppercase tracking-widest text-[10px]">
-              Access your professional engine
+              {/* Access your professional engine */}
             </p>
           </div>
 
@@ -212,4 +140,4 @@ export default function LoginCard() {
       </main>
     </section>
   )
-} 
+}
