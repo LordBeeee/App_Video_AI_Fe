@@ -19,7 +19,7 @@ export default function MainLayout({ children }) {
   return (
     <>
       <Sidebar />
-      <Header />
+      {/* <Header /> */}
       {/* pt-16 */}
       <main className="pl-16 pt-16">
         {children}
