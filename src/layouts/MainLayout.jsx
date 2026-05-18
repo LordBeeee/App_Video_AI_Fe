@@ -21,7 +21,7 @@ export default function MainLayout({ children }) {
       <Sidebar />
       {/* <Header /> */}
       {/* pt-16 */}
-      <main className="pl-16 pt-16">
+      <main className="pl-16">
         {children}
       </main>
     </>

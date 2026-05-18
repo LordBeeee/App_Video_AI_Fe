@@ -346,17 +346,17 @@ export default function Home() {
   // )
   return (
     <div className="h-screen flex items-center justify-center bg-slate-950">
-      {/* <img
+      <img
         src="https://res.cloudinary.com/dli7km9jk/image/upload/v1778494230/3_mcdg3v.png"
         alt="Silver Spoon"
         className="w-80 rounded-xl"
-      /> */}
-      <video
+      />
+      {/* <video
         src="https://res.cloudinary.com/dli7km9jk/video/upload/v1778496494/jzu7avkwgqbpr5z88rm5.mp4"
         controls
         width="500"
       >
-      </video>
+      </video> */}
     </div>
   );
   

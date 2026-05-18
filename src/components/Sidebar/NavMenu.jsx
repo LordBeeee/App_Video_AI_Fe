@@ -91,10 +91,10 @@ export default function NavMenu() {
       </Link>
 
       <Link
-        to="/auto-video"
+        to="/create-video-flow"
         title="Tự động tạo video"
         className={
-          isActive('/auto-video')
+          isActive('/create-video-flow')
             ? 'flex w-full scale-95 items-center justify-center border-r-2 border-indigo-500 py-2 text-indigo-400 transition-transform active:scale-90'
             : 'flex w-full scale-95 items-center justify-center py-2 text-slate-500 transition-all hover:bg-indigo-500/5 hover:text-slate-300 active:scale-90'
         }

@@ -394,7 +394,8 @@ export default function CreateVideo() {
   }
 
   return (
-    <main className="flex h-[calc(100vh-4rem)] overflow-hidden bg-slate-950 text-white">
+    // <main className="flex h-[calc(100vh-4rem)] overflow-hidden bg-slate-950 text-white">
+    <main className="flex h-screen overflow-hidden bg-slate-950 pt-16 text-white">
       {/* Left Column */}
       <FromCreateVideo createVideoHook={wrappedHook} />
 
