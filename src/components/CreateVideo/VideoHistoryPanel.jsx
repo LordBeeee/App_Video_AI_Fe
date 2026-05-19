@@ -27,7 +27,7 @@ export default function VideoHistoryPanel({ history, loading, selectedId, onSele
               key={item.id}
               type="button"
               onClick={() => onSelect(item)}
-              className={`group relative aspect-square w-full overflow-hidden rounded-lg border-2 transition-all ${
+              className={`group relative h-[72px] w-[72px] shrink-0 aspect-square w-full overflow-hidden rounded-lg border-2 transition-all ${
                 selectedId === item.id
                   ? 'border-indigo-500'
                   : 'border-transparent hover:border-slate-600'
