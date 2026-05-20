@@ -241,7 +241,7 @@ export default function FromCreateVideo({ createVideoHook }) {
 
   // ────────────────────────────────────────────────────────────────────────
   return (
-    <section className="flex h-full w-[460px] flex-col overflow-hidden border-r border-slate-800/80 bg-slate-900/40 p-6 backdrop-blur-lg">
+    <section className="flex h-full w-[460px] flex-col overflow-hidden border-r border-slate-800/80 bg-slate-900/40 p-4 backdrop-blur-lg">
       <div className="flex h-full min-h-0 flex-col">
         <div className="scrollbar-hide flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pb-5">
 
@@ -429,7 +429,7 @@ export default function FromCreateVideo({ createVideoHook }) {
               onClick={resetForm}
               disabled={isSubmitting || status === 'queued' || status === 'processing'}
               title="Reset form"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-800/60 text-slate-400 transition-all hover:border-slate-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-800/60 text-slate-400 transition-all hover:border-slate-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
             >
               <span className="material-symbols-outlined text-[18px]">restart_alt</span>
             </button>
