@@ -165,15 +165,20 @@ export default function FromCreateVideo({ createVideoHook }) {
     }
   }, [startFrame, endFrame, models]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-reset 1.5s sau khi tạo video thành công
-  const prevStatusRef = useRef(null)
+  // Auto-reset 1.5s sau khi tạo video thành công — chỉ chạy đúng 1 lần
+  const hasAutoResetRef = useRef(false)
+  const resetFormRef = useRef(null)
+  useEffect(() => { resetFormRef.current = resetForm }, [resetForm])
   useEffect(() => {
-    if (prevStatusRef.current !== 'succeeded' && status === 'succeeded') {
-      const t = setTimeout(() => resetForm(), 1500)
+    if (status === 'succeeded' && !hasAutoResetRef.current) {
+      hasAutoResetRef.current = true
+      const t = setTimeout(() => resetFormRef.current?.(), 1500)
       return () => clearTimeout(t)
     }
-    prevStatusRef.current = status
-  }, [status, resetForm])
+    if (status === null) {
+      hasAutoResetRef.current = false
+    }
+  }, [status])
 
   // ── toggle multi-shot ──
   const handleToggleMultiShot = () => {
@@ -241,7 +246,7 @@ export default function FromCreateVideo({ createVideoHook }) {
 
   // ────────────────────────────────────────────────────────────────────────
   return (
-    <section className="flex h-full w-[460px] flex-col overflow-hidden border-r border-slate-800/80 bg-slate-900/40 p-4 backdrop-blur-lg">
+    <section className="flex h-full w-[460px] flex-col overflow-hidden border-r border-slate-800/80 bg-slate-900/40 p-6 backdrop-blur-lg">
       <div className="flex h-full min-h-0 flex-col">
         <div className="scrollbar-hide flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pb-5">
 
@@ -429,7 +434,7 @@ export default function FromCreateVideo({ createVideoHook }) {
               onClick={resetForm}
               disabled={isSubmitting || status === 'queued' || status === 'processing'}
               title="Reset form"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-800/60 text-slate-400 transition-all hover:border-slate-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-800/60 text-slate-400 transition-all hover:border-slate-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
             >
               <span className="material-symbols-outlined text-[18px]">restart_alt</span>
             </button>
