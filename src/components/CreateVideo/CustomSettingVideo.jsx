@@ -168,7 +168,7 @@ export default function CustomSettingVideo({
       <button
         type="button"
         onClick={() => setSettingsOpen((prev) => !prev)}
-        className="flex h-11 items-center gap-1 rounded-lg border border-slate-700 bg-slate-900 px-3 text-[11px] font-semibold text-white transition-all hover:bg-slate-800"
+        className="flex h-11 items-center gap-0.5 rounded-lg border border-slate-700 bg-slate-900 px-1 text-[11px] font-semibold text-white transition-all hover:bg-slate-800"
       >
         <span className="material-symbols-outlined text-[14px]">hexagon</span>
         <span>{resolution} · {length}s · {nativeAudio ? "On" : "Off"}</span>
@@ -197,11 +197,7 @@ export default function CustomSettingVideo({
                   }`}
                 >
                   {item}
-                  {item !== "720p" && (
-                    <span className="absolute right-2 top-0 rounded-sm bg-[#9b927b] px-1 text-[9px] font-bold text-white">
-                      VIP
-                    </span>
-                  )}
+
                 </button>
               ))}
             </div>
