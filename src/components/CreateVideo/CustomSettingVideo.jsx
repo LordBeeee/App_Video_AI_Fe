@@ -210,7 +210,7 @@ export default function CustomSettingVideo({
               <span className="font-semibold text-white">{length}s</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-sm text-slate-400">5s</span>
+              <span className="text-sm text-slate-400">3s</span>
               <input
                 type="range"
                 min="3"
@@ -219,7 +219,7 @@ export default function CustomSettingVideo({
                 onChange={(e) => setLength(Number(e.target.value))}
                 className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-slate-700 accent-white"
               />
-              <span className="text-sm text-slate-400">10s</span>
+              <span className="text-sm text-slate-400">15s</span>
             </div>
           </div>
 
