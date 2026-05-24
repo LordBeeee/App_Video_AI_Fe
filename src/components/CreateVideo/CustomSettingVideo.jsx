@@ -213,8 +213,8 @@ export default function CustomSettingVideo({
               <span className="text-sm text-slate-400">5s</span>
               <input
                 type="range"
-                min="5"
-                max="10"
+                min="3"
+                max="15"
                 value={length}
                 onChange={(e) => setLength(Number(e.target.value))}
                 className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-slate-700 accent-white"
