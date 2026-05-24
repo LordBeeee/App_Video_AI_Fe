@@ -17,6 +17,11 @@ const STATUS_COLOR = {
   failed: 'text-red-400',
 }
 
+const RESOLUTION_MODE_MAP = {
+  '720p': 'std',
+  '1080p': 'pro',
+  '4k': '4k',
+}
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 /** Tạo 2 shot mặc định, thời lượng chia đều theo totalDuration */
@@ -62,7 +67,8 @@ export default function FromCreateVideo({ createVideoHook }) {
   }, [models])
 
   // ── settings ──
-  const [resolution, setResolution] = useState('4K')
+  // const [resolution, setResolution] = useState('4K')
+  const [resolution, setResolution] = useState('1080p')
   const [length, setLength] = useState(5)   // tổng giây video
   const [nativeAudio, setNativeAudio] = useState(false)
 
@@ -152,7 +158,8 @@ export default function FromCreateVideo({ createVideoHook }) {
     setStartFile(null)
     setEndFile(null)
     setPrompt('')
-    setResolution('4K')
+    // setResolution('4K')
+    setResolution('1080p')
     setLength(5)
     setNativeAudio(false)
     setMultiShotEnabled(false)
@@ -236,7 +243,7 @@ export default function FromCreateVideo({ createVideoHook }) {
       modelId: selectedModel,
       resolution: resolution.toLowerCase(),
       duration: String(length),
-      mode: 'pro',
+      mode: RESOLUTION_MODE_MAP[resolution.toLowerCase()] ?? 'pro',
       sound: nativeAudio ? 'on' : 'off',
       prompt: finalPrompt,
       startImageFile: startFile,
