@@ -6,7 +6,7 @@ import Login from './pages/Login/Login'
 import './App.css'
 import CreateVideo from './pages/CreateVideo/CreateVideo'
 import CreateVideoFlow from './pages/CreateVideoFlow/CreateVideoFlow'
-
+import CreateVideoMotionControl from './pages/CreateVideoMotionControl/CreateVideoMotionControl'
 
 function App() {
   return (
@@ -15,6 +15,7 @@ function App() {
         <Route path="/" element={ <MainLayout> <Home /> </MainLayout>}/>
         <Route path="/create-video" element={ <MainLayout> <CreateVideo /> </MainLayout>}/>
         <Route path="/create-video-flow" element={ <MainLayout> <CreateVideoFlow /> </MainLayout>}/>
+        <Route path="/create-video-motion-control" element={ <MainLayout> <CreateVideoMotionControl /> </MainLayout>}/>
       </Route>
 
       <Route path="/login" element={<Login />} />
