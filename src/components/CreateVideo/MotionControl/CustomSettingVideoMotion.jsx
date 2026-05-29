@@ -34,7 +34,7 @@ export default function CustomSettingVideoMotion({
       >
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-[18px]">hexagon</span>
-          <span>{resolution} · {currentNativeAudio ? "On" : "Off"}</span>
+          <span>{resolution} · {currentNativeAudio === "yes" ? "On" : "Off"}</span>
         </div>
 
         <span className="material-symbols-outlined text-[18px]">
@@ -80,9 +80,9 @@ export default function CustomSettingVideoMotion({
             <div className="grid grid-cols-2 overflow-hidden rounded-lg bg-[#24252a] p-1">
               <button
                 type="button"
-                onClick={() => updateNativeAudio(false)}
+                onClick={() => updateNativeAudio("no")}
                 className={`h-10 rounded-md text-sm font-semibold transition-all ${
-                  currentNativeAudio === false
+                  currentNativeAudio === "no"
                     ? "bg-[#3a3b40] text-white"
                     : "text-slate-300 hover:bg-white/5"
                 }`}
@@ -92,9 +92,9 @@ export default function CustomSettingVideoMotion({
 
               <button
                 type="button"
-                onClick={() => updateNativeAudio(true)}
+                onClick={() => updateNativeAudio("yes")}
                 className={`h-10 rounded-md text-sm font-semibold transition-all ${
-                  currentNativeAudio === true
+                  currentNativeAudio === "yes"
                     ? "bg-[#3a3b40] text-white"
                     : "text-slate-300 hover:bg-white/5"
                 }`}
