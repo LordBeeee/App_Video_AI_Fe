@@ -32,6 +32,15 @@ export async function getVideoHistoryApi() {
   }
 }
 
+export async function getVideoGenHistoryApi() {
+  try {
+    const res = await api.get('/video-generations/video-gen/history')
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Lấy lịch sử thất bại')
+  }
+}
 export async function createMotionControlVideoApi(formData) {
   try {
     const res = await api.post('/video-generations/create-motion-control', formData, {
