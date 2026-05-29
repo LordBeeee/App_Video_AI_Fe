@@ -520,7 +520,9 @@ export default function FromCreateVideo({ createVideoHook }) {
               isSubmitting ||
               status === 'queued' ||
               status === 'processing' ||
-              isShotOverLimit
+              isShotOverLimit ||
+              !startFile ||  
+              (!(multiShotEnabled && isCustomMode) && !prompt.trim())
             }
             onClick={handleSubmit}
             className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 text-sm font-bold text-white shadow-[0_0_20px_rgba(99,102,241,0.25)] transition-all hover:bg-indigo-500 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
