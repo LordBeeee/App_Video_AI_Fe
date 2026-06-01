@@ -49,6 +49,7 @@ export function useCreateVideo() {
     startImageFile,
     endImageFile,
     sound = 'off',
+    cost = 0,
   }) => {
     setIsSubmitting(true)
     setError(null)
@@ -65,6 +66,7 @@ export function useCreateVideo() {
       formData.append('mode', mode)
       formData.append('prompt', prompt)
       formData.append('sound', sound)
+      formData.append('cost', String(cost))
       if (negativePrompt) formData.append('negativePrompt', negativePrompt)
       formData.append('startImage', startImageFile)
       if (endImageFile) formData.append('endImage', endImageFile)

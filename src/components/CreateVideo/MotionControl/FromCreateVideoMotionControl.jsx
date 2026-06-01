@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import CustomSettingVideoMotion from "./CustomSettingVideoMotion"
 import { useAiModels } from "../../../hooks/useAiModels"
+import { calcMotionControlPrice } from "../../../constants/videoPricing"
 
 export default function FromCreateVideoMotionControl({ onSubmit, isSubmitting, status }) {
   const { models = [], loading: modelsLoading } = useAiModels("kling")
@@ -13,12 +14,28 @@ export default function FromCreateVideoMotionControl({ onSubmit, isSubmitting, s
 
   const [referenceVideo, setReferenceVideo] = useState(null)
   const [referenceVideoPreview, setReferenceVideoPreview] = useState(null)
+  const [videoDuration, setVideoDuration] = useState(null)
 
   const [characterImage, setCharacterImage] = useState(null)
   const [characterImagePreview, setCharacterImagePreview] = useState(null)
 
-  // Track blob URLs đang được dùng bởi hook result — KHÔNG revoke khi reset
   const submittedBlobsRef = useRef({ char: null, video: null })
+
+  // ── Tính giá ──
+  const selectedModelCode = models.find((m) => String(m.id) === modelId)?.code ?? ""
+  const resolution = mode === "pro" ? "1080p" : "720p"
+
+  const priceInfo = useMemo(
+    () => calcMotionControlPrice({ modelCode: selectedModelCode, resolution, duration: videoDuration ?? 1 }),
+    [selectedModelCode, resolution, videoDuration]
+  )
+
+  const priceColour =
+    !priceInfo                   ? "text-slate-400"   :
+    priceInfo.total < 50000      ? "text-emerald-400" :
+    priceInfo.total < 75000      ? "text-yellow-400"  :
+    priceInfo.total < 100000     ? "text-orange-400"  :
+                                   "text-red-400"
 
   useEffect(() => {
     if (!modelsLoading && models.length > 0 && !modelId) {
@@ -30,25 +47,22 @@ export default function FromCreateVideoMotionControl({ onSubmit, isSubmitting, s
     }
   }, [models, modelsLoading, modelId])
 
-  // ── Reset form về mặc định ──
   const resetForm = useCallback(() => {
-    // Chỉ revoke nếu KHÔNG phải blob đã submit (hook đang dùng)
     if (referenceVideoPreview && referenceVideoPreview !== submittedBlobsRef.current.video) {
       URL.revokeObjectURL(referenceVideoPreview)
     }
     if (characterImagePreview && characterImagePreview !== submittedBlobsRef.current.char) {
       URL.revokeObjectURL(characterImagePreview)
     }
-
     setReferenceVideo(null)
     setReferenceVideoPreview(null)
+    setVideoDuration(null)
     setCharacterImage(null)
     setCharacterImagePreview(null)
     setPrompt("")
     setMode("pro")
     setKeepOriginalSound("yes")
     setCharacterOrientation("video")
-
     if (models.length > 0) {
       const defaultModel =
         models.find((m) => m.code === "kling-v3") ??
@@ -58,13 +72,12 @@ export default function FromCreateVideoMotionControl({ onSubmit, isSubmitting, s
     }
   }, [referenceVideoPreview, characterImagePreview, models])
 
-  // ── Auto-reset 1.5s sau khi succeeded ──
   const hasAutoResetRef = useRef(false)
   const resetFormRef = useRef(null)
   useEffect(() => { resetFormRef.current = resetForm }, [resetForm])
 
   useEffect(() => {
-    if (status === 'succeeded' && !hasAutoResetRef.current) {
+    if (status === "succeeded" && !hasAutoResetRef.current) {
       hasAutoResetRef.current = true
       const t = setTimeout(() => resetFormRef.current?.(), 1500)
       return () => clearTimeout(t)
@@ -74,7 +87,6 @@ export default function FromCreateVideoMotionControl({ onSubmit, isSubmitting, s
     }
   }, [status])
 
-  // Cleanup khi unmount
   useEffect(() => {
     return () => {
       if (referenceVideoPreview && referenceVideoPreview !== submittedBlobsRef.current.video) {
@@ -86,27 +98,6 @@ export default function FromCreateVideoMotionControl({ onSubmit, isSubmitting, s
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // const handleReferenceVideoChange = (e) => {
-  //   const file = e.target.files?.[0]
-  //   if (!file) return
-  //   if (referenceVideoPreview && referenceVideoPreview !== submittedBlobsRef.current.video) {
-  //     URL.revokeObjectURL(referenceVideoPreview)
-  //   }
-  //   const url = URL.createObjectURL(file)
-  //   setReferenceVideo(file)
-  //   setReferenceVideoPreview(url)
-  // }
-
-  // const handleCharacterImageChange = (e) => {
-  //   const file = e.target.files?.[0]
-  //   if (!file) return
-  //   if (characterImagePreview && characterImagePreview !== submittedBlobsRef.current.char) {
-  //     URL.revokeObjectURL(characterImagePreview)
-  //   }
-  //   const url = URL.createObjectURL(file)
-  //   setCharacterImage(file)
-  //   setCharacterImagePreview(url)
-  // }
   const handleReferenceVideoChange = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -114,9 +105,13 @@ export default function FromCreateVideoMotionControl({ onSubmit, isSubmitting, s
       URL.revokeObjectURL(referenceVideoPreview)
     }
     const url = URL.createObjectURL(file)
+    const tempVid = document.createElement("video")
+    tempVid.preload = "metadata"
+    tempVid.onloadedmetadata = () => setVideoDuration(Math.round(tempVid.duration))
+    tempVid.src = url
     setReferenceVideo(file)
     setReferenceVideoPreview(url)
-    e.target.value = ''  // ✅ Thêm dòng này
+    e.target.value = ""
   }
 
   const handleCharacterImageChange = (e) => {
@@ -128,8 +123,9 @@ export default function FromCreateVideoMotionControl({ onSubmit, isSubmitting, s
     const url = URL.createObjectURL(file)
     setCharacterImage(file)
     setCharacterImagePreview(url)
-    e.target.value = ''  // ✅ Thêm dòng này
+    e.target.value = ""
   }
+
   const removeReferenceVideo = (e) => {
     e.preventDefault()
     e.stopPropagation()
@@ -138,6 +134,7 @@ export default function FromCreateVideoMotionControl({ onSubmit, isSubmitting, s
     }
     setReferenceVideo(null)
     setReferenceVideoPreview(null)
+    setVideoDuration(null)
   }
 
   const removeCharacterImage = (e) => {
@@ -154,28 +151,25 @@ export default function FromCreateVideoMotionControl({ onSubmit, isSubmitting, s
     if (!modelId) return alert("Vui lòng chọn model")
     if (!characterImage) return alert("Vui lòng upload hình ảnh nhân vật")
     if (!referenceVideo) return alert("Vui lòng upload video tham chiếu")
-
     const selectedModel = models.find((m) => String(m.id) === modelId)
-
-    // Lưu lại blob URLs đang submit để KHÔNG revoke khi form reset
     submittedBlobsRef.current = {
       char: characterImagePreview,
       video: referenceVideoPreview,
     }
-
     onSubmit?.({
       modelId,
-      modelName: selectedModel?.name ?? '',
+      modelName: selectedModel?.name ?? "",
       characterImageFile: characterImage,
       referenceVideoFile: referenceVideo,
       prompt,
       characterOrientation,
       keepOriginalSound,
       mode,
+      cost: Math.round(priceInfo?.total ?? 0),
     })
   }
 
-  const isProcessing = status === 'queued' || status === 'processing'
+  const isProcessing = status === "queued" || status === "processing"
 
   return (
     <section className="flex h-full w-[460px] flex-col overflow-hidden border-r border-slate-800/80 bg-slate-900/40 p-6 backdrop-blur-lg">
@@ -330,16 +324,15 @@ export default function FromCreateVideoMotionControl({ onSubmit, isSubmitting, s
 
         {/* Bottom actions */}
         <div className="shrink-0 space-y-3 border-t border-slate-800/80 pt-4">
+
+          {/* Row 1: Settings + Reset */}
           <div className="flex items-center gap-2">
-            {/* Settings */}
             <CustomSettingVideoMotion
               resolution={mode === "pro" ? "1080p" : "720p"}
               setResolution={(r) => setMode(r === "1080p" ? "pro" : "std")}
               nativeAudio={keepOriginalSound}
               setNativeAudio={setKeepOriginalSound}
             />
-
-            {/* Reset button */}
             <button
               type="button"
               onClick={resetForm}
@@ -351,24 +344,43 @@ export default function FromCreateVideoMotionControl({ onSubmit, isSubmitting, s
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isSubmitting || isProcessing || modelsLoading || !modelId || !characterImage || !referenceVideo}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 text-sm font-bold text-white shadow-[0_0_20px_rgba(99,102,241,0.25)] transition-all hover:bg-indigo-500 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isSubmitting || isProcessing ? (
-              <>
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                {isSubmitting ? 'Đang xử lý...' : 'Đang tạo video...'}
-              </>
-            ) : (
-              <>
-                <span className="material-symbols-outlined text-lg">bolt</span>
-                Tạo Video
-              </>
-            )}
-          </button>
+          {/* Row 2: Price + Submit */}
+          <div className="grid grid-cols-[minmax(0,4fr)_minmax(0,6fr)] items-center gap-3">
+
+            {/* Price box */}
+            <div className="flex h-[52px] min-w-0 items-center justify-center rounded-lg border border-slate-700/60 bg-slate-800/50 px-3">
+              {priceInfo ? (
+                <span className={`whitespace-nowrap font-mono text-xl font-black leading-none tracking-tight ${priceColour}`}>
+                  {Math.round(priceInfo.total).toLocaleString("vi-VN")} VNĐ
+                </span>
+              ) : (
+                <span className="text-center text-[11px] leading-5 text-slate-500">
+                  {videoDuration ? "No pricing data" : "Upload video để xem giá"}
+                </span>
+              )}
+            </div>
+
+            {/* Submit */}
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isSubmitting || isProcessing || modelsLoading || !modelId || !characterImage || !referenceVideo}
+              className="flex h-[52px] w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 text-sm font-bold text-white shadow-[0_0_20px_rgba(99,102,241,0.25)] transition-all hover:bg-indigo-500 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSubmitting || isProcessing ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  {isSubmitting ? "Đang xử lý..." : "Đang tạo video..."}
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-lg">bolt</span>
+                  Tạo Video
+                </>
+              )}
+            </button>
+          </div>
+
         </div>
       </div>
     </section>

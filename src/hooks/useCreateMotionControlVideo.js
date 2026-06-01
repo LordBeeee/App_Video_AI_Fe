@@ -45,7 +45,8 @@ export function useCreateMotionControlVideo() {
     prompt,
     characterOrientation,  // 'image' | 'video'
     keepOriginalSound,     // "yes" | "no"
-    mode,                  // 'std' | 'pro'
+    mode,
+    cost = 0,
   }) => {
     setIsSubmitting(true)
     setError(null)
@@ -67,7 +68,7 @@ export function useCreateMotionControlVideo() {
       formData.append('characterOrientation', characterOrientation)
       formData.append('keepOriginalSound', keepOriginalSound)
       formData.append('mode', mode || 'pro')
-
+      formData.append('cost', String(cost))
       const data = await createMotionControlVideoApi(formData)
 
       // ✅ Lưu đủ info để hiển thị center info bar

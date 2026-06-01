@@ -1,7 +1,8 @@
-import { useRef, useState, useCallback, useEffect } from "react"
+import { useRef, useState, useCallback, useEffect, useMemo } from "react"
 import CustomSettingVideo from "./CustomSettingVideo"
 import MultiShotPanel from "./MultiShotPanel"
 import { useAiModels } from '../../hooks/useAiModels'
+import { calcVideoPrice } from '../../constants/videoPricing'
 
 const STATUS_LABEL = {
   queued: 'Đang chờ xử lý...',
@@ -22,9 +23,9 @@ const RESOLUTION_MODE_MAP = {
   '1080p': 'pro',
   '4k': '4k',
 }
+
 // ─── helpers ────────────────────────────────────────────────────────────────
 
-/** Tạo 2 shot mặc định, thời lượng chia đều theo totalDuration */
 function buildDefaultShots(totalDuration) {
   const half = Math.floor(totalDuration / 2)
   const rest = totalDuration - half
@@ -34,9 +35,6 @@ function buildDefaultShots(totalDuration) {
   ]
 }
 
-/** Gộp shots → chuỗi prompt gửi Kling
- *  VD: "cười ha ha trong 3 giây. khóc trong 2 giây"
- */
 function buildMultiShotPrompt(shots) {
   return shots
     .map((s) => `${s.prompt.trim()} trong ${s.duration} giây`)
@@ -58,6 +56,17 @@ export default function FromCreateVideo({ createVideoHook }) {
   const { models, loading: modelsLoading } = useAiModels('kling')
   const [selectedModel, setSelectedModel] = useState('')
 
+  // Reset custom settings khi đổi model
+  const prevModelRef = useRef(null)
+  useEffect(() => {
+    if (prevModelRef.current !== null && prevModelRef.current !== selectedModel) {
+      setResolution('1080p')
+      setLength(5)
+      setNativeAudio(false)
+    }
+    prevModelRef.current = selectedModel
+  }, [selectedModel])
+
   useEffect(() => {
     if (models.length > 0) {
       const defaultModel =
@@ -67,11 +76,25 @@ export default function FromCreateVideo({ createVideoHook }) {
   }, [models])
 
   // ── settings ──
-  // const [resolution, setResolution] = useState('4K')
   const [resolution, setResolution] = useState('1080p')
-  const [length, setLength] = useState(5)   // tổng giây video
+  const [length, setLength] = useState(5)
   const [nativeAudio, setNativeAudio] = useState(false)
 
+  // ── derived: model code + realtime price ──
+  const selectedModelCode =
+    models.find((m) => String(m.id) === selectedModel)?.code ?? ''
+    
+  const priceInfo = useMemo(
+    () => calcVideoPrice({ modelCode: selectedModelCode, resolution, duration: length, nativeAudio }),
+    [selectedModelCode, resolution, length, nativeAudio],
+  )
+
+  const priceColour =
+  !priceInfo                  ? 'text-slate-400'  :
+  priceInfo.total < 50000    ? 'text-emerald-400':
+  priceInfo.total < 75000   ? 'text-yellow-400' :
+  priceInfo.total < 100000 ? 'text-orange-400' :
+                                'text-red-400'
   // ── prompt thường ──
   const [prompt, setPrompt] = useState('')
 
@@ -80,7 +103,6 @@ export default function FromCreateVideo({ createVideoHook }) {
   const [isCustomMode, setIsCustomMode] = useState(false)
   const [shots, setShots] = useState(() => buildDefaultShots(5))
 
-  // Khi length thay đổi mà custom mode chưa mở → reset shots mặc định
   useEffect(() => {
     if (!isCustomMode) {
       setShots(buildDefaultShots(length))
@@ -149,7 +171,6 @@ export default function FromCreateVideo({ createVideoHook }) {
     textarea.style.height = `${textarea.scrollHeight}px`
   }
 
-  // ── reset toàn bộ form về mặc định ──
   const resetForm = useCallback(() => {
     if (startFrame) URL.revokeObjectURL(startFrame)
     if (endFrame) URL.revokeObjectURL(endFrame)
@@ -158,7 +179,6 @@ export default function FromCreateVideo({ createVideoHook }) {
     setStartFile(null)
     setEndFile(null)
     setPrompt('')
-    // setResolution('4K')
     setResolution('1080p')
     setLength(5)
     setNativeAudio(false)
@@ -172,7 +192,6 @@ export default function FromCreateVideo({ createVideoHook }) {
     }
   }, [startFrame, endFrame, models]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-reset 1.5s sau khi tạo video thành công — chỉ chạy đúng 1 lần
   const hasAutoResetRef = useRef(false)
   const resetFormRef = useRef(null)
   useEffect(() => { resetFormRef.current = resetForm }, [resetForm])
@@ -187,26 +206,17 @@ export default function FromCreateVideo({ createVideoHook }) {
     }
   }, [status])
 
-  // ── toggle multi-shot ──
   const handleToggleMultiShot = () => {
     const next = !multiShotEnabled
     setMultiShotEnabled(next)
-    // Tắt multi-shot → thoát custom mode
-    if (!next) {
-      setIsCustomMode(false)
-    }
+    if (!next) setIsCustomMode(false)
   }
 
-  // ── toggle custom multi-shot panel ──
   const handleToggleCustomMode = () => {
-    if (!isCustomMode) {
-      // Mở panel → reset shots theo length hiện tại
-      setShots(buildDefaultShots(length))
-    }
+    if (!isCustomMode) setShots(buildDefaultShots(length))
     setIsCustomMode((prev) => !prev)
   }
 
-  // ── submit ──
   const handleSubmit = async () => {
     if (!startFile) {
       alert('Vui lòng chọn Start Frame')
@@ -217,11 +227,9 @@ export default function FromCreateVideo({ createVideoHook }) {
       return
     }
 
-    // Xác định prompt cuối
     let finalPrompt = ''
 
     if (multiShotEnabled && isCustomMode) {
-      // Kiểm tra mỗi shot có prompt chưa
       if (shots.some((s) => !s.prompt.trim())) {
         alert('Vui lòng điền nội dung cho tất cả các shot')
         return
@@ -248,6 +256,7 @@ export default function FromCreateVideo({ createVideoHook }) {
       prompt: finalPrompt,
       startImageFile: startFile,
       endImageFile: endFile,
+      cost: Math.round(priceInfo?.total ?? 0),
     })
   }
 
@@ -299,11 +308,7 @@ export default function FromCreateVideo({ createVideoHook }) {
               {startFrame ? (
                 <>
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                    <img
-                      src={startFrame}
-                      alt="Start Frame"
-                      className="max-h-full max-w-full object-contain"
-                    />
+                    <img src={startFrame} alt="Start Frame" className="max-h-full max-w-full object-contain" />
                   </div>
                   <button
                     type="button"
@@ -342,11 +347,7 @@ export default function FromCreateVideo({ createVideoHook }) {
               {endFrame ? (
                 <>
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                    <img
-                      src={endFrame}
-                      alt="End Frame"
-                      className="max-h-full max-w-full object-contain"
-                    />
+                    <img src={endFrame} alt="End Frame" className="max-h-full max-w-full object-contain" />
                   </div>
                   <button
                     type="button"
@@ -374,16 +375,10 @@ export default function FromCreateVideo({ createVideoHook }) {
 
           {/* ── Prompt hoặc Multi-Shot Panel ── */}
           {multiShotEnabled && isCustomMode ? (
-            // ── Hiển thị Custom Multi-Shot Panel ──
             <div className="shrink-0">
-              <MultiShotPanel
-                shots={shots}
-                onShotsChange={setShots}
-                totalDuration={length}
-              />
+              <MultiShotPanel shots={shots} onShotsChange={setShots} totalDuration={length} />
             </div>
           ) : (
-            // ── Hiển thị Textarea thường ──
             <textarea
               ref={textareaRef}
               value={prompt}
@@ -427,6 +422,7 @@ export default function FromCreateVideo({ createVideoHook }) {
           <div className="flex items-center justify-between gap-2">
             {/* Left: settings */}
             <CustomSettingVideo
+              modelCode={selectedModelCode}
               resolution={resolution}
               setResolution={setResolution}
               length={length}
@@ -448,7 +444,6 @@ export default function FromCreateVideo({ createVideoHook }) {
 
             {/* Right: Multi-Shot toggle + Custom button */}
             <div className="flex shrink-0 items-center gap-1 rounded-lg border border-slate-700/60 bg-slate-800/60 p-1">
-              {/* Toggle pill */}
               <button
                 type="button"
                 onClick={handleToggleMultiShot}
@@ -458,7 +453,6 @@ export default function FromCreateVideo({ createVideoHook }) {
                     : 'text-slate-400 hover:text-slate-300'
                 }`}
               >
-                {/* Toggle switch visual */}
                 <span
                   className={`relative inline-flex h-3.5 w-6 shrink-0 rounded-full transition-colors ${
                     multiShotEnabled ? 'bg-emerald-500' : 'bg-slate-600'
@@ -473,10 +467,8 @@ export default function FromCreateVideo({ createVideoHook }) {
                 Multi-Shot
               </button>
 
-              {/* Divider */}
               <span className="h-4 w-px bg-slate-700" />
 
-              {/* Custom Multi-Shot button */}
               <button
                 type="button"
                 onClick={handleToggleCustomMode}
@@ -497,7 +489,7 @@ export default function FromCreateVideo({ createVideoHook }) {
             </div>
           </div>
 
-          {/* Row 2: preview prompt sẽ gửi khi multi-shot */}
+          {/* Row 2: preview prompt khi multi-shot */}
           {multiShotEnabled && isCustomMode && shots.some((s) => s.prompt.trim()) && (
             <div
               className={`rounded-lg border px-3 py-2 text-[11px] leading-5 ${
@@ -507,43 +499,56 @@ export default function FromCreateVideo({ createVideoHook }) {
               }`}
             >
               <span className="mr-1.5 font-semibold text-slate-500">Prompt:</span>
-              <span className="line-clamp-2">
-                {buildMultiShotPrompt(shots)}
-              </span>
+              <span className="line-clamp-2">{buildMultiShotPrompt(shots)}</span>
             </div>
           )}
 
-          {/* Row 3: Submit */}
-          <button
-            type="button"
-            disabled={
-              isSubmitting ||
-              status === 'queued' ||
-              status === 'processing' ||
-              isShotOverLimit ||
-              !startFile ||  
-              (!(multiShotEnabled && isCustomMode) && !prompt.trim())
-            }
-            onClick={handleSubmit}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 text-sm font-bold text-white shadow-[0_0_20px_rgba(99,102,241,0.25)] transition-all hover:bg-indigo-500 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isSubmitting ? (
-              <>
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                Đang xử lý...
-              </>
-            ) : status === 'queued' || status === 'processing' ? (
-              <>
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                Đang tạo video...
-              </>
-            ) : (
-              <>
-                <span className="material-symbols-outlined text-lg">bolt</span>
-                Tạo Video
-              </>
-            )}
-          </button>
+          {/* Row 3: Price left + Submit right */}
+          <div className="grid grid-cols-[minmax(0,4fr)_minmax(0,6fr)] items-center gap-3">
+
+            {/* Price display */}
+            <div className="flex h-[52px] min-w-0 items-center justify-center rounded-lg border border-slate-700/60 bg-slate-800/50 px-3">
+              {priceInfo ? (
+                <span className={`whitespace-nowrap font-mono text-xl font-black leading-none tracking-tight ${priceColour}`}>
+                  {Math.round(priceInfo.total).toLocaleString('vi-VN')} VNĐ
+                </span>
+              ) : (
+                <span className="text-[11px] text-slate-500">
+                  {selectedModelCode ? 'No pricing data' : 'Chọn model để xem giá'}
+                </span>
+              )}
+            </div>
+
+            {/* Submit button */}
+            <button
+              type="button"
+              disabled={
+                isSubmitting ||
+                status === 'queued' ||
+                status === 'processing' ||
+                isShotOverLimit ||
+                !startFile ||
+                (!(multiShotEnabled && isCustomMode) && !prompt.trim())
+              }
+              onClick={handleSubmit}
+              className="flex h-[52px] w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-5 text-sm font-bold text-white shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all hover:bg-indigo-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSubmitting || status === 'queued' || status === 'processing' ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  Đang tạo...
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[18px]">bolt</span>
+                  Tạo Video
+                </>
+              )}
+            </button>
+
+          </div>
+          {/* ── end Row 3 ── */}
+
         </div>
       </div>
     </section>

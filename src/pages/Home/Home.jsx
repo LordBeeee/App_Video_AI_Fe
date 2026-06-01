@@ -345,19 +345,7 @@ export default function Home() {
   //   </main>
   // )
   return (
-    <div className="h-screen flex items-center justify-center bg-slate-950">
-      <img
-        src="https://res.cloudinary.com/dli7km9jk/image/upload/v1778494230/3_mcdg3v.png"
-        alt="Silver Spoon"
-        className="w-80 rounded-xl"
-      />
-      {/* <video
-        src="https://res.cloudinary.com/dli7km9jk/video/upload/v1778496494/jzu7avkwgqbpr5z88rm5.mp4"
-        controls
-        width="500"
-      >
-      </video> */}
-    </div>
+    <div></div>
   );
   
 }
