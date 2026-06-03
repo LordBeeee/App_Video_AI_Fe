@@ -18,27 +18,14 @@ export default function LoginCard() {
 
   const handleLogin = async (e) => {
     e.preventDefault()
-
     setError('')
     setLoading(true)
 
     try {
-      const data = await loginApi({
-        email,
-        password,
-      })
+      const data = await loginApi({ email, password })
 
-      const accessToken = data.accessToken || data.access_token
-
-      if (!accessToken) {
-        throw new Error('Không nhận được access token từ server')
-      }
-
-      setSession({
-        accessToken,
-        user: data.user || null,
-      })
-
+      // Cookie được BE set tự động, FE chỉ lưu user info
+      setSession({ user: data.user || null })
       navigate(from, { replace: true })
     } catch (err) {
       setError(err.message || 'Có lỗi xảy ra')
