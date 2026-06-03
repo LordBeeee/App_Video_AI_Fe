@@ -61,18 +61,17 @@ export default function GenerationChart({
   // Y axis
   const yMax = useMemo(() => {
     if (!data.length) return 10;
-    const max = Math.max(...data.flatMap((d) => [d.briefs || 0, d.images || 0, d.videos || 0]));
+    const max = Math.max(...data.flatMap((d) => [d.prompt || 0, d.images || 0, d.videos || 0]));
     return niceMax(max);
   }, [data]);
 
   const yLabels = useMemo(() => buildYLabels(yMax), [yMax]);
 
   // SVG paths
-  const briefsPath   = useMemo(() => buildPath(data, 'briefs', yMax), [data, yMax]);
+  const promptPath   = useMemo(() => buildPath(data, 'prompt', yMax), [data, yMax]);
   const imagesPath   = useMemo(() => buildPath(data, 'images', yMax), [data, yMax]);
   const videosPath   = useMemo(() => buildPath(data, 'videos', yMax), [data, yMax]);
-  const briefsArea   = useMemo(() => (briefsPath ? `${briefsPath} L1000,300 L0,300 Z` : ''), [briefsPath]);
-
+  const promptArea = useMemo(() => (promptPath ? `${promptPath} L1000,300 L0,300 Z` : ''), [promptPath]);
   // Hover
   const hoveredData = hoveredIndex !== null ? data[hoveredIndex] : null;
   const hoveredPct  =
@@ -129,7 +128,7 @@ export default function GenerationChart({
 
           <div className="flex items-center gap-6">
             {[
-              { color: 'bg-indigo-500', shadow: 'shadow-[0_0_8px_rgba(99,102,241,0.6)]',  label: 'Briefs' },
+              { color: 'bg-indigo-500', shadow: 'shadow-[0_0_8px_rgba(99,102,241,0.6)]',  label: 'Prompt' },
               { color: 'bg-cyan-400',   shadow: 'shadow-[0_0_8px_rgba(76,215,246,0.6)]',  label: 'Ảnh'   },
               { color: 'bg-purple-500', shadow: 'shadow-[0_0_8px_rgba(168,85,247,0.6)]',  label: 'Video' },
             ].map(({ color, shadow, label }) => (
@@ -205,14 +204,14 @@ export default function GenerationChart({
                     />
                   )}
 
-                  {/* Area under briefs */}
-                  {briefsArea && (
-                    <path d={briefsArea} fill="url(#indigoGradient)" fillOpacity="0.1" />
+                  {/* Area under prompts */}
+                  {promptArea  && (
+                    <path d={promptArea} fill="url(#indigoGradient)" fillOpacity="0.1" />
                   )}
 
-                  {/* Briefs line */}
-                  {briefsPath && (
-                    <path d={briefsPath} fill="none" stroke="#6366f1" strokeWidth="3" strokeLinecap="round" />
+                  {/* Prompts line */}
+                  {promptPath && (
+                    <path d={promptPath} fill="none" stroke="#6366f1" strokeWidth="3" strokeLinecap="round" />
                   )}
 
                   {/* Images line */}
@@ -226,7 +225,7 @@ export default function GenerationChart({
                   )}
 
                   {/* Empty state */}
-                  {!briefsPath && !imagesPath && !videosPath && (
+                  {!promptPath && !imagesPath && !videosPath && (
                     <text x="500" y="155" textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="14" fontFamily="sans-serif">
                       Không có dữ liệu
                     </text>
@@ -251,7 +250,7 @@ export default function GenerationChart({
                         Ngày {hoveredData.day}
                       </p>
                       {[
-                        { dot: 'bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.8)]',  label: 'Briefs', val: hoveredData.briefs },
+                        { dot: 'bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.8)]',  label: 'Prompt', val: hoveredData.prompt },
                         { dot: 'bg-cyan-400   shadow-[0_0_6px_rgba(34,211,238,0.8)]',  label: 'Ảnh',    val: hoveredData.images },
                         { dot: 'bg-purple-500 shadow-[0_0_6px_rgba(168,85,247,0.8)]',  label: 'Video',  val: hoveredData.videos },
                       ].map(({ dot, label, val }, i) => (
