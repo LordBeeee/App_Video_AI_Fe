@@ -11,13 +11,13 @@ export const VIDEO_PRICING = {
     label: 'Kling v3',
     currency: 'VND',
     video: {
-      std:  { noAudio: 2226, withAudio: 3339 },
-      pro:  { noAudio: 2968, withAudio: 4452 },
-      '4k': { noAudio: 11130, withAudio: 11130 },
+      std:  { noAudio: 2302, withAudio: 3452 },
+      pro:  { noAudio: 3069, withAudio: 4603 },
+      '4k': { noAudio: 11508, withAudio: 11508 },
     },
     motionControl: {
-      std: 3339,
-      pro: 4452,
+      std: 3452,
+      pro: 4603,
     },
   },
 
@@ -26,12 +26,12 @@ export const VIDEO_PRICING = {
     label: 'Kling v2.6',
     currency: 'VND',
     video: {
-      std:  { noAudio: 1113 },
-      pro:  { noAudio: 1855, withAudio: 3710 },
+      std:  { noAudio: 1151 },
+      pro:  { noAudio: 1918, withAudio: 3836 },
     },
     motionControl: {
-      std: 1855,
-      pro: 2968,
+      std: 1918,
+      pro: 3069,
     },
   },
 
