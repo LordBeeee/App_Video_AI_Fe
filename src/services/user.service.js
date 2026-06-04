@@ -21,3 +21,43 @@ export async function getUserDailyStatsApi({ month, year }) {
     throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Lấy thống kê ngày thất bại')
   }
 }
+
+export async function getEmployeeStatsApi() {
+  try {
+    const res = await api.get('/users/employee-stats')
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Lấy thống kê thất bại')
+  }
+}
+
+export async function getAllUsersApi({ page = 1, limit = 6, search = '' } = {}) {
+  try {
+    const res = await api.get('/users', { params: { page, limit, search } })
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Lấy danh sách nhân viên thất bại')
+  }
+}
+
+export async function toggleUserStatusApi(id) {
+  try {
+    const res = await api.patch(`/users/${id}/toggle-status`)
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Cập nhật trạng thái thất bại')
+  }
+}
+
+export async function createEmployeeApi(data) {
+  try {
+    const res = await api.post('/users', data)
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Tạo nhân viên thất bại')
+  }
+}

@@ -79,3 +79,19 @@ body {
   display: none;
 }
 
+/* Employee */
+.glass-panel {
+  background: rgba(19, 27, 46, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(70, 69, 84, 0.2);
+}
+.glow-hover:hover {
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+}
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+.active-nav-border {
+  box-shadow: inset -2px 0 0 0 #c0c1ff;
+}
+/*  */
