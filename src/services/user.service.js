@@ -12,9 +12,7 @@ export async function getUserStatsApi() {
 
 export async function getUserDailyStatsApi({ month, year }) {
   try {
-    const res = await api.get('/users/me/daily-stats', {
-      params: { month, year },
-    })
+    const res = await api.get('/users/me/daily-stats', { params: { month, year } })
     return res.data
   } catch (error) {
     const msg = error.response?.data?.message
@@ -59,5 +57,42 @@ export async function createEmployeeApi(data) {
   } catch (error) {
     const msg = error.response?.data?.message
     throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Tạo nhân viên thất bại')
+  }
+}
+
+// ─── MỚI ──────────────────────────────────────────────────────────────────────
+
+/** Lấy chi tiết 1 nhân viên */
+export async function getEmployeeByIdApi(id) {
+  try {
+    const res = await api.get(`/users/${id}`)
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Lấy thông tin nhân viên thất bại')
+  }
+}
+
+/** Cập nhật thông tin nhân viên — formData chứa fullName, username, phone, avatar (file) */
+export async function updateEmployeeApi(id, formData) {
+  try {
+    const res = await api.patch(`/users/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Cập nhật thông tin thất bại')
+  }
+}
+
+/** Reset mật khẩu về Bideptrai123@@ */
+export async function resetEmployeePasswordApi(id) {
+  try {
+    const res = await api.patch(`/users/${id}/reset-password`)
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Reset mật khẩu thất bại')
   }
 }

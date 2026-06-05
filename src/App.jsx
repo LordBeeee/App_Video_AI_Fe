@@ -10,7 +10,7 @@ import CreateVideoFlow from './pages/CreateVideoFlow/CreateVideoFlow'
 import CreateVideoMotionControl from './pages/CreateVideoMotionControl/CreateVideoMotionControl'
 import Library from './pages/Library/Library'
 import Employees from './pages/Employees/Employees'
-
+import EmployeeDetail from './pages/Employees/EmployeeDetail'
 function App() {
   return (
     <Routes>
@@ -20,10 +20,10 @@ function App() {
         <Route path="/create-video-flow" element={ <MainLayout> <CreateVideoFlow /> </MainLayout>}/>
         <Route path="/create-video-motion-control" element={ <MainLayout> <CreateVideoMotionControl /> </MainLayout>}/>
         <Route path="/library" element={ <MainLayout> <Library /> </MainLayout>}/>
-        <Route path="/employees" element={ <MainLayout> <Employees /> </MainLayout>}/>
 
         <Route element={<AdminRoute />}>
           <Route path="/employees" element={<MainLayout><Employees /></MainLayout>} />
+          <Route path="/employees/:id" element={ <MainLayout> <EmployeeDetail /> </MainLayout>}/>
         </Route>
       </Route>
 

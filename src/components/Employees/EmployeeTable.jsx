@@ -1,10 +1,35 @@
+import { useNavigate } from 'react-router-dom'
 import { Dot, SkeletonRow, ActionBtn } from './EmployeeUI'
 import { getInitials, getColor, formatLastLogin } from '../../utils/employee.utils'
 import { EMPLOYEE_PAGE_LIMIT } from '../../constants/employee'
 
 const HEADERS = ['Họ và Tên', 'Email', 'Số điện thoại', 'Trạng thái', 'Truy cập lần cuối', 'Thao tác']
 
+// Avatar: hiện ảnh thật nếu có, fallback về initials
+function UserAvatar({ user }) {
+  const color = getColor(user.id)
+
+  if (user.avatarUrl) {
+    return (
+      <img
+        src={user.avatarUrl}
+        alt={user.fullName || 'avatar'}
+        className="w-9 h-9 rounded-full object-cover flex-shrink-0 border border-outline-variant/20"
+        onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex' }}
+      />
+    )
+  }
+
+  return (
+    <div className={`w-9 h-9 rounded-full ${color.bg} flex items-center justify-center ${color.text} font-bold text-xs flex-shrink-0`}>
+      {getInitials(user.fullName)}
+    </div>
+  )
+}
+
 export default function EmployeeTable({ users, loading, query, togglingId, onToggle }) {
+  const navigate = useNavigate()
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left border-collapse">
@@ -28,16 +53,13 @@ export default function EmployeeTable({ users, loading, query, togglingId, onTog
           ) : (
             users.map(user => {
               const locked   = user.status === 'banned'
-              const color    = getColor(user.id)
               const toggling = togglingId === user.id
 
               return (
                 <tr key={user.id} className="hover:bg-surface-container-highest/20 transition-colors">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-full ${color.bg} flex items-center justify-center ${color.text} font-bold text-xs flex-shrink-0`}>
-                        {getInitials(user.fullName)}
-                      </div>
+                      <UserAvatar user={user} />
                       <span className="font-medium text-white">{user.fullName || '—'}</span>
                     </div>
                   </td>
@@ -56,7 +78,12 @@ export default function EmployeeTable({ users, loading, query, togglingId, onTog
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex gap-2">
-                      <ActionBtn icon="visibility" title="Xem chi tiết" hoverClass="hover:text-primary hover:bg-primary/10" />
+                      <ActionBtn
+                        icon="visibility"
+                        title="Xem chi tiết"
+                        hoverClass="hover:text-primary hover:bg-primary/10"
+                        onClick={() => navigate(`/employees/${user.id}`)}
+                      />
                       <ActionBtn
                         icon={locked ? 'lock' : 'lock_open'}
                         title={locked ? 'Mở tài khoản' : 'Khóa tài khoản'}
