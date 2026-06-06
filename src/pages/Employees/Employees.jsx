@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getAllUsersApi, getEmployeeStatsApi, toggleUserStatusApi, createEmployeeApi } from '../../services/user.service'
+import { getAllUsersApi, getEmployeeStatsApi, toggleUserStatusApi, createEmployeeApi, deleteEmployeeApi } from '../../services/user.service'
 import { EMPLOYEE_PAGE_LIMIT } from '../../constants/employee'
 import EmployeeStatCards   from '../../components/Employees/EmployeeStatCards'
 import EmployeeTable       from '../../components/Employees/EmployeeTable'
@@ -22,19 +22,16 @@ export default function Employees() {
   const [submitting,   setSubmitting]   = useState(false)
   const [formError,    setFormError]    = useState('')
 
-  // debounce search
   useEffect(() => {
     const t = setTimeout(() => { setQuery(search); setPage(1) }, 400)
     return () => clearTimeout(t)
   }, [search])
 
-  // fetch stats
   useEffect(() => {
     setStatsLoading(true)
     getEmployeeStatsApi().then(setStats).catch(console.error).finally(() => setStatsLoading(false))
   }, [])
 
-  // fetch users
   useEffect(() => {
     setLoading(true)
     getAllUsersApi({ page, limit: EMPLOYEE_PAGE_LIMIT, search: query })
@@ -83,12 +80,29 @@ export default function Employees() {
     }
   }
 
+  // ── Xóa nhân viên ──────────────────────────────────────────────────────────
+  const handleDelete = async (userId) => {
+    await deleteEmployeeApi(userId)
+
+    // Nếu trang hiện tại chỉ còn 1 user và không phải trang đầu → lùi 1 trang
+    const nextPage = users.length === 1 && page > 1 ? page - 1 : page
+
+    const [usersData, statsData] = await Promise.all([
+      getAllUsersApi({ page: nextPage, limit: EMPLOYEE_PAGE_LIMIT, search: query }),
+      getEmployeeStatsApi(),
+    ])
+
+    setPage(nextPage)
+    setUsers(usersData.users)
+    setTotal(usersData.total)
+    setStats(statsData)
+  }
+
   const totalPages = Math.max(1, Math.ceil(total / EMPLOYEE_PAGE_LIMIT))
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pt-8 pb-8">
 
-      {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-white">Nhân Viên</h2>
         <p className="text-slate-400 text-sm mt-1">Danh sách nhân viên sẽ được hiển thị ở đây.</p>
@@ -96,10 +110,8 @@ export default function Employees() {
 
       <EmployeeStatCards stats={stats} loading={statsLoading} />
 
-      {/* Table panel */}
       <div className="glass-panel rounded-xl overflow-hidden border border-outline-variant/10">
 
-        {/* Toolbar */}
         <div className="px-6 py-5 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/50">
           <h3 className="text-lg font-semibold text-white">Danh sách nhân viên</h3>
           <div className="flex items-center gap-3">
@@ -124,6 +136,7 @@ export default function Employees() {
         <EmployeeTable
           users={users} loading={loading} query={query}
           togglingId={togglingId} onToggle={handleToggle}
+          onDelete={handleDelete}
         />
 
         <EmployeePagination

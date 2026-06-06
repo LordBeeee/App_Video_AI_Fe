@@ -96,3 +96,13 @@ export async function resetEmployeePasswordApi(id) {
     throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Reset mật khẩu thất bại')
   }
 }
+
+export async function deleteEmployeeApi(id) {
+  try {
+    const res = await api.delete(`/users/${id}`)
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Xóa nhân viên thất bại')
+  }
+}
