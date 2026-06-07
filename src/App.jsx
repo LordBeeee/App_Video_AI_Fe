@@ -11,6 +11,7 @@ import CreateVideoMotionControl from './pages/CreateVideoMotionControl/CreateVid
 import Library from './pages/Library/Library'
 import Employees from './pages/Employees/Employees'
 import EmployeeDetail from './pages/Employees/EmployeeDetail'
+import Profile from './pages/Profile/Profile'
 function App() {
   return (
     <Routes>
@@ -20,6 +21,7 @@ function App() {
         <Route path="/create-video-flow" element={ <MainLayout> <CreateVideoFlow /> </MainLayout>}/>
         <Route path="/create-video-motion-control" element={ <MainLayout> <CreateVideoMotionControl /> </MainLayout>}/>
         <Route path="/library" element={ <MainLayout> <Library /> </MainLayout>}/>
+        <Route path="/profile" element={ <MainLayout> <Profile /> </MainLayout>}/>
 
         <Route element={<AdminRoute />}>
           <Route path="/employees" element={<MainLayout><Employees /></MainLayout>} />

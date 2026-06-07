@@ -106,3 +106,27 @@ export async function deleteEmployeeApi(id) {
     throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Xóa nhân viên thất bại')
   }
 }
+
+/** Cập nhật profile của bản thân */
+export async function updateProfileApi(formData) {
+  try {
+    const res = await api.patch('/users/me', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Cập nhật thông tin thất bại')
+  }
+}
+
+/** Đổi mật khẩu của bản thân */
+export async function changePasswordApi({ currentPassword, newPassword }) {
+  try {
+    const res = await api.patch('/users/me/change-password', { currentPassword, newPassword })
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Đổi mật khẩu thất bại')
+  }
+}
