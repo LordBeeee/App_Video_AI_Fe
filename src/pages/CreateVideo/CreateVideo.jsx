@@ -22,6 +22,9 @@ const displayResult = selectedVideo
       beginImageUrl: selectedVideo.beginImageUrl,
       endImageUrl: selectedVideo.endImageUrl,
       promptSent: selectedVideo.promptSent,
+      modelName: selectedVideo.modelName,       
+      generationMode: selectedVideo.generationMode,
+      cost: selectedVideo.cost,
     }
   : result
 
@@ -84,12 +87,27 @@ return (
               </div>
             </div>
 
-            {/* <button type="button" className="rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-white">
-              Kling Pro
-            </button> */}
+            {/* Thay button model cũ bằng đoạn này */}
             <button type="button" className="rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-white">
-              {displayResult?.modelName ?? 'Kling Pro'}
+              {displayResult?.modelName ?? 'Kling'}
             </button>
+
+            {/* Thêm badge mode */}
+            {displayResult?.generationMode && (
+              <span className="rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-white">
+                {displayResult.generationMode === 'std' ? '720p'
+                  : displayResult.generationMode === 'pro' ? '1080p'
+                  : displayResult.generationMode === '4k' ? '4K'
+                  : displayResult.generationMode}
+              </span>
+            )}
+
+            {displayResult?.cost > 0 && (
+              <span className="rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-emerald-400">
+                {Math.round(displayResult.cost).toLocaleString('vi-VN')} VND
+              </span>
+            )}
+
             <CopyButton text={displayResult.promptSent} />
           </div>
         </div>

@@ -7,12 +7,18 @@ const STATUS_DOT = {
   failed: 'bg-red-400',
 }
 
+// Label rút gọn cho mode
+const MODE_LABEL = {
+  std: 'Std',
+  pro: 'Pro',
+  '4k': '4K',
+}
+
 export default function VideoHistoryPanel({ history, loading, selectedId, onSelect }) {
   return (
     <section className="flex w-[88px] flex-col overflow-hidden border-l border-slate-800/80 bg-slate-900/40 backdrop-blur-lg">
       <div className="scrollbar-hide flex flex-col gap-2 overflow-y-auto p-2">
         {loading ? (
-          // Skeleton loading
           Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="aspect-square w-full animate-pulse rounded-lg bg-slate-800" />
           ))
@@ -27,7 +33,7 @@ export default function VideoHistoryPanel({ history, loading, selectedId, onSele
               key={item.id}
               type="button"
               onClick={() => onSelect(item)}
-              className={`group relative h-[72px] w-[72px] shrink-0 aspect-square w-full overflow-hidden rounded-lg border-2 transition-all ${
+              className={`group relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
                 selectedId === item.id
                   ? 'border-indigo-500'
                   : 'border-transparent hover:border-slate-600'
@@ -48,13 +54,6 @@ export default function VideoHistoryPanel({ history, loading, selectedId, onSele
 
               {/* Status dot */}
               <span className={`absolute right-1 top-1 h-2 w-2 rounded-full ${STATUS_DOT[item.status] ?? 'bg-slate-500'}`} />
-
-              {/* Overlay khi hover */}
-              <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-                <span className="material-symbols-outlined text-lg text-white">
-                  {item.status === 'succeeded' ? 'play_arrow' : 'hourglass_empty'}
-                </span>
-              </div>
             </button>
           ))
         )}

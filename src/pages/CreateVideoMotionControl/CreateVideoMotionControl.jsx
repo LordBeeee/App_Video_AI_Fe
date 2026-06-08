@@ -30,7 +30,8 @@ export default function CreateVideoMotionControl() {
         referenceVideoUrl: selectedVideo.referenceVideoUrl,
         promptSent: selectedVideo.promptSent,
         modelName: selectedVideo.modelName,
-        resolution: selectedVideo.resolution ?? null,
+        generationMode: selectedVideo.generationMode,
+        cost: selectedVideo.cost,
       }
     : result
 
@@ -109,11 +110,22 @@ export default function CreateVideoMotionControl() {
                   type="button"
                   className="rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-white"
                 >
-                  {displayResult?.modelName ?? 'Kling Pro'}
-                  {displayResult?.resolution && (
-                    <span className="ml-1 text-slate-400">/ {displayResult.resolution}</span>
-                  )}
+                  {displayResult?.modelName ?? 'Kling'}
                 </button>
+                {displayResult?.generationMode && (
+                  <span className="rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-white">
+                    {displayResult.generationMode === 'std' ? '720p'
+                      : displayResult.generationMode === 'pro' ? '1080p'
+                      : displayResult.generationMode === '4k' ? '4K'
+                      : displayResult.generationMode}
+                  </span>
+                )}
+
+                {displayResult?.cost > 0 && (
+                  <span className="rounded-md bg-slate-800 px-4 py-2 text-sm font-semibold text-emerald-400">
+                    {Math.round(displayResult.cost).toLocaleString('vi-VN')} VND
+                  </span>
+                )}
 
                 <CopyButton text={displayResult.promptSent} />
               </div>
