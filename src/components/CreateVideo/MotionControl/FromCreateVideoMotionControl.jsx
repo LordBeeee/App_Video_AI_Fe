@@ -21,6 +21,14 @@ export default function FromCreateVideoMotionControl({ onSubmit, isSubmitting, s
 
   const submittedBlobsRef = useRef({ char: null, video: null })
 
+  const textareaRef = useRef(null)
+
+  const handlePromptInput = () => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = "auto"
+    el.style.height = `${el.scrollHeight}px`
+  }
   // ── Tính giá ──
   const selectedModelCode = models.find((m) => String(m.id) === modelId)?.code ?? ""
   const resolution = mode === "pro" ? "1080p" : "720p"
@@ -54,6 +62,8 @@ export default function FromCreateVideoMotionControl({ onSubmit, isSubmitting, s
     if (characterImagePreview && characterImagePreview !== submittedBlobsRef.current.char) {
       URL.revokeObjectURL(characterImagePreview)
     }
+    if (textareaRef.current) textareaRef.current.style.height = "auto"
+    
     setReferenceVideo(null)
     setReferenceVideoPreview(null)
     setVideoDuration(null)
@@ -302,9 +312,11 @@ export default function FromCreateVideoMotionControl({ onSubmit, isSubmitting, s
           {/* Prompt */}
           <div className="shrink-0">
             <textarea
+              ref={textareaRef}
               rows={1}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
+              onInput={handlePromptInput}
               className="min-h-[160px] w-full resize-none overflow-hidden rounded-xl border border-slate-700 bg-slate-800 p-4 font-mono text-sm leading-6 text-white outline-none placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               placeholder="Khi hướng nhân vật khớp với video, các chuyển động phức tạp sẽ được thực hiện tốt hơn; khi hướng nhân vật khớp với hình ảnh, chuyển động máy quay sẽ được hỗ trợ tốt hơn."
             />
