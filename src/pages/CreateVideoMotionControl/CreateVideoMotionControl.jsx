@@ -22,7 +22,8 @@ export default function CreateVideoMotionControl() {
     setTimeout(() => refetch(), 2000)
   }
 
-  const videoToShow = selectedVideo?.videoUrl ?? videoUrl
+  // const videoToShow = selectedVideo?.videoUrl ?? videoUrl
+  const videoToShow = selectedVideo?.videoUrl ?? (status === 'succeeded' ? videoUrl : null)
 
   const displayResult = selectedVideo
     ? {

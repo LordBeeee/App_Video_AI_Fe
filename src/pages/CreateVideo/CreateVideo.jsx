@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import FromCreateVideo from "../../components/CreateVideo/FromCreateVideo"
 import VideoHistoryPanel from "../../components/CreateVideo/VideoHistoryPanel"
 import { useCreateVideo } from "../../hooks/useCreateVideo"
@@ -16,7 +16,9 @@ const [selectedVideo, setSelectedVideo] = useState(null)
 
 // Khi tạo video xong → refetch history + hiển thị video mới
 const displayStatus = selectedVideo ? 'succeeded' : status
-const displayVideoUrl = selectedVideo?.videoUrl ?? videoUrl
+const displayVideoUrl = selectedVideo?.videoUrl 
+  ?? (status === 'succeeded' ? videoUrl : null)
+
 const displayResult = selectedVideo
   ? {
       beginImageUrl: selectedVideo.beginImageUrl,
@@ -38,15 +40,14 @@ const handleSelectHistory = (item) => {
 }
 
 // Khi bắt đầu tạo video mới → bỏ selected history
-const wrappedHook = {
+const wrappedHook = useMemo(() => ({
   ...createVideoHook,
   submitCreateVideo: async (params) => {
     setSelectedVideo(null)
     await createVideoHook.submitCreateVideo(params)
-    // Refetch history sau khi submit
     setTimeout(() => refetch(), 2000)
   },
-}
+}), [createVideoHook, refetch])
 
 return (
   <div>
