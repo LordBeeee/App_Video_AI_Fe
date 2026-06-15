@@ -134,7 +134,7 @@ export default function SpendingChart({
       </div>
 
       {/* Chart body */}
-      <div className="w-full mt-4" style={{ display: 'grid', gridTemplateColumns: '72px 1fr' }}>
+      <div className="w-full mt-4" style={{ display: 'grid', gridTemplateColumns: '51px 1fr' }}>
         {/* Y-axis — wider để chứa số VND lớn */}
         <div className="flex flex-col justify-between pb-6 pr-2" style={{ overflow: 'hidden' }}>
           {yLabels.map((v) => (
