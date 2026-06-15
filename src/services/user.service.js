@@ -130,3 +130,23 @@ export async function changePasswordApi({ currentPassword, newPassword }) {
     throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Đổi mật khẩu thất bại')
   }
 }
+
+export async function getSystemStatsApi() {
+  try {
+    const res = await api.get('/users/system-stats')
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Lấy thống kê hệ thống thất bại')
+  }
+}
+
+export async function getSystemDailyStatsApi({ month, year }) {
+  try {
+    const res = await api.get('/users/system-daily-stats', { params: { month, year } })
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Lấy thống kê ngày hệ thống thất bại')
+  }
+}
