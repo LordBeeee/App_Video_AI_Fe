@@ -12,16 +12,19 @@ import Library from './pages/Library/Library'
 import Employees from './pages/Employees/Employees'
 import EmployeeDetail from './pages/Employees/EmployeeDetail'
 import Profile from './pages/Profile/Profile'
+import Project from './pages/Project/Project'
+
 function App() {
   return (
     <Routes>
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={ <MainLayout> <Home /> </MainLayout>}/>
         <Route path="/create-video" element={ <MainLayout> <CreateVideo /> </MainLayout>}/>
-        <Route path="/create-video-flow" element={ <MainLayout> <CreateVideoFlow /> </MainLayout>}/>
+        {/* <Route path="/create-video-flow" element={ <MainLayout> <CreateVideoFlow /> </MainLayout>}/> */}
         <Route path="/create-video-motion-control" element={ <MainLayout> <CreateVideoMotionControl /> </MainLayout>}/>
         <Route path="/library" element={ <MainLayout> <Library /> </MainLayout>}/>
         <Route path="/profile" element={ <MainLayout> <Profile /> </MainLayout>}/>
+        <Route path="/projects" element={ <MainLayout> <Project /> </MainLayout>}/>
 
         <Route element={<AdminRoute />}>
           <Route path="/employees" element={<MainLayout><Employees /></MainLayout>} />
