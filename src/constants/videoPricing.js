@@ -35,6 +35,18 @@ export const VIDEO_PRICING = {
     },
   },
 
+  /* ── BytePlus Seedance 2.0 ─────────────────────────────────────── */
+  'dreamina-seedance-2-0-260128': {
+    label: 'Seedance 2.0',
+    currency: 'VND',
+    video: {
+      // TODO: cập nhật giá thực tế khi có thông tin từ BytePlus
+      // std:  { noAudio: 2000, withAudio: 3000 },
+      // pro:  { noAudio: 3500, withAudio: 5000 },
+    },
+    motionControl: null, // Seedance chưa hỗ trợ motion control
+  },
+
   /* ── ChatGPT Video (placeholder – fill when available) ────────── */
   // 'chatgpt-video': {
   //   label: 'ChatGPT Video',

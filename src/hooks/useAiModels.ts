@@ -1,24 +1,56 @@
 import { useState, useEffect } from 'react';
-import { getModelsByProvider } from '../services/aiModel.service';
+import { getModelsByProvider, getModelsByType  } from '../services/aiModel.service';
 
-export function useAiModels(providerCode: string) {
-  const [models, setModels] = useState([]);
-  const [loading, setLoading] = useState(true);
+// export function useAiModels(providerCode: string) {
+//   const [models, setModels] = useState([]);
+//   const [loading, setLoading] = useState(true);
 
+//   useEffect(() => {
+//     getModelsByProvider(providerCode)
+//       .then((data) => {
+//         const list = Array.isArray(data) ? data : data?.data ?? [];
+//         setModels(list);
+//       })
+//       .catch((err) => {
+//         console.error('Lỗi fetch models:', err);
+//         setModels([]);
+//       })
+//       .finally(() => setLoading(false));
+//   }, [providerCode]);
+
+//   return { models, loading };
+// }
+
+export function useAiModels(
+  options: { modelType?: string; providerCode?: string } | string = {},
+) {
+  const [models, setModels] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+ 
+  // Backward-compat: nếu truyền string thì coi là providerCode
+  const opts =
+    typeof options === 'string' ? { providerCode: options } : options
+ 
+  const { modelType, providerCode } = opts
+ 
   useEffect(() => {
-    getModelsByProvider(providerCode)
+    setLoading(true)
+ 
+    const fetcher = modelType
+      ? getModelsByType(modelType)
+      : getModelsByProvider(providerCode ?? '')
+ 
+    fetcher
       .then((data) => {
-        console.log('API response:', data); // xem BE trả về gì
-        // Tuỳ BE trả về dạng nào
-        const list = Array.isArray(data) ? data : data?.data ?? [];
-        setModels(list);
+        const list = Array.isArray(data) ? data : data?.data ?? []
+        setModels(list)
       })
       .catch((err) => {
-        console.error('Lỗi fetch models:', err);
-        setModels([]);
+        console.error('Lỗi fetch models:', err)
+        setModels([])
       })
-      .finally(() => setLoading(false));
-  }, [providerCode]);
-
-  return { models, loading };
+      .finally(() => setLoading(false))
+  }, [modelType, providerCode])
+ 
+  return { models, loading }
 }

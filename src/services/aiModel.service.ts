@@ -6,3 +6,10 @@ export const getModelsByProvider = async (providerCode: string) => {
   });
   return response.data;
 };
+
+export const getModelsByType = async (modelType: string) => {
+  const response = await api.get('/ai-models', {
+    params: { modelType },
+  })
+  return response.data
+}
