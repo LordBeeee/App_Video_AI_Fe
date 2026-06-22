@@ -4,7 +4,7 @@ import { useAiModels } from "../../../hooks/useAiModels"
 import { calcMotionControlPrice } from "../../../constants/videoPricing"
 
 export default function FromCreateVideoMotionControl({ onSubmit, isSubmitting, status }) {
-  const { models = [], loading: modelsLoading } = useAiModels("kling")
+  const { models = [], loading: modelsLoading } = useAiModels({ supportsMotionControl: true })
 
   const [modelId, setModelId] = useState("")
   const [characterOrientation, setCharacterOrientation] = useState("video")

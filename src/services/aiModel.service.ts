@@ -13,3 +13,10 @@ export const getModelsByType = async (modelType: string) => {
   })
   return response.data
 }
+
+export const getMotionControlModels = async () => {
+  const response = await api.get('/ai-models', {
+    params: { supportsMotionControl: true },
+  });
+  return response.data;
+};

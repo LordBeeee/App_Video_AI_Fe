@@ -1,28 +1,8 @@
 import { useState, useEffect } from 'react';
-import { getModelsByProvider, getModelsByType  } from '../services/aiModel.service';
-
-// export function useAiModels(providerCode: string) {
-//   const [models, setModels] = useState([]);
-//   const [loading, setLoading] = useState(true);
-
-//   useEffect(() => {
-//     getModelsByProvider(providerCode)
-//       .then((data) => {
-//         const list = Array.isArray(data) ? data : data?.data ?? [];
-//         setModels(list);
-//       })
-//       .catch((err) => {
-//         console.error('Lỗi fetch models:', err);
-//         setModels([]);
-//       })
-//       .finally(() => setLoading(false));
-//   }, [providerCode]);
-
-//   return { models, loading };
-// }
+import { getModelsByProvider, getModelsByType, getMotionControlModels } from '../services/aiModel.service';
 
 export function useAiModels(
-  options: { modelType?: string; providerCode?: string } | string = {},
+  options: { modelType?: string; providerCode?: string; supportsMotionControl?: boolean } | string = {},
 ) {
   const [models, setModels] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,14 +11,16 @@ export function useAiModels(
   const opts =
     typeof options === 'string' ? { providerCode: options } : options
  
-  const { modelType, providerCode } = opts
+  const { modelType, providerCode, supportsMotionControl } = opts
  
   useEffect(() => {
     setLoading(true)
  
-    const fetcher = modelType
-      ? getModelsByType(modelType)
-      : getModelsByProvider(providerCode ?? '')
+    const fetcher = supportsMotionControl !== undefined
+      ? getMotionControlModels()
+      : modelType
+        ? getModelsByType(modelType)
+        : getModelsByProvider(providerCode ?? '')
  
     fetcher
       .then((data) => {
@@ -50,7 +32,7 @@ export function useAiModels(
         setModels([])
       })
       .finally(() => setLoading(false))
-  }, [modelType, providerCode])
+  }, [modelType, providerCode, supportsMotionControl])
  
   return { models, loading }
 }
