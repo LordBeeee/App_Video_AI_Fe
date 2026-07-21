@@ -1,9 +1,4 @@
-/** Maps UI resolution labels → API mode strings */
-export const RESOLUTION_TO_MODE = {
-  '720p':  'std',
-  '1080p': 'pro',
-  '4k':    '4k',
-}
+import { RESOLUTION_TO_MODE } from './videoOptions.js'
 
 export const VIDEO_PRICING = {
   /* ── Kling v3 ─────────────────────────────────────────────────── */

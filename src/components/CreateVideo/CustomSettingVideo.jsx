@@ -1,6 +1,8 @@
-// import { useEffect, useRef, useState, useMemo } from "react"
-
+// import { useEffect, useRef, useState } from "react"
+// import { VIDEO_PRICING } from "../../constants/videoPricing"
+// import { RESOLUTION_TO_MODE } from "../../constants/videoOptions"
 // export default function CustomSettingVideo({
+//   modelCode,          // ← NEW
 //   resolution,
 //   setResolution,
 //   length,
@@ -10,6 +12,34 @@
 // }) {
 //   const [settingsOpen, setSettingsOpen] = useState(false)
 //   const settingRef = useRef(null)
+
+//   // ── derive per-model constraints from pricing table ──────────────
+//   const pricing = VIDEO_PRICING[modelCode]
+
+//   const availableResolutions = !pricing
+//   ? ["720p", "1080p", "4K"]  // fallback: hiện hết khi không có pricing data
+//   : ["720p", "1080p", "4K"].filter((r) => {
+//       const mode = RESOLUTION_TO_MODE[r.toLowerCase()]
+//       return !!pricing.video?.[mode]
+//     })
+
+//   const audioAllowed = (() => {
+//     const mode = RESOLUTION_TO_MODE[resolution?.toLowerCase()] ?? "pro"
+//     return !!pricing?.video?.[mode]?.withAudio
+//   })()
+
+//   // ── auto-correct invalid combos when constraints change ──────────
+//   useEffect(() => {
+//     if (!availableResolutions.includes(resolution)) {
+//       setResolution(availableResolutions[0] ?? "1080p")
+//     }
+//   }, [modelCode]) // eslint-disable-line react-hooks/exhaustive-deps
+
+//   useEffect(() => {
+//     if (!audioAllowed && nativeAudio) {
+//       setNativeAudio(false)
+//     }
+//   }, [audioAllowed]) // eslint-disable-line react-hooks/exhaustive-deps
 
 //   useEffect(() => {
 //     const handleClickOutside = (event) => {
@@ -31,8 +61,6 @@
 //       >
 //         <span className="material-symbols-outlined text-[14px]">hexagon</span>
 //         <span>{resolution} · {length}s · {nativeAudio ? "On" : "Off"}</span>
-
-
 //         <span className="material-symbols-outlined text-[14px]">
 //           {settingsOpen ? "keyboard_arrow_down" : "keyboard_arrow_up"}
 //         </span>
@@ -45,8 +73,11 @@
 //           {/* Resolution */}
 //           <div className="mb-5">
 //             <p className="mb-2 text-sm text-slate-300">Mode</p>
-//             <div className="grid grid-cols-3 overflow-hidden rounded-lg bg-[#222328]">
-//               {["720p", "1080p", "4K"].map((item) => (
+//             <div
+//               className="overflow-hidden rounded-lg bg-[#222328]"
+//               style={{ display: "grid", gridTemplateColumns: `repeat(${availableResolutions.length}, 1fr)` }}
+//             >
+//               {availableResolutions.map((item) => (
 //                 <button
 //                   key={item}
 //                   type="button"
@@ -86,41 +117,64 @@
 //           {/* Sound */}
 //           <div className="mb-5">
 //             <p className="mb-2 text-sm text-slate-300">Sound</p>
-//             <div className="grid grid-cols-2 overflow-hidden rounded-lg bg-[#222328]">
-//               {[
-//                 { label: "Off", value: false },
-//                 { label: "On",  value: true  },
-//               ].map(({ label, value }) => (
+//             <div
+//               className="overflow-hidden rounded-lg bg-[#222328]"
+//               style={{ display: "grid", gridTemplateColumns: audioAllowed ? "1fr 1fr" : "1fr" }}
+//             >
+//               {/* Off — always shown */}
+//               <button
+//                 type="button"
+//                 onClick={() => setNativeAudio(false)}
+//                 className={`flex items-center justify-center gap-2 py-3 text-sm font-semibold transition ${
+//                   !nativeAudio
+//                     ? "bg-[#3a3b40] text-white"
+//                     : "text-slate-400 hover:bg-white/5"
+//                 }`}
+//               >
+//                 <span className="material-symbols-outlined text-[16px]">volume_off</span>
+//                 Off
+//               </button>
+
+//               {/* On — only when audioAllowed */}
+//               {audioAllowed && (
 //                 <button
-//                   key={label}
 //                   type="button"
-//                   onClick={() => setNativeAudio(value)}
+//                   onClick={() => setNativeAudio(true)}
 //                   className={`flex items-center justify-center gap-2 py-3 text-sm font-semibold transition ${
-//                     nativeAudio === value
+//                     nativeAudio
 //                       ? "bg-[#3a3b40] text-white"
 //                       : "text-slate-400 hover:bg-white/5"
 //                   }`}
 //                 >
-//                   <span className="material-symbols-outlined text-[16px]">
-//                     {value ? "volume_up" : "volume_off"}
-//                   </span>
-//                   {label}
+//                   <span className="material-symbols-outlined text-[16px]">volume_up</span>
+//                   On
 //                 </button>
-//               ))}
+//               )}
 //             </div>
 //           </div>
+
 //         </div>
 //       )}
 //     </div>
 //   )
 // }
+
 import { useEffect, useRef, useState } from "react"
-import { VIDEO_PRICING, RESOLUTION_TO_MODE } from "../../constants/videoPricing"
+import { VIDEO_PRICING } from "../../constants/videoPricing"
+import {
+  RESOLUTION_TO_MODE,
+  KLING_RESOLUTIONS,
+  BYTEPLUS_RESOLUTIONS,
+  BYTEPLUS_RATIOS,
+} from "../../constants/videoOptions"
 
 export default function CustomSettingVideo({
-  modelCode,          // ← NEW
+  modelCode,
+  isByteplus = false,     // ← NEW: true khi model thuộc provider BytePlus
   resolution,
   setResolution,
+  ratio,                  // ← NEW: chỉ dùng khi isByteplus
+  setRatio,               // ← NEW
   length,
   setLength,
   nativeAudio,
@@ -129,22 +183,33 @@ export default function CustomSettingVideo({
   const [settingsOpen, setSettingsOpen] = useState(false)
   const settingRef = useRef(null)
 
-  // ── derive per-model constraints from pricing table ──────────────
   const pricing = VIDEO_PRICING[modelCode]
 
-  const availableResolutions = !pricing
-  ? ["720p", "1080p", "4K"]  // fallback: hiện hết khi không có pricing data
-  : ["720p", "1080p", "4K"].filter((r) => {
-      const mode = RESOLUTION_TO_MODE[r.toLowerCase()]
-      return !!pricing.video?.[mode]
-    })
+  // ── Resolution options theo provider ──────────────────────────────
+  const availableResolutions = isByteplus
+    ? BYTEPLUS_RESOLUTIONS
+    : (!pricing
+        ? KLING_RESOLUTIONS
+        : KLING_RESOLUTIONS.filter((r) => {
+            const mode = RESOLUTION_TO_MODE[r.toLowerCase()]
+            return !!pricing.video?.[mode]
+          }))
 
-  const audioAllowed = (() => {
-    const mode = RESOLUTION_TO_MODE[resolution?.toLowerCase()] ?? "pro"
-    return !!pricing?.video?.[mode]?.withAudio
-  })()
+  // ── Audio khả dụng ──────────────────────────────────────────────
+  // BytePlus (Seedance 2.0 series & 1.5 Pro): generate_audio luôn hỗ trợ → cho phép toggle tự do
+  // Kling: phụ thuộc bảng giá pricing (per mode)
+  const audioAllowed = isByteplus
+    ? true
+    : (() => {
+        const mode = RESOLUTION_TO_MODE[resolution?.toLowerCase()] ?? "pro"
+        return !!pricing?.video?.[mode]?.withAudio
+      })()
 
-  // ── auto-correct invalid combos when constraints change ──────────
+  // ── Duration range theo provider ──────────────────────────────────
+  const durationMin = isByteplus ? 4 : 3
+  const durationMax = isByteplus ? 15 : 15
+
+  // ── auto-correct invalid combos khi đổi model ─────────────────────
   useEffect(() => {
     if (!availableResolutions.includes(resolution)) {
       setResolution(availableResolutions[0] ?? "1080p")
@@ -156,6 +221,11 @@ export default function CustomSettingVideo({
       setNativeAudio(false)
     }
   }, [audioAllowed]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (length < durationMin) setLength(durationMin)
+    if (length > durationMax) setLength(durationMax)
+  }, [modelCode]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -176,7 +246,10 @@ export default function CustomSettingVideo({
         className="flex h-11 items-center gap-0.5 rounded-lg border border-slate-700 bg-slate-900 px-1 text-[11px] font-semibold text-white transition-all hover:bg-slate-800"
       >
         <span className="material-symbols-outlined text-[14px]">hexagon</span>
-        <span>{resolution} · {length}s · {nativeAudio ? "On" : "Off"}</span>
+        <span>
+          {resolution}
+          {isByteplus && ratio ? ` · ${ratio}` : ''} · {length}s · {nativeAudio ? "On" : "Off"}
+        </span>
         <span className="material-symbols-outlined text-[14px]">
           {settingsOpen ? "keyboard_arrow_down" : "keyboard_arrow_up"}
         </span>
@@ -186,7 +259,7 @@ export default function CustomSettingVideo({
       {settingsOpen && (
         <div className="absolute bottom-full left-0 z-50 mb-3 w-[390px] rounded-xl border border-slate-700 bg-[#18191d] p-4 text-white shadow-2xl">
 
-          {/* Resolution */}
+          {/* Resolution / Mode */}
           <div className="mb-5">
             <p className="mb-2 text-sm text-slate-300">Mode</p>
             <div
@@ -210,6 +283,29 @@ export default function CustomSettingVideo({
             </div>
           </div>
 
+          {/* Ratio — chỉ hiện với BytePlus/Seedance */}
+          {isByteplus && (
+            <div className="mb-5">
+              <p className="mb-2 text-sm text-slate-300">Ratio</p>
+              <div className="grid grid-cols-4 gap-1.5">
+                {BYTEPLUS_RATIOS.map(({ label, value }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setRatio(value)}
+                    className={`rounded-lg py-2 text-xs font-semibold transition ${
+                      ratio === value
+                        ? "bg-[#3a3b40] text-white"
+                        : "bg-[#222328] text-slate-300 hover:bg-white/5"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Duration */}
           <div className="mb-5">
             <div className="mb-3 flex items-center justify-between text-sm text-slate-300">
@@ -217,20 +313,20 @@ export default function CustomSettingVideo({
               <span className="font-semibold text-white">{length}s</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-sm text-slate-400">3s</span>
+              <span className="text-sm text-slate-400">{durationMin}s</span>
               <input
                 type="range"
-                min="3"
-                max="15"
+                min={durationMin}
+                max={durationMax}
                 value={length}
                 onChange={(e) => setLength(Number(e.target.value))}
                 className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-slate-700 accent-white"
               />
-              <span className="text-sm text-slate-400">15s</span>
+              <span className="text-sm text-slate-400">{durationMax}s</span>
             </div>
           </div>
 
-          {/* Sound */}
+          {/* Sound / generate_audio */}
           <div className="mb-5">
             <p className="mb-2 text-sm text-slate-300">Sound</p>
             <div
