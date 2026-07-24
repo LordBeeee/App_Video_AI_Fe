@@ -43,8 +43,9 @@
 //    * @param {object} params
 //    * @param {string|number} params.modelId
 //    * @param {string}  params.resolution
+//    * @param {string}  [params.ratio]        - '16:9' | '9:16' | ... (chỉ dùng cho BytePlus/Seedance)
 //    * @param {string}  params.duration
-//    * @param {string}  params.mode          - 'std' | 'pro' | '4k'
+//    * @param {string}  params.mode          - 'std' | 'pro' | '4k' (chỉ có ý nghĩa với Kling)
 //    * @param {string}  params.prompt        - prompt thường / intelligence mode
 //    * @param {string}  [params.negativePrompt]
 //    * @param {File}    params.startImageFile
@@ -52,15 +53,15 @@
 //    * @param {string}  [params.sound]       - 'on' | 'off'
 //    * @param {number}  [params.cost]
 //    *
-//    * ── Multi-Shot ──────────────────────────────────────────────────────────
-//    * @param {boolean} [params.multiShot]   - bật multi-shot
+//    * ── Multi-Shot (chỉ Kling) ──────────────────────────────────────────────
+//    * @param {boolean} [params.multiShot]
 //    * @param {string}  [params.shotType]    - 'customize' | 'intelligence'
 //    * @param {Array}   [params.multiPrompt] - [{index, prompt, duration}]
-//    *   chỉ dùng khi shotType='customize'
 //    */
 //   const submitCreateVideo = useCallback(async ({
 //     modelId,
 //     resolution,
+//     ratio,
 //     duration,
 //     mode,
 //     prompt,
@@ -90,19 +91,19 @@
 //       formData.append('sound',       sound)
 //       formData.append('cost',        String(cost))
 
+//       if (ratio) formData.append('ratio', ratio)
 //       if (negativePrompt) formData.append('negativePrompt', negativePrompt)
 
 //       formData.append('startImage', startImageFile)
 //       if (endImageFile) formData.append('endImage', endImageFile)
 
-//       // ── Multi-Shot params ──────────────────────────────────────────────
+//       // ── Multi-Shot params (Kling only) ─────────────────────────────────
 //       formData.append('multiShot', String(multiShot))
 
 //       if (multiShot && shotType) {
 //         formData.append('shotType', shotType)
 //       }
 
-//       // multiPrompt chỉ gửi khi customize mode
 //       if (multiShot && shotType === 'customize' && Array.isArray(multiPrompt)) {
 //         formData.append('multiPrompt', JSON.stringify(multiPrompt))
 //       }
@@ -129,7 +130,6 @@
 //     stopPolling,
 //   }
 // }
-
 import { useState, useRef, useCallback } from 'react'
 import { createVideoApi, getVideoStatusApi } from '../services/videoGeneration.service'
 
@@ -180,8 +180,10 @@ export function useCreateVideo() {
    * @param {string}  params.mode          - 'std' | 'pro' | '4k' (chỉ có ý nghĩa với Kling)
    * @param {string}  params.prompt        - prompt thường / intelligence mode
    * @param {string}  [params.negativePrompt]
-   * @param {File}    params.startImageFile
+   * @param {File}    [params.startImageFile]
    * @param {File}    [params.endImageFile]
+   * @param {number}  [params.startImageAssetId] - id ảnh có sẵn trong thư viện (ưu tiên hơn file)
+   * @param {number}  [params.endImageAssetId]
    * @param {string}  [params.sound]       - 'on' | 'off'
    * @param {number}  [params.cost]
    *
@@ -200,6 +202,8 @@ export function useCreateVideo() {
     negativePrompt,
     startImageFile,
     endImageFile,
+    startImageAssetId,
+    endImageAssetId,
     sound      = 'off',
     cost       = 0,
     multiShot  = false,
@@ -226,8 +230,19 @@ export function useCreateVideo() {
       if (ratio) formData.append('ratio', ratio)
       if (negativePrompt) formData.append('negativePrompt', negativePrompt)
 
-      formData.append('startImage', startImageFile)
-      if (endImageFile) formData.append('endImage', endImageFile)
+      // ── Start image: ưu tiên asset có sẵn trong thư viện, không thì upload file mới ──
+      if (startImageAssetId) {
+        formData.append('startImageAssetId', String(startImageAssetId))
+      } else if (startImageFile) {
+        formData.append('startImage', startImageFile)
+      }
+
+      // ── End image: tương tự ──
+      if (endImageAssetId) {
+        formData.append('endImageAssetId', String(endImageAssetId))
+      } else if (endImageFile) {
+        formData.append('endImage', endImageFile)
+      }
 
       // ── Multi-Shot params (Kling only) ─────────────────────────────────
       formData.append('multiShot', String(multiShot))

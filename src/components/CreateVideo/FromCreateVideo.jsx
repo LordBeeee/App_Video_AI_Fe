@@ -3,6 +3,7 @@
 // import MultiShotPanel from "./MultiShotPanel"
 // import { useAiModels } from '../../hooks/useAiModels'
 // import { calcVideoPrice } from '../../constants/videoPricing'
+// import { RESOLUTION_TO_MODE } from '../../constants/videoOptions'
 
 // const STATUS_LABEL = {
 //   queued:     'Đang chờ xử lý...',
@@ -24,8 +25,6 @@
 //   '4k':    '4k',
 // }
 
-// // ─── helpers ────────────────────────────────────────────────────────────────
-
 // function buildDefaultShots(totalDuration) {
 //   const half = Math.floor(totalDuration / 2)
 //   const rest = totalDuration - half
@@ -35,31 +34,38 @@
 //   ]
 // }
 
-// // ────────────────────────────────────────────────────────────────────────────
-
 // export default function FromCreateVideo({ createVideoHook }) {
 //   const textareaRef = useRef(null)
 
-//   // ── frame ──
 //   const [startFrame, setStartFrame] = useState(null)
 //   const [endFrame,   setEndFrame]   = useState(null)
 //   const [startFile,  setStartFile]  = useState(null)
 //   const [endFile,    setEndFile]    = useState(null)
 
-//   // ── model ──
-//   // const { models, loading: modelsLoading } = useAiModels('kling')
 //   const { models, loading: modelsLoading } = useAiModels({ modelType: 'video_generation' })
 //   const [selectedModel, setSelectedModel]  = useState('')
+
+//   // ── derived: model code + provider ──────────────────────────────────────
+//   const selectedModelData = models.find((m) => String(m.id) === selectedModel)
+//   const selectedModelCode = selectedModelData?.code ?? ''
+//   const isByteplus        = selectedModelData?.provider?.code === 'byteplus'
 
 //   const prevModelRef = useRef(null)
 //   useEffect(() => {
 //     if (prevModelRef.current !== null && prevModelRef.current !== selectedModel) {
 //       setResolution('1080p')
+//       setRatio('adaptive')
 //       setLength(5)
-//       setNativeAudio(false)
+//       // setNativeAudio(false)
+//       setNativeAudio(isByteplus)
+//       // BytePlus chưa hỗ trợ multi-shot → auto tắt khi đổi sang model BytePlus
+//       if (isByteplus) {
+//         setMultiShotEnabled(false)
+//         setIsCustomMode(false)
+//       }
 //     }
 //     prevModelRef.current = selectedModel
-//   }, [selectedModel])
+//   }, [selectedModel]) // eslint-disable-line react-hooks/exhaustive-deps
 
 //   useEffect(() => {
 //     if (models.length > 0) {
@@ -71,12 +77,9 @@
 
 //   // ── settings ──
 //   const [resolution,  setResolution]  = useState('1080p')
+//   const [ratio,       setRatio]       = useState('adaptive')   // ← NEW, chỉ dùng khi isByteplus
 //   const [length,      setLength]      = useState(5)
 //   const [nativeAudio, setNativeAudio] = useState(false)
-
-//   // ── derived: model code + realtime price ──
-//   const selectedModelCode =
-//     models.find((m) => String(m.id) === selectedModel)?.code ?? ''
 
 //   const priceInfo = useMemo(
 //     () => calcVideoPrice({ modelCode: selectedModelCode, resolution, duration: length, nativeAudio }),
@@ -90,31 +93,24 @@
 //     priceInfo.total < 100000  ? 'text-orange-400'  :
 //                                 'text-red-400'
 
-//   // ── prompt thường ──
 //   const [prompt, setPrompt] = useState('')
 
-//   // ── multi-shot ──
 //   const [multiShotEnabled, setMultiShotEnabled] = useState(false)
 //   const [isCustomMode,     setIsCustomMode]     = useState(false)
 //   const [shots,            setShots]            = useState(() => buildDefaultShots(5))
 
-//   // Khi length thay đổi & chưa custom → rebuild shots mặc định
 //   useEffect(() => {
 //     if (!isCustomMode) {
 //       setShots(buildDefaultShots(length))
 //     }
 //   }, [length]) // eslint-disable-line react-hooks/exhaustive-deps
 
-//   // ── hook create video ──
 //   const { submitCreateVideo, isSubmitting, status, error } = createVideoHook
 
-//   // ── derived ──
 //   const totalShotDuration = shots.reduce((sum, s) => sum + s.duration, 0)
 //   const isShotOverLimit   = isCustomMode && totalShotDuration > length
-//   // Customize mode: tổng duration shots phải = length
 //   const isShotUnderLimit  = isCustomMode && totalShotDuration < length
 
-//   // ── handlers ──
 //   const handleImageUpload = useCallback(
 //     (event, type) => {
 //       const file = event.target.files?.[0]
@@ -178,17 +174,20 @@
 //     setEndFile(null)
 //     setPrompt('')
 //     setResolution('1080p')
+//     setRatio('adaptive')
 //     setLength(5)
-//     setNativeAudio(false)
+//     // setNativeAudio(false)
+//     setNativeAudio(isByteplus)
 //     setMultiShotEnabled(false)
 //     setIsCustomMode(false)
 //     setShots(buildDefaultShots(5))
 //     if (textareaRef.current) textareaRef.current.style.height = 'auto'
-//     if (models.length > 0) {
-//       const def = models.find((m) => m.code === 'kling-v3') ?? models[models.length - 1]
-//       setSelectedModel(String(def.id))
-//     }
-//   }, [startFrame, endFrame, models]) // eslint-disable-line react-hooks/exhaustive-deps
+//     // if (models.length > 0) {
+//     //   const def = models.find((m) => m.code === 'kling-v3') ?? models[models.length - 1]
+//     //   setSelectedModel(String(def.id))
+//     // }
+//   // }, [startFrame, endFrame, models])
+//   }, [startFrame, endFrame, isByteplus])
 
 //   const hasAutoResetRef = useRef(false)
 //   const resetFormRef    = useRef(null)
@@ -205,12 +204,14 @@
 //   }, [status])
 
 //   const handleToggleMultiShot = () => {
+//     if (isByteplus) return // Seedance chưa hỗ trợ multi-shot
 //     const next = !multiShotEnabled
 //     setMultiShotEnabled(next)
 //     if (!next) setIsCustomMode(false)
 //   }
 
 //   const handleToggleCustomMode = () => {
+//     if (isByteplus) return
 //     if (!isCustomMode) setShots(buildDefaultShots(length))
 //     setIsCustomMode((prev) => !prev)
 //   }
@@ -228,7 +229,30 @@
 
 //     const mode = RESOLUTION_MODE_MAP[resolution.toLowerCase()] ?? 'pro'
 
-//     // ── Case 1: Multi-Shot + Customize ──────────────────────────────────
+//     // ── Case 0: BytePlus/Seedance — luôn Normal mode, kèm ratio ─────────
+//     if (isByteplus) {
+//       if (!prompt.trim()) {
+//         alert('Vui lòng nhập prompt')
+//         return
+//       }
+
+//       await submitCreateVideo({
+//         modelId:        selectedModel,
+//         resolution:     resolution.toLowerCase(),
+//         ratio,
+//         duration:       String(length),
+//         mode,
+//         sound:          nativeAudio ? 'on' : 'off',
+//         prompt:         prompt.trim(),
+//         multiShot:      false,
+//         startImageFile: startFile,
+//         endImageFile:   endFile,
+//         cost:           Math.round(priceInfo?.total ?? 0),
+//       })
+//       return
+//     }
+
+//     // ── Case 1: Multi-Shot + Customize (Kling) ──────────────────────────
 //     if (multiShotEnabled && isCustomMode) {
 //       if (shots.some((s) => !s.prompt.trim())) {
 //         alert('Vui lòng điền nội dung cho tất cả các shot')
@@ -243,7 +267,6 @@
 //         return
 //       }
 
-//       // Gửi structured multi_prompt thay vì chuỗi ghép
 //       const multiPrompt = shots.map((s, i) => ({
 //         index:    i + 1,
 //         prompt:   s.prompt.trim(),
@@ -256,7 +279,7 @@
 //         duration:       String(length),
 //         mode,
 //         sound:          nativeAudio ? 'on' : 'off',
-//         prompt:         '',            // không dùng khi customize
+//         prompt:         '',
 //         multiShot:      true,
 //         shotType:       'customize',
 //         multiPrompt,
@@ -267,7 +290,7 @@
 //       return
 //     }
 
-//     // ── Case 2: Multi-Shot + Intelligence ───────────────────────────────
+//     // ── Case 2: Multi-Shot + Intelligence (Kling) ───────────────────────
 //     if (multiShotEnabled && !isCustomMode) {
 //       if (!prompt.trim()) {
 //         alert('Vui lòng nhập prompt để Kling tự phân cảnh')
@@ -283,7 +306,6 @@
 //         prompt:         prompt.trim(),
 //         multiShot:      true,
 //         shotType:       'intelligence',
-//         // multiPrompt không gửi khi intelligence
 //         startImageFile: startFile,
 //         endImageFile:   endFile,
 //         cost:           Math.round(priceInfo?.total ?? 0),
@@ -291,7 +313,7 @@
 //       return
 //     }
 
-//     // ── Case 3: Normal (không multi-shot) ────────────────────────────────
+//     // ── Case 3: Normal (Kling, không multi-shot) ────────────────────────
 //     if (!prompt.trim()) {
 //       alert('Vui lòng nhập prompt')
 //       return
@@ -311,7 +333,6 @@
 //     })
 //   }
 
-//   // ── Submit button disabled logic ─────────────────────────────────────────
 //   const isProcessing = isSubmitting || status === 'queued' || status === 'processing'
 
 //   const isSubmitDisabled = (() => {
@@ -320,14 +341,11 @@
 //     if (isShotOverLimit || isShotUnderLimit) return true
 
 //     if (multiShotEnabled && isCustomMode) {
-//       // Customize: cần ít nhất 1 shot có prompt
 //       return shots.every((s) => !s.prompt.trim())
 //     }
-//     // Normal hoặc intelligence: cần prompt
 //     return !prompt.trim()
 //   })()
 
-//   // ────────────────────────────────────────────────────────────────────────
 //   return (
 //     <section className="flex h-full w-[460px] flex-col overflow-hidden border-r border-slate-800/80 bg-slate-900/40 p-6 backdrop-blur-lg">
 //       <div className="flex h-full min-h-0 flex-col">
@@ -360,7 +378,6 @@
 
 //           {/* ── Frame upload ── */}
 //           <div className="grid shrink-0 grid-cols-2 items-start gap-3">
-//             {/* Start Frame */}
 //             <label
 //               className={`group relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-slate-700 bg-slate-800 transition-all hover:border-indigo-500/50 ${
 //                 startFrame ? 'aspect-square' : 'h-[150px]'
@@ -398,7 +415,6 @@
 //               )}
 //             </label>
 
-//             {/* End Frame */}
 //             <label
 //               className={`group relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-slate-700 bg-slate-800 transition-all hover:border-indigo-500/50 ${
 //                 startFrame ? 'aspect-square' : 'h-[150px]'
@@ -441,8 +457,7 @@
 //           </div>
 
 //           {/* ── Prompt / MultiShotPanel ── */}
-//           {multiShotEnabled && isCustomMode ? (
-//             // ── Customize: MultiShotPanel (shot_type = customize) ──
+//           {multiShotEnabled && isCustomMode && !isByteplus ? (
 //             <div className="shrink-0">
 //               <MultiShotPanel
 //                 shots={shots}
@@ -451,7 +466,6 @@
 //               />
 //             </div>
 //           ) : (
-//             // ── Normal hoặc Intelligence: textarea thông thường ──
 //             <textarea
 //               ref={textareaRef}
 //               value={prompt}
@@ -490,12 +504,14 @@
 //         {/* ── Bottom actions ── */}
 //         <div className="shrink-0 space-y-3 border-t border-slate-800/80 pt-4">
 
-//           {/* Row 1: Settings + Reset + Multi-Shot controls */}
 //           <div className="flex items-center justify-between gap-2">
 //             <CustomSettingVideo
 //               modelCode={selectedModelCode}
+//               isByteplus={isByteplus}
 //               resolution={resolution}
 //               setResolution={setResolution}
+//               ratio={ratio}
+//               setRatio={setRatio}
 //               length={length}
 //               setLength={setLength}
 //               nativeAudio={nativeAudio}
@@ -512,54 +528,55 @@
 //               <span className="material-symbols-outlined text-[18px]">restart_alt</span>
 //             </button>
 
-//             {/* Multi-Shot toggle + Custom button */}
-//             <div className="flex shrink-0 items-center gap-1 rounded-lg border border-slate-700/60 bg-slate-800/60 p-1">
-//               <button
-//                 type="button"
-//                 onClick={handleToggleMultiShot}
-//                 className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-semibold transition-all ${
-//                   multiShotEnabled
-//                     ? 'bg-emerald-500/20 text-emerald-400'
-//                     : 'text-slate-400 hover:text-slate-300'
-//                 }`}
-//               >
-//                 <span
-//                   className={`relative inline-flex h-3.5 w-6 shrink-0 rounded-full transition-colors ${
-//                     multiShotEnabled ? 'bg-emerald-500' : 'bg-slate-600'
+//             {/* Multi-Shot toggle — ẩn hoàn toàn khi model là BytePlus */}
+//             {!isByteplus && (
+//               <div className="flex shrink-0 items-center gap-1 rounded-lg border border-slate-700/60 bg-slate-800/60 p-1">
+//                 <button
+//                   type="button"
+//                   onClick={handleToggleMultiShot}
+//                   className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-semibold transition-all ${
+//                     multiShotEnabled
+//                       ? 'bg-emerald-500/20 text-emerald-400'
+//                       : 'text-slate-400 hover:text-slate-300'
 //                   }`}
 //                 >
 //                   <span
-//                     className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-white shadow transition-all ${
-//                       multiShotEnabled ? 'left-3' : 'left-0.5'
+//                     className={`relative inline-flex h-3.5 w-6 shrink-0 rounded-full transition-colors ${
+//                       multiShotEnabled ? 'bg-emerald-500' : 'bg-slate-600'
 //                     }`}
-//                   />
-//                 </span>
-//                 Multi-Shot
-//               </button>
+//                   >
+//                     <span
+//                       className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-white shadow transition-all ${
+//                         multiShotEnabled ? 'left-3' : 'left-0.5'
+//                       }`}
+//                     />
+//                   </span>
+//                   Multi-Shot
+//                 </button>
 
-//               <span className="h-4 w-px bg-slate-700" />
+//                 <span className="h-4 w-px bg-slate-700" />
 
-//               <button
-//                 type="button"
-//                 onClick={handleToggleCustomMode}
-//                 disabled={!multiShotEnabled}
-//                 className={`flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[11px] font-semibold transition-all ${
-//                   !multiShotEnabled
-//                     ? 'cursor-not-allowed text-slate-600'
-//                     : isCustomMode
-//                     ? 'text-indigo-400 hover:text-indigo-300'
-//                     : 'text-slate-400 hover:text-slate-300'
-//                 }`}
-//               >
-//                 Custom
-//                 <span className="material-symbols-outlined text-[13px]">
-//                   {isCustomMode ? 'keyboard_arrow_down' : 'chevron_right'}
-//                 </span>
-//               </button>
-//             </div>
+//                 <button
+//                   type="button"
+//                   onClick={handleToggleCustomMode}
+//                   disabled={!multiShotEnabled}
+//                   className={`flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[11px] font-semibold transition-all ${
+//                     !multiShotEnabled
+//                       ? 'cursor-not-allowed text-slate-600'
+//                       : isCustomMode
+//                       ? 'text-indigo-400 hover:text-indigo-300'
+//                       : 'text-slate-400 hover:text-slate-300'
+//                   }`}
+//                 >
+//                   Custom
+//                   <span className="material-symbols-outlined text-[13px]">
+//                     {isCustomMode ? 'keyboard_arrow_down' : 'chevron_right'}
+//                   </span>
+//                 </button>
+//               </div>
+//             )}
 //           </div>
-        
-//           {/* Row 3: Price + Submit */}
+
 //           <div className="grid grid-cols-[minmax(0,4fr)_minmax(0,6fr)] items-center gap-3">
 
 //             <div className="flex h-[52px] min-w-0 items-center justify-center rounded-lg border border-slate-700/60 bg-slate-800/50 px-3">
@@ -599,9 +616,11 @@
 //     </section>
 //   )
 // }
+
 import { useRef, useState, useCallback, useEffect, useMemo } from "react"
 import CustomSettingVideo from "./CustomSettingVideo"
 import MultiShotPanel from "./MultiShotPanel"
+import AssetPickerModal from "./AssetPickerModal"
 import { useAiModels } from '../../hooks/useAiModels'
 import { calcVideoPrice } from '../../constants/videoPricing'
 import { RESOLUTION_TO_MODE } from '../../constants/videoOptions'
@@ -642,6 +661,11 @@ export default function FromCreateVideo({ createVideoHook }) {
   const [endFrame,   setEndFrame]   = useState(null)
   const [startFile,  setStartFile]  = useState(null)
   const [endFile,    setEndFile]    = useState(null)
+
+  // ── Reuse ảnh có sẵn trong thư viện (không upload lại lên Cloudinary) ──
+  const [startAssetId, setStartAssetId] = useState(null)
+  const [endAssetId,   setEndAssetId]   = useState(null)
+  const [pickerTarget, setPickerTarget] = useState(null) // 'start' | 'end' | null
 
   const { models, loading: modelsLoading } = useAiModels({ modelType: 'video_generation' })
   const [selectedModel, setSelectedModel]  = useState('')
@@ -727,12 +751,15 @@ export default function FromCreateVideo({ createVideoHook }) {
         if (endFrame)   URL.revokeObjectURL(endFrame)
         setStartFrame(imageUrl)
         setStartFile(file)
+        setStartAssetId(null)
         setEndFrame(null)
         setEndFile(null)
+        setEndAssetId(null)
       } else {
         if (endFrame) URL.revokeObjectURL(endFrame)
         setEndFrame(imageUrl)
         setEndFile(file)
+        setEndAssetId(null)
       }
       event.target.value = ''
     },
@@ -748,15 +775,40 @@ export default function FromCreateVideo({ createVideoHook }) {
         if (endFrame)   URL.revokeObjectURL(endFrame)
         setStartFrame(null)
         setStartFile(null)
+        setStartAssetId(null)
         setEndFrame(null)
         setEndFile(null)
+        setEndAssetId(null)
       } else {
         if (endFrame) URL.revokeObjectURL(endFrame)
         setEndFrame(null)
         setEndFile(null)
+        setEndAssetId(null)
       }
     },
     [startFrame, endFrame],
+  )
+
+  const handleSelectFromLibrary = useCallback(
+    (asset) => {
+      if (pickerTarget === 'start') {
+        if (startFrame) URL.revokeObjectURL(startFrame)
+        if (endFrame)   URL.revokeObjectURL(endFrame)
+        setStartFrame(asset.storedUrl)
+        setStartFile(null)
+        setStartAssetId(asset.id)
+        setEndFrame(null)
+        setEndFile(null)
+        setEndAssetId(null)
+      } else if (pickerTarget === 'end') {
+        if (endFrame) URL.revokeObjectURL(endFrame)
+        setEndFrame(asset.storedUrl)
+        setEndFile(null)
+        setEndAssetId(asset.id)
+      }
+      setPickerTarget(null)
+    },
+    [pickerTarget, startFrame, endFrame],
   )
 
   const handlePromptInput = () => {
@@ -773,6 +825,8 @@ export default function FromCreateVideo({ createVideoHook }) {
     setEndFrame(null)
     setStartFile(null)
     setEndFile(null)
+    setStartAssetId(null)
+    setEndAssetId(null)
     setPrompt('')
     setResolution('1080p')
     setRatio('adaptive')
@@ -819,7 +873,7 @@ export default function FromCreateVideo({ createVideoHook }) {
 
   // ── Submit ──────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
-    if (!startFile) {
+    if (!startFile && !startAssetId) {
       alert('Vui lòng chọn Start Frame')
       return
     }
@@ -848,6 +902,8 @@ export default function FromCreateVideo({ createVideoHook }) {
         multiShot:      false,
         startImageFile: startFile,
         endImageFile:   endFile,
+        startImageAssetId: startAssetId,
+        endImageAssetId:   endAssetId,
         cost:           Math.round(priceInfo?.total ?? 0),
       })
       return
@@ -886,6 +942,8 @@ export default function FromCreateVideo({ createVideoHook }) {
         multiPrompt,
         startImageFile: startFile,
         endImageFile:   endFile,
+        startImageAssetId: startAssetId,
+        endImageAssetId:   endAssetId,
         cost:           Math.round(priceInfo?.total ?? 0),
       })
       return
@@ -909,6 +967,8 @@ export default function FromCreateVideo({ createVideoHook }) {
         shotType:       'intelligence',
         startImageFile: startFile,
         endImageFile:   endFile,
+        startImageAssetId: startAssetId,
+        endImageAssetId:   endAssetId,
         cost:           Math.round(priceInfo?.total ?? 0),
       })
       return
@@ -930,6 +990,8 @@ export default function FromCreateVideo({ createVideoHook }) {
       multiShot:      false,
       startImageFile: startFile,
       endImageFile:   endFile,
+      startImageAssetId: startAssetId,
+      endImageAssetId:   endAssetId,
       cost:           Math.round(priceInfo?.total ?? 0),
     })
   }
@@ -938,7 +1000,7 @@ export default function FromCreateVideo({ createVideoHook }) {
 
   const isSubmitDisabled = (() => {
     if (isProcessing)  return true
-    if (!startFile)    return true
+    if (!startFile && !startAssetId) return true
     if (isShotOverLimit || isShotUnderLimit) return true
 
     if (multiShotEnabled && isCustomMode) {
@@ -995,13 +1057,27 @@ export default function FromCreateVideo({ createVideoHook }) {
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                     <img src={startFrame} alt="Start Frame" className="max-h-full max-w-full object-contain" />
                   </div>
-                  <button
-                    type="button"
-                    onClick={(e) => handleRemoveFrame(e, 'start')}
-                    className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white transition-all hover:bg-black/80"
-                  >
-                    <span className="material-symbols-outlined text-base">delete</span>
-                  </button>
+                  <div className="absolute right-2 top-2 z-10 flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setPickerTarget('start')
+                      }}
+                      title="Chọn từ thư viện"
+                      className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white transition-all hover:bg-black/80"
+                    >
+                      <span className="material-symbols-outlined text-base">history</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => handleRemoveFrame(e, 'start')}
+                      className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white transition-all hover:bg-black/80"
+                    >
+                      <span className="material-symbols-outlined text-base">delete</span>
+                    </button>
+                  </div>
                   <span className="absolute bottom-2 left-2 rounded-md bg-black/60 px-2 py-1 text-[10px] font-medium text-white">
                     Start Frame
                   </span>
@@ -1012,6 +1088,17 @@ export default function FromCreateVideo({ createVideoHook }) {
                     add_photo_alternate
                   </span>
                   <span className="mt-1 text-[10px] text-slate-500">Start Frame</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setPickerTarget('start')
+                    }}
+                    className="relative z-10 mt-2 rounded-md border border-slate-600 px-2.5 py-1 text-[10px] font-medium text-slate-300 transition-colors hover:border-indigo-500 hover:text-indigo-400"
+                  >
+                    History
+                  </button>
                 </>
               )}
             </label>
@@ -1033,13 +1120,27 @@ export default function FromCreateVideo({ createVideoHook }) {
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                     <img src={endFrame} alt="End Frame" className="max-h-full max-w-full object-contain" />
                   </div>
-                  <button
-                    type="button"
-                    onClick={(e) => handleRemoveFrame(e, 'end')}
-                    className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white transition-all hover:bg-black/80"
-                  >
-                    <span className="material-symbols-outlined text-base">delete</span>
-                  </button>
+                  <div className="absolute right-2 top-2 z-10 flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setPickerTarget('end')
+                      }}
+                      title="Chọn từ thư viện"
+                      className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white transition-all hover:bg-black/80"
+                    >
+                      <span className="material-symbols-outlined text-base">history</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => handleRemoveFrame(e, 'end')}
+                      className="flex h-7 w-7 items-center justify-center rounded-md bg-black/60 text-white transition-all hover:bg-black/80"
+                    >
+                      <span className="material-symbols-outlined text-base">delete</span>
+                    </button>
+                  </div>
                   <span className="absolute bottom-2 left-2 rounded-md bg-black/60 px-2 py-1 text-[10px] font-medium text-white">
                     End Frame
                   </span>
@@ -1052,10 +1153,29 @@ export default function FromCreateVideo({ createVideoHook }) {
                   <span className="mt-1 text-[10px] text-slate-500">
                     {startFrame ? 'End Frame' : 'Upload Start First'}
                   </span>
+                  {startFrame && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setPickerTarget('end')
+                      }}
+                      className="relative z-10 mt-2 rounded-md border border-slate-600 px-2.5 py-1 text-[10px] font-medium text-slate-300 transition-colors hover:border-indigo-500 hover:text-indigo-400"
+                    >
+                      History
+                    </button>
+                  )}
                 </>
               )}
             </label>
           </div>
+
+          <AssetPickerModal
+            open={!!pickerTarget}
+            onClose={() => setPickerTarget(null)}
+            onSelect={handleSelectFromLibrary}
+          />
 
           {/* ── Prompt / MultiShotPanel ── */}
           {multiShotEnabled && isCustomMode && !isByteplus ? (
