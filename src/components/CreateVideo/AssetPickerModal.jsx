@@ -130,7 +130,7 @@ export default function AssetPickerModal({ open, onClose, onSelect }) {
         </div>
 
         {/* Grid */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
           {loading ? (
             <div className="flex items-center justify-center py-16 text-sm text-slate-400">
               Đang tải...
