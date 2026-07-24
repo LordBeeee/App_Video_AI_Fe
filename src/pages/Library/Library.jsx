@@ -75,13 +75,32 @@ export default function Library() {
     fetchItems();
   }, [fetchItems]);
 
+  // const handleUploadFile = async (e) => {
+  //   const file = e.target.files?.[0];
+  //   e.target.value = "";
+  //   if (!file) return;
+  //   setUploading(true);
+  //   try {
+  //     await uploadAssetApi(file);
+  //     await fetchItems();
+  //   } catch (err) {
+  //     alert(err.message);
+  //   } finally {
+  //     setUploading(false);
+  //   }
+  // };
+
+  const fileInputRef = useRef(null);
+
   const handleUploadFile = async (e) => {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files || []);
     e.target.value = "";
-    if (!file) return;
+    if (files.length === 0) return;
     setUploading(true);
     try {
-      await uploadAssetApi(file);
+      for (const file of files) {
+        await uploadAssetApi(file);
+      }
       await fetchItems();
     } catch (err) {
       alert(err.message);
@@ -189,6 +208,29 @@ export default function Library() {
           </div>
 
           <div className="flex items-center gap-3">
+            {activeTab === "Upload" && (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  multiple
+                  onChange={handleUploadFile}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {uploading ? "progress_activity" : "upload"}
+                  </span>
+                  {uploading ? "Đang tải lên..." : "Tải lên"}
+                </button>
+              </>
+            )}
             <button
               type="button"
               onClick={() => setFavoritesOnly((v) => !v)}
