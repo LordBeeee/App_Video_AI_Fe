@@ -20,3 +20,10 @@ export const getMotionControlModels = async () => {
   });
   return response.data;
 };
+
+export const getElementModels = async () => {
+  const response = await api.get('/ai-models', {
+    params: { supportsElements: true },
+  });
+  return response.data;
+};
