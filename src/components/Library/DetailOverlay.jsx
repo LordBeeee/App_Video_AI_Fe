@@ -88,7 +88,7 @@ export default function DetailOverlay({
       <div className="flex-1 flex overflow-hidden min-h-0">
         <PreviewPanel item={item} onPrev={onPrev} onNext={onNext} />
 
-        {item.category === "creative" && (
+        {(item.category === "creative" || item.category === "element") && (
           <InfoPanel item={item} onCopyPrompt={onCopyPrompt} promptCopied={promptCopied} />
         )}
 

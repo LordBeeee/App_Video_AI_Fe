@@ -20,6 +20,9 @@ export default function FilterBar({
   fileInputRef,
   onUploadFile,
   onOpenCreateElement,
+  providerFilter, setProviderFilter,           
+  providerDropdownOpen, setProviderDropdownOpen,
+  providers, 
 }) {
   return (
     <div className="sticky top-0 z-20 bg-background backdrop-blur-sm flex items-center justify-between gap-3 mb-4 flex-wrap pt-2 pb-2 -mx-8 px-8">
@@ -95,6 +98,42 @@ export default function FilterBar({
           </span>
           Favorites
         </button>
+        
+        {activeTab === "Element" && providers.length > 0 && (
+          <div className="relative">
+            <button
+              onClick={() => setProviderDropdownOpen((o) => !o)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-800/60 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition-colors text-sm font-medium"
+            >
+              {providerFilter === "all" ? "All Providers" : providerFilter}
+              <span className="material-symbols-outlined text-[18px]">expand_more</span>
+            </button>
+
+            {providerDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-44 rounded-lg bg-slate-900 border border-slate-700 shadow-xl z-40 overflow-hidden">
+                <button
+                  onClick={() => { setProviderFilter("all"); setProviderDropdownOpen(false); }}
+                  className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                    providerFilter === "all" ? "bg-indigo-600 text-white" : "text-slate-300 hover:bg-slate-800"
+                  }`}
+                >
+                  All Providers
+                </button>
+                {providers.map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => { setProviderFilter(p); setProviderDropdownOpen(false); }}
+                    className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                      providerFilter === p ? "bg-indigo-600 text-white" : "text-slate-300 hover:bg-slate-800"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="relative">
           <button

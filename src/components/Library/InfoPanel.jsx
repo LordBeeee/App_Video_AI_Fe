@@ -6,7 +6,7 @@ export default function InfoPanel({ item, onCopyPrompt, promptCopied }) {
           <span className="material-symbols-outlined text-[18px] text-slate-400">
             {item.type === "video" ? "movie" : "image"}
           </span>
-          {item.type === "video" ? "Video" : "Image"}
+          {item.category === "element" ? item.alt : (item.type === "video" ? "Video" : "Image")}
         </div>
       </div>
 
@@ -33,7 +33,9 @@ export default function InfoPanel({ item, onCopyPrompt, promptCopied }) {
       {item.prompt && (
         <div>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-white">Prompt</h3>
+            <h3 className="text-sm font-semibold text-white">
+              {item.category === "element" ? "Mô tả" : "Prompt"}
+            </h3>
             <button
               onClick={() => onCopyPrompt(item.prompt)}
               className="text-slate-400 hover:text-white transition-colors"
@@ -47,8 +49,13 @@ export default function InfoPanel({ item, onCopyPrompt, promptCopied }) {
         </div>
       )}
 
-      {(item.model || item.resolution) && (
+      {(item.provider || item.model || item.resolution) && (
         <div className="flex items-center gap-2 flex-wrap">
+          {item.provider && (
+            <span className="text-xs text-indigo-300 bg-indigo-600/15 border border-indigo-500/40 px-2 py-1 rounded-md">
+              {item.provider}
+            </span>
+          )}
           {item.model && (
             <span className="text-xs text-slate-400 bg-slate-800/60 border border-slate-700 px-2 py-1 rounded-md">
               {item.model}

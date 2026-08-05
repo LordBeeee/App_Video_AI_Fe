@@ -38,7 +38,7 @@ export function useCreateElement() {
 
   /**
    * @param {object} params
-   * @param {string|number} params.modelId
+   * @param {string|number} params.providerId
    * @param {'image_refer'|'video_refer'} params.referenceType
    * @param {string} params.elementName
    * @param {string} params.elementDescription
@@ -59,7 +59,7 @@ export function useCreateElement() {
 
     try {
       const formData = new FormData()
-      formData.append('modelId', String(params.modelId))
+      formData.append('providerId', String(params.providerId))
       formData.append('referenceType', params.referenceType)
       formData.append('elementName', params.elementName)
       formData.append('elementDescription', params.elementDescription)

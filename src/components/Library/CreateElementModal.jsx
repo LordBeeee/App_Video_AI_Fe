@@ -15,7 +15,6 @@ export default function CreateElementModal({ open, onClose, createElementHook, o
   const [modelsLoading, setModelsLoading] = useState(false)
 
   const [providerId, setProviderId] = useState("")
-  const [modelId, setModelId] = useState("")
   const [referenceType, setReferenceType] = useState("image_refer")
 
   const [elementName, setElementName] = useState("")
@@ -32,7 +31,6 @@ export default function CreateElementModal({ open, onClose, createElementHook, o
   useEffect(() => {
     if (!open) return
     setProviderId("")
-    setModelId("")
     setReferenceType("image_refer")
     setElementName("")
     setElementDescription("")
@@ -63,24 +61,6 @@ export default function CreateElementModal({ open, onClose, createElementHook, o
   useEffect(() => {
     if (providers.length > 0 && !providerId) setProviderId(String(providers[0].id))
   }, [providers, providerId])
-
-  const modelsForProvider = useMemo(() => {
-    return models.filter((m) => {
-      if (String(m.provider?.id) !== String(providerId)) return false
-      if (referenceType === "video_refer" && !m.supportsElementVideo) return false
-      return true
-    })
-  }, [models, providerId, referenceType])
-
-  useEffect(() => {
-    if (modelsForProvider.length === 0) {
-      setModelId("")
-      return
-    }
-    if (!modelsForProvider.some((m) => String(m.id) === String(modelId))) {
-      setModelId(String(modelsForProvider[0].id))
-    }
-  }, [modelsForProvider]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFrontalUpload = (e) => {
     const file = e.target.files?.[0]
@@ -146,7 +126,7 @@ export default function CreateElementModal({ open, onClose, createElementHook, o
 
   const handleSubmit = async () => {
     setFormError(null)
-    if (!modelId) return setFormError("Vui lòng chọn Model")
+    if (!providerId) return setFormError("Vui lòng chọn Provider")
     if (!elementName.trim()) return setFormError("Tên Element là bắt buộc")
     if (elementName.length > 20) return setFormError("Tên Element tối đa 20 ký tự")
     if (!elementDescription.trim()) return setFormError("Mô tả là bắt buộc")
@@ -162,7 +142,7 @@ export default function CreateElementModal({ open, onClose, createElementHook, o
     try {
       await submitCreateElement(
         {
-          modelId,
+          providerId,
           referenceType,
           elementName: elementName.trim(),
           elementDescription: elementDescription.trim(),
@@ -199,35 +179,18 @@ export default function CreateElementModal({ open, onClose, createElementHook, o
           </div>
 
           <div className="scrollbar-hide flex-1 space-y-5 overflow-y-auto p-6">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-400">Provider</label>
-                <select
-                  value={providerId}
-                  onChange={(e) => setProviderId(e.target.value)}
-                  disabled={modelsLoading}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
-                >
-                  {modelsLoading ? <option>Đang tải...</option> : providers.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-400">Model</label>
-                <select
-                  value={modelId}
-                  onChange={(e) => setModelId(e.target.value)}
-                  disabled={modelsLoading || modelsForProvider.length === 0}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
-                >
-                  {modelsForProvider.length === 0 ? (
-                    <option>Không có model phù hợp</option>
-                  ) : modelsForProvider.map((m) => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
-                  ))}
-                </select>
-              </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-slate-400">Provider</label>
+              <select
+                value={providerId}
+                onChange={(e) => setProviderId(e.target.value)}
+                disabled={modelsLoading}
+                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
+              >
+                {modelsLoading ? <option>Đang tải...</option> : providers.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
             </div>
 
             <div>
