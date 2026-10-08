@@ -1,16 +1,13 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   getLibraryAssetsApi,
   setAssetFavoriteApi,
   uploadAssetApi,
 } from "../../services/asset.service";
 
-import { getElementsHistoryApi, deleteElementApi, setElementFavoriteApi } from "../../services/element.service";
-import { useCreateElement } from "../../hooks/useCreateElement";
 import FilterBar from "../../components/Library/FilterBar";
 import MediaGrid from "../../components/Library/MediaGrid";
 import DetailOverlay from "../../components/Library/DetailOverlay";
-import CreateElementModal from "../../components/Library/CreateElementModal";
 
 function mapAssetToItem(asset) {
   const isVideo = asset.assetType === "video";
@@ -29,27 +26,11 @@ function mapAssetToItem(asset) {
       : undefined,
     prompt: asset.prompt,
     model: asset.model,
-    resolution: asset.mode,
+    resolution: asset.resolution,
+    displayPriceVnd: asset.priceVnd,
+    options: { duration: asset.duration },
     startImages: asset.frames,
   };
-}
-
-function mapElementToItem(el) {
-  const isVideo = el.referenceType === "video_refer"
-  return {
-    id: `element-${el.id}`,
-    rawId: el.id,
-    type: isVideo ? "video" : "image",
-    category: "element",
-    favorite: !!el.isFavorite,
-    src: isVideo ? el.videoUrl : el.frontalImageUrl,
-    videoSrc: isVideo ? el.videoUrl : undefined,
-    alt: el.elementName,
-    createdAt: el.createdAt ? new Date(el.createdAt).toLocaleString("vi-VN") : undefined,
-    status: el.status,
-    prompt: el.elementDescription,
-    provider: el.providerName,
-  }
 }
 
 export default function Library() {
@@ -58,9 +39,6 @@ export default function Library() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [items, setItems] = useState([]);
-  const [elementItemsRaw, setElementItemsRaw] = useState([]); // ← THÊM: Element, CHƯA lọc
-  const [providerFilter, setProviderFilter] = useState("all");        // ← THÊM
-  const [providerDropdownOpen, setProviderDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
@@ -69,23 +47,8 @@ export default function Library() {
   const [promptCopied, setPromptCopied] = useState(false);
   const thumbRefs = useRef({});
   const fileInputRef = useRef(null);
-  const [createElementOpen, setCreateElementOpen] = useState(false);
-  const createElementHook = useCreateElement();                  
 
   const fetchItems = useCallback(async () => {
-    if (activeTab === "Element") {
-      setLoading(true);
-      try {
-        const data = await getElementsHistoryApi();
-        setElementItemsRaw((data || []).map(mapElementToItem));
-      } catch (err) {
-        console.error("Fetch elements failed:", err);
-        setElementItemsRaw([]);
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
     setLoading(true);
     try {
       const data = await getLibraryAssetsApi({
@@ -156,54 +119,20 @@ export default function Library() {
     }
   };
 
-  const providers = useMemo(
-    () => Array.from(new Set(elementItemsRaw.map((i) => i.provider).filter(Boolean))),
-    [elementItemsRaw],
-  );
-
-  const displayItems = useMemo(() => {
-    if (activeTab !== "Element") return items;
-    let list = elementItemsRaw;
-    if (typeFilter !== "all") list = list.filter((i) => i.type === typeFilter);
-    if (favoritesOnly) list = list.filter((i) => i.favorite);
-    if (providerFilter !== "all") list = list.filter((i) => i.provider === providerFilter);
-    return list;
-  }, [activeTab, items, elementItemsRaw, typeFilter, favoritesOnly, providerFilter]);
-
   const toggleFavorite = async (id) => {
-    const source = activeTab === "Element" ? elementItemsRaw : items; // ← SỬA
-    const setSource = activeTab === "Element" ? setElementItemsRaw : setItems; // ← SỬA
-    const target = source.find((i) => i.id === id);
+    const target = items.find((i) => i.id === id);
     if (!target) return;
     const next = !target.favorite;
-    setSource((prev) => prev.map((item) => (item.id === id ? { ...item, favorite: next } : item)));
+    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, favorite: next } : item)));
     try {
-      if (target.category === "element") {
-        await setElementFavoriteApi(target.rawId, next);
-      } else {
-        await setAssetFavoriteApi(id, next);
-      }
+      await setAssetFavoriteApi(id, next);
     } catch (err) {
-      setSource((prev) => prev.map((item) => (item.id === id ? { ...item, favorite: !next } : item)));
+      setItems((prev) => prev.map((item) => (item.id === id ? { ...item, favorite: !next } : item)));
       alert(err.message);
     }
   };
 
-  const handleDeleteElement = async (item, e) => {
-    e?.stopPropagation();
-    setMenuOpenId(null);
-    setOverlayMenuOpen(false);
-    if (!window.confirm(`Xóa element "${item.alt}"? Hành động này không thể hoàn tác.`)) return;
-    try {
-      await deleteElementApi(item.rawId);
-      setElementItemsRaw((prev) => prev.filter((i) => i.id !== item.id)); // ← SỬA: nguồn đúng là elementItemsRaw
-      if (selectedId === item.id) setSelectedId(null);
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  const filteredItems = displayItems;
+  const filteredItems = items;
 
   const selectedItem = filteredItems.find((i) => i.id === selectedId) || null;
   const selectedIndex = filteredItems.findIndex((i) => i.id === selectedId);
@@ -248,12 +177,6 @@ export default function Library() {
           uploading={uploading}
           fileInputRef={fileInputRef}
           onUploadFile={handleUploadFile}
-          onOpenCreateElement={() => setCreateElementOpen(true)}
-          providerFilter={providerFilter}           
-          setProviderFilter={setProviderFilter}      
-          providerDropdownOpen={providerDropdownOpen}
-          setProviderDropdownOpen={setProviderDropdownOpen}
-          providers={providers} 
         />
 
         <MediaGrid
@@ -264,11 +187,10 @@ export default function Library() {
           menuOpenId={menuOpenId}
           setMenuOpenId={setMenuOpenId}
           onDownload={handleDownload}
-          onDelete={handleDeleteElement}
         />
       </div>
 
-      {/* Detail / Preview Overlay - giống Kling */}
+      {/* Detail / Preview Overlay */}
       {selectedItem && (
         <DetailOverlay
           item={selectedItem}
@@ -284,16 +206,8 @@ export default function Library() {
           onCopyPrompt={handleCopyPrompt}
           promptCopied={promptCopied}
           thumbRefs={thumbRefs}
-          onDelete={handleDeleteElement}
         />
       )}
-
-      <CreateElementModal
-        open={createElementOpen}
-        onClose={() => setCreateElementOpen(false)}
-        createElementHook={createElementHook}
-        onCreated={fetchItems}
-      />
     </main>
   );
 }

@@ -6,83 +6,19 @@ export default function Sidebar() {
   const user = useAuthStore((state) => state.user)
 
   return (
-    <aside className="fixed left-0 top-0 z-50 flex h-full w-16 flex-col items-center border-r border-indigo-500/10 bg-slate-950/40 py-8 font-space-grotesk tracking-tight shadow-[0_0_20px_rgba(99,102,241,0.1)] backdrop-blur-xl">
-      <div className="mb-10">
-        <span className="text-xl font-bold tracking-tighter text-indigo-500">
-          C
-        </span>
+    <aside className="fixed left-0 top-0 z-50 flex h-full w-20 flex-col border-r border-white/10 bg-[#1c2026] py-5 text-white lg:w-64">
+      <div className="mb-5 flex items-center gap-3 px-5">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-300 to-violet-500 font-black text-slate-950">AI</div>
+        <div className="hidden lg:block"><p className="font-semibold">AI Studio</p><p className="text-[11px] text-slate-500">Create without limits</p></div>
       </div>
-
-      {/* <nav className="flex flex-1 flex-col gap-8">
-        <button
-          type="button"
-          className="flex w-full scale-95 items-center justify-center border-r-2 border-indigo-500 py-2 text-indigo-400 transition-transform active:scale-90"
-          title="Home"
-        >
-          <span className="material-symbols-outlined">home</span>
-        </button>
-
-        <button
-          type="button"
-          className="flex w-full scale-95 items-center justify-center py-2 text-slate-500 transition-all hover:bg-indigo-500/5 hover:text-slate-300 active:scale-90"
-          title="Create"
-        >
-          <span className="material-symbols-outlined">movie_creation</span>
-        </button>
-
-        <button
-          type="button"
-          className="flex w-full scale-95 items-center justify-center py-2 text-slate-500 transition-all hover:bg-indigo-500/5 hover:text-slate-300 active:scale-90"
-          title="Library"
-        >
-          <span className="material-symbols-outlined">video_library</span>
-        </button>
-
-        <button
-          type="button"
-          className="flex w-full scale-95 items-center justify-center py-2 text-slate-500 transition-all hover:bg-indigo-500/5 hover:text-slate-300 active:scale-90"
-          title="Models"
-        >
-          <span className="material-symbols-outlined">memory</span>
-        </button>
-
-        <button
-          type="button"
-          className="flex w-full scale-95 items-center justify-center py-2 text-slate-500 transition-all hover:bg-indigo-500/5 hover:text-slate-300 active:scale-90"
-          title="Community"
-        >
-          <span className="material-symbols-outlined">groups</span>
-        </button>
-      </nav> */}
       <NavMenu />
-
-      <div className="mt-auto flex flex-col items-center gap-6">
-        <SettingsButton />
-
-        <div className="group relative">
-          <div className="h-8 w-8 overflow-hidden rounded-full border border-indigo-500/30 bg-slate-800">
-            {user?.avatarUrl ? (
-              <img
-                alt={user.fullName || 'User profile'}
-                className="h-full w-full object-cover"
-                src={user.avatarUrl}
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-xs font-bold text-indigo-300">
-                {user?.fullName?.charAt(0) || user?.email?.charAt(0) || 'U'}
-              </div>
-            )}
+      <div className="mx-3 mt-4 border-t border-white/10 pt-4">
+        <div className="flex items-center gap-3 rounded-xl px-3 py-2">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/5">
+            {user?.avatarUrl ? <img src={user.avatarUrl} alt={user.fullName || 'Avatar'} className="h-full w-full object-cover" /> : <span className="text-sm font-bold">{user?.fullName?.[0] || user?.email?.[0] || 'U'}</span>}
           </div>
-
-          <div className="pointer-events-none absolute bottom-0 left-12 min-w-44 translate-x-2 rounded-xl border border-indigo-500/20 bg-slate-950/95 px-4 py-3 opacity-0 shadow-[0_0_20px_rgba(99,102,241,0.2)] backdrop-blur-xl transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
-            <p className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
-              {(user?.roleName || 'USER').toUpperCase()}
-            </p>
-
-            <p className="mt-1 truncate text-sm font-semibold text-slate-100">
-              {user?.fullName || 'Chưa có tên'}
-            </p>
-          </div>
+          <div className="hidden min-w-0 flex-1 lg:block"><p className="truncate text-sm font-medium">{user?.fullName || 'Người dùng'}</p><p className="truncate text-[11px] text-slate-500">{user?.email}</p></div>
+          <div className="hidden lg:block"><SettingsButton /></div>
         </div>
       </div>
     </aside>

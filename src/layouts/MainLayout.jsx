@@ -7,7 +7,7 @@ export default function MainLayout({ children }) {
       <Sidebar />
       {/* <Header /> */}
       {/* pt-16 */}
-      <main className="pl-16 h-screen overflow-y-auto scrollbar-hide">
+      <main className="h-screen overflow-y-auto pl-20 scrollbar-hide lg:pl-64">
         {children}
       </main>
     </>

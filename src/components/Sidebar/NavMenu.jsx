@@ -1,46 +1,37 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../../store/auth.store'
 
+const primary = [
+  { to: '/', label: 'Trang chủ', icon: 'home' },
+  { to: '/create/image', label: 'Tạo ảnh', icon: 'image' },
+  { to: '/create/video', label: 'Tạo video', icon: 'smart_display' },
+  { to: '/create/audio', label: 'Tạo giọng nói', icon: 'graphic_eq', badge: 'NEW' },
+  { to: '/chat', label: 'Chat AI', icon: 'chat_bubble', badge: 'NEW' },
+  { to: '/library', label: 'Thư viện', icon: 'video_library' },
+  { to: '/wallet', label: 'Ví & thanh toán', icon: 'account_balance_wallet' },
+  { to: '/projects', label: 'Dự án', icon: 'deployed_code' },
+]
+
 export default function NavMenu() {
   const location = useLocation()
   const user = useAuthStore((state) => state.user)
-  const isAdmin = user?.roleName === 'admin'
-
-  const isActive = (path) => location.pathname === path
-
-  const linkClass = (path) =>
-    isActive(path)
-      ? 'flex w-full scale-95 items-center justify-center border-r-2 border-indigo-500 py-2 text-indigo-400 transition-transform active:scale-90'
-      : 'flex w-full scale-95 items-center justify-center py-2 text-slate-500 transition-all hover:bg-indigo-500/5 hover:text-slate-300 active:scale-90'
+  const items = user?.roleName === 'admin'
+    ? [...primary, { to: '/employees', label: 'Quản trị người dùng', icon: 'groups' }]
+    : primary
 
   return (
-    <nav className="flex flex-1 flex-col gap-8">
-      <Link to="/" title="Home" className={linkClass('/')}>
-        <span className="material-symbols-outlined">home</span>
-      </Link>
-
-      <Link to="/create-video" title="Tạo Video" className={linkClass('/create-video')}>
-        <span className="material-symbols-outlined">movie_creation</span>
-      </Link>
-
-      <Link to="/library" title="Thư Viện" className={linkClass('/library')}>
-        <span className="material-symbols-outlined">video_library</span>
-      </Link>
-
-      {/* <Link to="/create-video-flow" title="Tự động tạo video" className={linkClass('/create-video-flow')}>
-        <span className="material-symbols-outlined">memory</span>
-      </Link> */}
-
-      <Link to="/projects" title="Dự án" className={linkClass('/projects')}>
-        <span className="material-symbols-outlined">deployed_code</span>
-      </Link>
-
-      {/* Chỉ hiện với admin */}
-      {isAdmin && (
-        <Link to="/employees" title="Nhân Viên" className={linkClass('/employees')}>
-          <span className="material-symbols-outlined">groups</span>
-        </Link>
-      )}
+    <nav className="custom-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto px-3">
+      {items.map((item) => {
+        const active = item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to)
+        return (
+          <Link key={item.to} to={item.to} title={item.label}
+            className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${active ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+            <span className="material-symbols-outlined shrink-0 text-[21px]">{item.icon}</span>
+            <span className="hidden truncate font-medium lg:block">{item.label}</span>
+            {item.badge && <span className="ml-auto hidden rounded bg-violet-600 px-1.5 py-0.5 text-[9px] font-bold text-white lg:block">{item.badge}</span>}
+          </Link>
+        )
+      })}
     </nav>
   )
 }
