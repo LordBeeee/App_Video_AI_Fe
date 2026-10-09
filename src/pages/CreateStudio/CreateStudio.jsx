@@ -25,10 +25,32 @@ function values(capabilities, key, fallback = []) {
   const value = capabilities?.[key];
   if (Array.isArray(value)) return value;
   if (Array.isArray(value?.values)) return value.values;
+  if (
+    value?.type === "range" &&
+    Number.isInteger(value.min) &&
+    Number.isInteger(value.max) &&
+    value.max >= value.min &&
+    value.max - value.min <= 50
+  ) {
+    return Array.from(
+      { length: value.max - value.min + 1 },
+      (_, index) => value.min + index,
+    );
+  }
   return fallback;
 }
 
-function FieldSelect({ label, value, onChange, options }) {
+function referenceLimitFor(modality, capabilities) {
+  if (modality === "image") {
+    return Math.max(0, Number(capabilities?.input_references?.max) || 0);
+  }
+  if (modality === "video") {
+    return Math.min(2, new Set(capabilities?.frameImages || []).size);
+  }
+  return 0;
+}
+
+function FieldSelect({ label, value, onChange, options, emptyLabel }) {
   if (!options?.length) return null;
   return (
     <label className="space-y-2 text-sm text-on-surface-variant">
@@ -38,12 +60,33 @@ function FieldSelect({ label, value, onChange, options }) {
         onChange={(event) => onChange(event.target.value)}
         className="w-full rounded-xl border border-outline-variant bg-white px-3 py-3 text-sm font-medium text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
       >
+        {emptyLabel && <option value="">{emptyLabel}</option>}
         {options.map((option) => (
           <option key={String(option)} value={option}>
             {String(option)}
           </option>
         ))}
       </select>
+    </label>
+  );
+}
+
+function SeedField({ value, onChange }) {
+  return (
+    <label className="space-y-2 text-sm text-on-surface-variant">
+      <span>Seed</span>
+      <input
+        type="number"
+        step="1"
+        value={value ?? ""}
+        onChange={(event) =>
+          onChange(
+            event.target.value === "" ? "" : Number(event.target.value),
+          )
+        }
+        placeholder="Ngẫu nhiên"
+        className="w-full rounded-xl border border-outline-variant bg-white px-3 py-3 text-sm font-medium text-on-surface outline-none placeholder:font-normal placeholder:text-outline focus:border-primary focus:ring-2 focus:ring-primary/10"
+      />
     </label>
   );
 }
@@ -78,6 +121,7 @@ export default function CreateStudio() {
     [models, selectedModel],
   );
   const capabilities = model?.capabilities || {};
+  const referenceLimit = referenceLimitFor(modality, capabilities);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -110,28 +154,41 @@ export default function CreateStudio() {
   useEffect(() => {
     if (!model) return;
     if (modality === "image") {
-      const ratios = values(capabilities, "aspect_ratio", ["1:1"]);
+      const ratios = values(capabilities, "aspect_ratio");
       const resolutions = values(capabilities, "resolution", []);
+      const qualities = values(capabilities, "quality");
+      const formats = values(capabilities, "output_format");
+      const counts = values(capabilities, "n");
       setOptions({
-        n: 1,
-        aspectRatio: ratios[0] || "1:1",
-        resolution: resolutions[0] || "",
-        quality: values(capabilities, "quality", ["auto"])[0] || "auto",
-        outputFormat: "png",
+        ...(ratios.length ? { aspectRatio: ratios[0] } : {}),
+        ...(resolutions.length ? { resolution: resolutions[0] } : {}),
+        ...(qualities.length ? { quality: qualities[0] } : {}),
+        ...(formats.length ? { outputFormat: formats[0] } : {}),
+        ...(counts.length ? { n: counts[0] } : {}),
+        ...(Object.hasOwn(capabilities, "seed") ? { seed: "" } : {}),
       });
     }
     if (modality === "video") {
       setOptions({
-        resolution: capabilities.resolutions?.[0] || "",
-        aspectRatio: capabilities.aspectRatios?.[0] || "",
-        duration: capabilities.durations?.[0] || 5,
-        generateAudio: !!capabilities.generateAudio,
+        ...(capabilities.resolutions?.length
+          ? { resolution: capabilities.resolutions[0] }
+          : {}),
+        ...(capabilities.aspectRatios?.length
+          ? { aspectRatio: capabilities.aspectRatios[0] }
+          : {}),
+        ...(capabilities.durations?.length
+          ? { duration: capabilities.durations[0] }
+          : {}),
+        ...(capabilities.sizes?.length ? { size: "" } : {}),
+        ...(capabilities.generateAudio ? { generateAudio: false } : {}),
+        ...(capabilities.seed ? { seed: "" } : {}),
       });
     }
     if (modality === "audio") {
       setOptions({ voice: model.voices?.[0] || "", speed: 1 });
     }
-  }, [model, modality, capabilities]);
+    setReferences((current) => current.slice(0, referenceLimit));
+  }, [model, modality, capabilities, referenceLimit]);
 
   useEffect(() => {
     setQuote(null);
@@ -171,7 +228,7 @@ export default function CreateStudio() {
         [
           ...current,
           { id: Number(asset.id), url: asset.storedUrl, type: asset.assetType },
-        ].slice(-2),
+        ].slice(-referenceLimit),
       );
     } catch (err) {
       setError(err.message || "Upload thất bại");
@@ -235,13 +292,7 @@ export default function CreateStudio() {
             label="Tỷ lệ"
             value={options.aspectRatio || ""}
             onChange={(v) => setOption("aspectRatio", v)}
-            options={values(capabilities, "aspect_ratio", [
-              "1:1",
-              "16:9",
-              "9:16",
-              "4:3",
-              "3:4",
-            ])}
+            options={values(capabilities, "aspect_ratio")}
           />
           <FieldSelect
             label="Độ phân giải"
@@ -251,21 +302,28 @@ export default function CreateStudio() {
           />
           <FieldSelect
             label="Chất lượng"
-            value={options.quality || "auto"}
+            value={options.quality || ""}
             onChange={(v) => setOption("quality", v)}
-            options={values(capabilities, "quality", [
-              "auto",
-              "low",
-              "medium",
-              "high",
-            ])}
+            options={values(capabilities, "quality")}
+          />
+          <FieldSelect
+            label="Định dạng"
+            value={options.outputFormat || ""}
+            onChange={(v) => setOption("outputFormat", v)}
+            options={values(capabilities, "output_format")}
           />
           <FieldSelect
             label="Số lượng"
             value={options.n || 1}
             onChange={(v) => setOption("n", Number(v))}
-            options={[1, 2, 3, 4]}
+            options={values(capabilities, "n")}
           />
+          {Object.hasOwn(capabilities, "seed") && (
+            <SeedField
+              value={options.seed}
+              onChange={(v) => setOption("seed", v)}
+            />
+          )}
         </div>
       );
     if (modality === "video")
@@ -274,13 +332,25 @@ export default function CreateStudio() {
           <FieldSelect
             label="Tỷ lệ"
             value={options.aspectRatio || ""}
-            onChange={(v) => setOption("aspectRatio", v)}
+            onChange={(v) =>
+              setOptions((current) => ({
+                ...current,
+                aspectRatio: v,
+                size: "",
+              }))
+            }
             options={capabilities.aspectRatios || []}
           />
           <FieldSelect
             label="Độ phân giải"
             value={options.resolution || ""}
-            onChange={(v) => setOption("resolution", v)}
+            onChange={(v) =>
+              setOptions((current) => ({
+                ...current,
+                resolution: v,
+                size: "",
+              }))
+            }
             options={capabilities.resolutions || []}
           />
           <FieldSelect
@@ -288,6 +358,20 @@ export default function CreateStudio() {
             value={options.duration || ""}
             onChange={(v) => setOption("duration", Number(v))}
             options={capabilities.durations || []}
+          />
+          <FieldSelect
+            label="Kích thước"
+            value={options.size || ""}
+            onChange={(v) =>
+              setOptions((current) => ({
+                ...current,
+                size: v,
+                resolution: "",
+                aspectRatio: "",
+              }))
+            }
+            options={capabilities.sizes || []}
+            emptyLabel="Theo tỷ lệ và độ phân giải"
           />
           {capabilities.generateAudio && (
             <label className="flex items-end">
@@ -304,6 +388,12 @@ export default function CreateStudio() {
                 Có âm thanh
               </button>
             </label>
+          )}
+          {capabilities.seed && (
+            <SeedField
+              value={options.seed}
+              onChange={(v) => setOption("seed", v)}
+            />
           )}
         </div>
       );
@@ -327,14 +417,14 @@ export default function CreateStudio() {
 
   return (
     <div className="flex h-screen min-w-0 overflow-hidden bg-background text-on-background">
-      <section className="flex w-full shrink-0 flex-col border-r border-outline-variant bg-white lg:w-[480px]">
-        <div className="flex gap-2 border-b border-outline-variant px-5 py-4">
+      <section className="flex w-full shrink-0 flex-col border-r border-outline-variant bg-white lg:w-[380px]">
+        <div className="grid grid-cols-4 gap-1 border-b border-outline-variant px-3 py-4">
           {MODALITIES.map((item) =>
             item.id === "chat" ? (
               <button
                 key={item.id}
                 onClick={() => navigate("/chat")}
-                className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-on-surface-variant hover:bg-primary-container hover:text-primary"
+                className="flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-sm text-on-surface-variant hover:bg-primary-container hover:text-primary"
               >
                 <span className="material-symbols-outlined text-lg">
                   {item.icon}
@@ -345,7 +435,7 @@ export default function CreateStudio() {
               <Link
                 key={item.id}
                 to={`/create/${item.id}`}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 ${modality === item.id ? "bg-primary-container font-medium text-primary-hover" : "text-on-surface-variant hover:bg-primary-container hover:text-primary"}`}
+                className={`flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-sm ${modality === item.id ? "bg-primary-container font-medium text-primary-hover" : "text-on-surface-variant hover:bg-primary-container hover:text-primary"}`}
               >
                 <span className="material-symbols-outlined text-lg">
                   {item.icon}
@@ -356,7 +446,7 @@ export default function CreateStudio() {
           )}
         </div>
 
-        <div className="custom-scrollbar flex-1 space-y-4 overflow-y-auto p-5">
+        <div className="custom-scrollbar flex-1 space-y-4 overflow-y-auto p-4">
           <ModelPicker
             modality={modality}
             models={models}
@@ -364,13 +454,15 @@ export default function CreateStudio() {
             onChange={setSelectedModel}
           />
 
-          {modality !== "audio" && (
+          {referenceLimit > 0 && (
             <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-4">
               <p className="mb-3 text-sm font-semibold">
-                Ảnh tham chiếu{" "}
-                <span className="font-normal text-slate-500">(tùy chọn)</span>
+                {modality === "video" ? "Ảnh khung hình" : "Ảnh tham chiếu"}{" "}
+                <span className="font-normal text-slate-500">
+                  (tùy chọn, tối đa {referenceLimit})
+                </span>
               </p>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 {references.map((reference, index) => (
                   <button
                     key={reference.id}
@@ -400,7 +492,7 @@ export default function CreateStudio() {
                     </span>
                   </button>
                 ))}
-                {references.length < 2 && (
+                {references.length < referenceLimit && (
                   <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/30 bg-white text-on-surface-variant hover:border-primary hover:text-primary">
                     <span className="material-symbols-outlined">
                       add_photo_alternate
@@ -422,6 +514,13 @@ export default function CreateStudio() {
           )}
 
           <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-4">
+            <p className="mb-3 text-sm font-semibold">
+              Cài đặt {modality === "image" ? "ảnh" : modality === "video" ? "video" : "audio"}
+            </p>
+            {renderOptions()}
+          </div>
+
+          <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-4">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-sm font-semibold">
                 {modality === "audio" ? "Kịch bản" : "Prompt"}
@@ -441,7 +540,6 @@ export default function CreateStudio() {
             />
           </div>
 
-          {renderOptions()}
           {error && (
             <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
               {error}
@@ -505,7 +603,7 @@ export default function CreateStudio() {
           )}
         </div>
 
-        <div className="border-t border-outline-variant bg-white p-5">
+        <div className="border-t border-outline-variant bg-white p-4">
           <button
             type="button"
             disabled={!quote || generating}
@@ -530,9 +628,9 @@ export default function CreateStudio() {
         </div>
       </section>
 
-      <section className="relative hidden min-w-0 flex-1 flex-col items-center justify-center overflow-hidden bg-background px-8 lg:flex">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(56,189,248,0.09),transparent_45%)]" />
-        <div className="relative z-10 flex w-full max-w-4xl flex-col items-center">
+      <section className="relative hidden min-w-0 flex-1 flex-col items-center justify-center overflow-hidden bg-background px-4 xl:px-6 lg:flex">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(243,136,32,0.10),transparent_48%)]" />
+        <div className="relative z-10 flex w-full flex-col items-center">
           {!result && (
             <div className="text-center">
               <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl border border-primary/20 bg-primary-container">
@@ -572,12 +670,12 @@ export default function CreateStudio() {
               />
               <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/30 shadow-2xl">
                 {modality === "image" && (
-                  <div className="grid gap-2 sm:grid-cols-2">
+                  <div className={`grid gap-2 ${result.outputUrls.length > 1 ? "sm:grid-cols-2" : "grid-cols-1"}`}>
                     {result.outputUrls.map((url) => (
                       <img
                         key={url}
                         src={url}
-                        className="max-h-[64vh] w-full object-contain"
+                        className="max-h-[72vh] w-full object-contain xl:max-h-[76vh]"
                         alt="Generated"
                       />
                     ))}
@@ -587,11 +685,11 @@ export default function CreateStudio() {
                   <video
                     src={result.outputUrls[0]}
                     controls
-                    className="max-h-[64vh] w-full"
+                    className="max-h-[72vh] w-full object-contain xl:max-h-[76vh]"
                   />
                 )}
                 {modality === "audio" && (
-                  <div className="p-12">
+                  <div className="p-6 lg:p-8">
                     <audio
                       src={result.outputUrls[0]}
                       controls
@@ -619,7 +717,7 @@ export default function CreateStudio() {
         </div>
       </section>
 
-      <aside className="hidden w-72 shrink-0 border-l border-outline-variant bg-white p-4 xl:block">
+      <aside className="hidden min-h-0 w-48 shrink-0 flex-col border-l border-outline-variant bg-white p-3 xl:flex">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="font-semibold">Gần đây</h3>
           <button
@@ -629,14 +727,14 @@ export default function CreateStudio() {
             <span className="material-symbols-outlined text-lg">refresh</span>
           </button>
         </div>
-        <div className="custom-scrollbar space-y-3 overflow-y-auto">
+        <div className="custom-scrollbar min-h-0 flex-1 space-y-3 overflow-y-auto">
           {history.map((item) => (
             <button
               key={item.id}
               onClick={() => setResult(item)}
               className={`flex w-full gap-3 rounded-xl border p-2 text-left transition ${result?.id === item.id ? "border-primary bg-primary-container" : "border-outline-variant bg-white hover:border-primary/40 hover:bg-surface-container-low"}`}
             >
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-black/40">
+              <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-black/40">
                 {item.thumbnailUrl ? (
                   <img
                     src={item.thumbnailUrl}
