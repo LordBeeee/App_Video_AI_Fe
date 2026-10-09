@@ -12,7 +12,7 @@ const primary = [
   { to: '/projects', label: 'Dự án', icon: 'deployed_code' },
 ]
 
-export default function NavMenu({ isCollapsed }) {
+export default function NavMenu({ isCollapsed, onNavigate }) {
   const location = useLocation()
   const user = useAuthStore((state) => state.user)
   const items = user?.roleName === 'admin'
@@ -24,7 +24,7 @@ export default function NavMenu({ isCollapsed }) {
       {items.map((item) => {
         const active = item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to)
         return (
-          <Link key={item.to} to={item.to} title={item.label}
+          <Link key={item.to} to={item.to} title={item.label} onClick={onNavigate}
             className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${isCollapsed ? 'lg:justify-center lg:gap-0 lg:px-0' : ''} ${active ? 'active-nav-border bg-primary-container text-primary' : 'text-on-surface-variant hover:bg-surface-variant hover:text-primary'}`}>
             <span className="material-symbols-outlined shrink-0 text-[21px]">{item.icon}</span>
             {!isCollapsed && <span className="hidden truncate font-medium lg:block">{item.label}</span>}

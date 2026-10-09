@@ -50,15 +50,33 @@ function referenceLimitFor(modality, capabilities) {
   return 0;
 }
 
-function FieldSelect({ label, value, onChange, options, emptyLabel }) {
+function FieldSelect({
+  label,
+  icon,
+  value,
+  onChange,
+  options,
+  emptyLabel,
+  className = "col-span-3",
+}) {
   if (!options?.length) return null;
   return (
-    <label className="space-y-2 text-sm text-on-surface-variant">
-      <span>{label}</span>
+    <label
+      title={label}
+      className={`group relative flex min-h-12 min-w-0 items-center rounded-xl border border-outline-variant bg-white px-2 shadow-[0_2px_8px_rgba(92,55,24,0.04)] transition hover:border-primary/50 hover:shadow-[0_5px_14px_rgba(243,136,32,0.10)] focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 ${className}`}
+    >
+      <span className="sr-only">{label}</span>
+      <span className="material-symbols-outlined shrink-0 text-[18px] text-primary">
+        {icon}
+      </span>
+      <span className="min-w-0 flex-1 whitespace-nowrap px-1.5 text-[13px] font-bold text-on-surface">
+        {value || emptyLabel || "Chọn"}
+      </span>
       <select
+        aria-label={label}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-xl border border-outline-variant bg-white px-3 py-3 text-sm font-medium text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+        className="absolute inset-0 h-full w-full cursor-pointer appearance-none opacity-0"
       >
         {emptyLabel && <option value="">{emptyLabel}</option>}
         {options.map((option) => (
@@ -71,11 +89,18 @@ function FieldSelect({ label, value, onChange, options, emptyLabel }) {
   );
 }
 
-function SeedField({ value, onChange }) {
+function SeedField({ value, onChange, className = "col-span-3" }) {
   return (
-    <label className="space-y-2 text-sm text-on-surface-variant">
-      <span>Seed</span>
+    <label
+      title="Seed"
+      className={`group flex min-h-12 min-w-0 items-center rounded-xl border border-outline-variant bg-white px-2 shadow-[0_2px_8px_rgba(92,55,24,0.04)] transition hover:border-primary/50 hover:shadow-[0_5px_14px_rgba(243,136,32,0.10)] focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 ${className}`}
+    >
+      <span className="sr-only">Seed</span>
+      <span className="material-symbols-outlined shrink-0 text-[18px] text-primary">
+        casino
+      </span>
       <input
+        aria-label="Seed"
         type="number"
         step="1"
         value={value ?? ""}
@@ -85,7 +110,7 @@ function SeedField({ value, onChange }) {
           )
         }
         placeholder="Ngẫu nhiên"
-        className="w-full rounded-xl border border-outline-variant bg-white px-3 py-3 text-sm font-medium text-on-surface outline-none placeholder:font-normal placeholder:text-outline focus:border-primary focus:ring-2 focus:ring-primary/10"
+        className="min-w-0 flex-1 appearance-none bg-transparent px-1.5 text-[13px] font-bold text-on-surface outline-none placeholder:font-semibold placeholder:text-slate-500 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
       />
     </label>
   );
@@ -287,50 +312,60 @@ export default function CreateStudio() {
   const renderOptions = () => {
     if (modality === "image")
       return (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-6 gap-2">
           <FieldSelect
             label="Tỷ lệ"
+            icon="aspect_ratio"
             value={options.aspectRatio || ""}
             onChange={(v) => setOption("aspectRatio", v)}
             options={values(capabilities, "aspect_ratio")}
+            className="col-span-2"
           />
           <FieldSelect
             label="Độ phân giải"
+            icon="high_quality"
             value={options.resolution || ""}
             onChange={(v) => setOption("resolution", v)}
             options={values(capabilities, "resolution")}
+            className="col-span-2"
           />
           <FieldSelect
             label="Chất lượng"
+            icon="auto_awesome"
             value={options.quality || ""}
             onChange={(v) => setOption("quality", v)}
             options={values(capabilities, "quality")}
           />
           <FieldSelect
             label="Định dạng"
+            icon="image"
             value={options.outputFormat || ""}
             onChange={(v) => setOption("outputFormat", v)}
             options={values(capabilities, "output_format")}
           />
           <FieldSelect
             label="Số lượng"
+            icon="stacks"
             value={options.n || 1}
             onChange={(v) => setOption("n", Number(v))}
             options={values(capabilities, "n")}
+            className="col-span-2"
           />
           {Object.hasOwn(capabilities, "seed") && (
             <SeedField
               value={options.seed}
               onChange={(v) => setOption("seed", v)}
+              className="col-span-6"
             />
           )}
         </div>
       );
     if (modality === "video")
       return (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-12 gap-2">
           <FieldSelect
             label="Tỷ lệ"
+            icon="aspect_ratio"
             value={options.aspectRatio || ""}
             onChange={(v) =>
               setOptions((current) => ({
@@ -340,9 +375,11 @@ export default function CreateStudio() {
               }))
             }
             options={capabilities.aspectRatios || []}
+            className="col-span-4"
           />
           <FieldSelect
             label="Độ phân giải"
+            icon="high_quality"
             value={options.resolution || ""}
             onChange={(v) =>
               setOptions((current) => ({
@@ -352,15 +389,63 @@ export default function CreateStudio() {
               }))
             }
             options={capabilities.resolutions || []}
+            className="col-span-4"
           />
-          <FieldSelect
-            label="Thời lượng"
-            value={options.duration || ""}
-            onChange={(v) => setOption("duration", Number(v))}
-            options={capabilities.durations || []}
-          />
+          {capabilities.seed && (
+            <SeedField
+              value={options.seed}
+              onChange={(v) => setOption("seed", v)}
+              className="col-span-4"
+            />
+          )}
+          {capabilities.durations?.length > 0 && (
+            <div className="col-span-12 rounded-xl border border-outline-variant bg-white px-3 py-2.5 shadow-[0_2px_8px_rgba(92,55,24,0.04)]">
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-1.5 font-medium text-slate-500">
+                  <span className="material-symbols-outlined text-[17px] text-primary">
+                    schedule
+                  </span>
+                  Thời lượng
+                </span>
+                <span className="rounded-md bg-primary-container px-2 py-0.5 font-bold text-primary-hover">
+                  {options.duration}s
+                </span>
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                <span className="w-6 text-[10px] font-medium text-slate-400">
+                  {capabilities.durations[0]}s
+                </span>
+                <input
+                  type="range"
+                  aria-label="Thời lượng video"
+                  min="0"
+                  max={capabilities.durations.length - 1}
+                  step="1"
+                  disabled={capabilities.durations.length === 1}
+                  value={Math.max(
+                    0,
+                    capabilities.durations.findIndex(
+                      (duration) =>
+                        String(duration) === String(options.duration),
+                    ),
+                  )}
+                  onChange={(event) =>
+                    setOption(
+                      "duration",
+                      capabilities.durations[Number(event.target.value)],
+                    )
+                  }
+                  className="h-1.5 min-w-0 flex-1 cursor-pointer accent-primary disabled:cursor-default disabled:opacity-50"
+                />
+                <span className="w-7 text-right text-[10px] font-medium text-slate-400">
+                  {capabilities.durations.at(-1)}s
+                </span>
+              </div>
+            </div>
+          )}
           <FieldSelect
             label="Kích thước"
+            icon="crop_free"
             value={options.size || ""}
             onChange={(v) =>
               setOptions((current) => ({
@@ -372,44 +457,47 @@ export default function CreateStudio() {
             }
             options={capabilities.sizes || []}
             emptyLabel="Theo tỷ lệ và độ phân giải"
+            className={
+              capabilities.generateAudio ? "col-span-10" : "col-span-12"
+            }
           />
           {capabilities.generateAudio && (
-            <label className="flex items-end">
-              <button
-                type="button"
-                onClick={() =>
-                  setOption("generateAudio", !options.generateAudio)
-                }
-                className={`w-full rounded-xl border px-3 py-3 text-sm ${options.generateAudio ? "border-primary bg-primary-container text-primary-hover" : "border-outline-variant bg-white text-on-surface-variant"}`}
-              >
-                <span className="material-symbols-outlined mr-2 align-middle text-lg">
-                  volume_up
-                </span>
-                Có âm thanh
-              </button>
-            </label>
-          )}
-          {capabilities.seed && (
-            <SeedField
-              value={options.seed}
-              onChange={(v) => setOption("seed", v)}
-            />
+            <button
+              type="button"
+              aria-label={
+                options.generateAudio ? "Tắt âm thanh" : "Bật âm thanh"
+              }
+              aria-pressed={options.generateAudio}
+              title={options.generateAudio ? "Tắt âm thanh" : "Bật âm thanh"}
+              onClick={() =>
+                setOption("generateAudio", !options.generateAudio)
+              }
+              className={`col-span-2 flex min-h-12 items-center justify-center rounded-xl border shadow-[0_2px_8px_rgba(92,55,24,0.04)] transition hover:-translate-y-0.5 ${options.generateAudio ? "border-primary bg-primary text-on-primary shadow-[0_6px_16px_rgba(243,136,32,0.22)]" : "border-outline-variant bg-white text-slate-500 hover:border-primary/40 hover:text-primary"}`}
+            >
+              <span className="material-symbols-outlined text-[21px]">
+                {options.generateAudio ? "volume_up" : "volume_off"}
+              </span>
+            </button>
           )}
         </div>
       );
     return (
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-6 gap-2">
         <FieldSelect
           label="Giọng đọc"
+          icon="record_voice_over"
           value={options.voice || ""}
           onChange={(v) => setOption("voice", v)}
           options={model?.voices || []}
+          className="col-span-4"
         />
         <FieldSelect
           label="Tốc độ"
+          icon="speed"
           value={options.speed || 1}
           onChange={(v) => setOption("speed", Number(v))}
           options={[0.75, 1, 1.25, 1.5]}
+          className="col-span-2"
         />
       </div>
     );
@@ -514,13 +602,6 @@ export default function CreateStudio() {
           )}
 
           <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-4">
-            <p className="mb-3 text-sm font-semibold">
-              Cài đặt {modality === "image" ? "ảnh" : modality === "video" ? "video" : "audio"}
-            </p>
-            {renderOptions()}
-          </div>
-
-          <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-4">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-sm font-semibold">
                 {modality === "audio" ? "Kịch bản" : "Prompt"}
@@ -538,6 +619,18 @@ export default function CreateStudio() {
               }
               className="w-full resize-none bg-transparent text-sm leading-6 text-on-surface outline-none placeholder:text-outline"
             />
+          </div>
+
+          <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-3 shadow-[0_8px_24px_rgba(92,55,24,0.05)]">
+            <div className="mb-2.5 flex items-center gap-2">
+              <span className="material-symbols-outlined flex h-7 w-7 items-center justify-center rounded-lg bg-primary-container text-[18px] text-primary">
+                tune
+              </span>
+              <p className="text-sm font-semibold text-on-surface">
+                Cài đặt {modality === "image" ? "ảnh" : modality === "video" ? "video" : "audio"}
+              </p>
+            </div>
+            {renderOptions()}
           </div>
 
           {error && (

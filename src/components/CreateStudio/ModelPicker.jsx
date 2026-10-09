@@ -64,13 +64,11 @@ function capabilityTags(model, modality) {
 export default function ModelPicker({ modality, models, value, onChange }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const selectedModel = useMemo(
     () => models.find((item) => item.id === value),
     [models, value],
   );
   const selectedIdentity = modelIdentity(selectedModel);
-  const hasLongDescription = (selectedModel?.description?.length || 0) > 180;
   const meta = MODALITY_META[modality] || MODALITY_META.image;
 
   const filteredModels = useMemo(() => {
@@ -84,10 +82,6 @@ export default function ModelPicker({ modality, models, value, onChange }) {
         ),
     );
   }, [models, query]);
-
-  useEffect(() => {
-    setDescriptionExpanded(false);
-  }, [value]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -273,25 +267,6 @@ export default function ModelPicker({ modality, models, value, onChange }) {
           unfold_more
         </span>
       </button>
-
-      {selectedModel?.description && (
-        <div className="mt-3 border-t border-outline-variant pt-3">
-          <p
-            className={`${!hasLongDescription || descriptionExpanded ? "" : "line-clamp-3"} text-xs leading-5 text-slate-500`}
-          >
-            {selectedModel.description}
-          </p>
-          {hasLongDescription && (
-            <button
-              type="button"
-              onClick={() => setDescriptionExpanded((current) => !current)}
-              className="mt-1.5 text-xs font-medium text-primary transition hover:text-primary-hover"
-            >
-              {descriptionExpanded ? "Thu gọn" : "Xem thêm"}
-            </button>
-          )}
-        </div>
-      )}
 
       {typeof document !== "undefined" && createPortal(dialog, document.body)}
     </div>

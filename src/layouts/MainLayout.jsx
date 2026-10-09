@@ -2,13 +2,14 @@ import { useState } from 'react'
 import Sidebar from '../components/Sidebar/Sidebar'
 
 export default function MainLayout({ children }) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true)
 
   return (
     <>
       <Sidebar
         isCollapsed={isSidebarCollapsed}
         onToggle={() => setIsSidebarCollapsed((current) => !current)}
+        onNavigate={() => setIsSidebarCollapsed(true)}
       />
       <main
         className={`h-screen overflow-y-auto bg-background pl-20 text-on-background scrollbar-hide transition-[padding] duration-300 ease-in-out ${

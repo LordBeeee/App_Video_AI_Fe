@@ -2,7 +2,7 @@ import { useAuthStore } from '../../store/auth.store'
 import NavMenu from './NavMenu'
 import SettingsButton from './SettingsButton'
 
-export default function Sidebar({ isCollapsed, onToggle }) {
+export default function Sidebar({ isCollapsed, onToggle, onNavigate }) {
   const user = useAuthStore((state) => state.user)
 
   return (
@@ -28,7 +28,7 @@ export default function Sidebar({ isCollapsed, onToggle }) {
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary font-black text-on-primary shadow-[0_8px_20px_rgba(243,136,32,0.25)]">AI</div>
         {!isCollapsed && <div className="hidden lg:block"><p className="font-semibold text-on-surface">AI Studio</p><p className="text-[11px] text-on-surface-variant">Create without limits</p></div>}
       </div>
-      <NavMenu isCollapsed={isCollapsed} />
+      <NavMenu isCollapsed={isCollapsed} onNavigate={onNavigate} />
       <div className="mx-3 mt-4 border-t border-outline-variant pt-4">
         <div className={`flex items-center gap-3 rounded-xl px-3 py-2 ${isCollapsed ? 'lg:justify-center lg:px-0' : ''}`}>
           <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-primary/20 bg-primary-container text-on-primary-container">
