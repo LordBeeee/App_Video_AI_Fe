@@ -12,7 +12,7 @@ const primary = [
   { to: '/projects', label: 'Dự án', icon: 'deployed_code' },
 ]
 
-export default function NavMenu() {
+export default function NavMenu({ isCollapsed }) {
   const location = useLocation()
   const user = useAuthStore((state) => state.user)
   const items = user?.roleName === 'admin'
@@ -25,10 +25,10 @@ export default function NavMenu() {
         const active = item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to)
         return (
           <Link key={item.to} to={item.to} title={item.label}
-            className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${active ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+            className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition ${isCollapsed ? 'lg:justify-center lg:gap-0 lg:px-0' : ''} ${active ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
             <span className="material-symbols-outlined shrink-0 text-[21px]">{item.icon}</span>
-            <span className="hidden truncate font-medium lg:block">{item.label}</span>
-            {item.badge && <span className="ml-auto hidden rounded bg-violet-600 px-1.5 py-0.5 text-[9px] font-bold text-white lg:block">{item.badge}</span>}
+            {!isCollapsed && <span className="hidden truncate font-medium lg:block">{item.label}</span>}
+            {!isCollapsed && item.badge && <span className="ml-auto hidden rounded bg-violet-600 px-1.5 py-0.5 text-[9px] font-bold text-white lg:block">{item.badge}</span>}
           </Link>
         )
       })}

@@ -1,13 +1,20 @@
-import Header from '../components/Header'
+import { useState } from 'react'
 import Sidebar from '../components/Sidebar/Sidebar'
 
 export default function MainLayout({ children }) {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+
   return (
     <>
-      <Sidebar />
-      {/* <Header /> */}
-      {/* pt-16 */}
-      <main className="h-screen overflow-y-auto pl-20 scrollbar-hide lg:pl-64">
+      <Sidebar
+        isCollapsed={isSidebarCollapsed}
+        onToggle={() => setIsSidebarCollapsed((current) => !current)}
+      />
+      <main
+        className={`h-screen overflow-y-auto pl-20 scrollbar-hide transition-[padding] duration-300 ease-in-out ${
+          isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
+        }`}
+      >
         {children}
       </main>
     </>
