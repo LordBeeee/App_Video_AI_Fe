@@ -101,31 +101,31 @@ export default function Employees() {
   const totalPages = Math.max(1, Math.ceil(total / EMPLOYEE_PAGE_LIMIT))
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pt-8 pb-8">
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
 
       <div>
-        <h2 className="text-2xl font-bold text-white">Nhân Viên</h2>
-        <p className="text-slate-400 text-sm mt-1">Danh sách nhân viên sẽ được hiển thị ở đây.</p>
+        <h2 className="text-2xl font-bold text-on-background">Nhân Viên</h2>
+        <p className="mt-1 text-sm text-on-surface-variant">Danh sách nhân viên sẽ được hiển thị ở đây.</p>
       </div>
 
       <EmployeeStatCards stats={stats} loading={statsLoading} />
 
-      <div className="glass-panel rounded-xl overflow-hidden border border-outline-variant/10">
+      <div className="glass-panel overflow-hidden rounded-2xl">
 
-        <div className="px-6 py-5 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/50">
-          <h3 className="text-lg font-semibold text-white">Danh sách nhân viên</h3>
+        <div className="flex items-center justify-between border-b border-outline-variant bg-surface-container-low px-6 py-5">
+          <h3 className="text-lg font-semibold text-on-surface">Danh sách nhân viên</h3>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 bg-surface-container/50 border border-outline-variant/20 rounded-lg px-3 py-2">
               <span className="material-symbols-outlined text-lg text-outline">search</span>
               <input
                 type="text" value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Tìm theo họ và tên..."
-                className="bg-transparent text-sm text-white placeholder-outline outline-none w-48"
+                className="w-48 bg-transparent text-sm text-on-surface outline-none placeholder:text-outline"
               />
             </div>
             <button
               onClick={() => { setShowModal(true); setFormError('') }}
-              className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-colors"
+              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-on-primary transition-colors hover:bg-primary-hover"
             >
               <span className="material-symbols-outlined text-lg">person_add</span>
               Tạo nhân viên

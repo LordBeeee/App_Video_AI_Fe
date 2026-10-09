@@ -156,15 +156,15 @@ export default function Library() {
     // FIX 1: khoá chiều cao = viewport để cả trang không bao giờ bị đẩy cuộn
     <main className="h-screen flex-1 flex flex-col relative overflow-hidden bg-background">
       {/* Header */}
-      <div className="items-center gap-4 p-8 pb-2">
-        <h1 className="text-2xl font-semibold text-white">Thư Viện</h1>
-        <p className="text-slate-400 text-sm mt-1">
+      <div className="items-center gap-4 px-4 pb-2 pt-6 sm:px-6 lg:px-8 lg:pt-8">
+        <h1 className="text-2xl font-semibold text-on-background">Thư Viện</h1>
+        <p className="mt-1 text-sm text-on-surface-variant">
           Danh sách tài nguyên sẽ được hiển thị ở đây.
         </p>
       </div>
 
       {/* Canvas / Content Scrollable Area */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide p-8 pt-0 relative">
+      <div className="relative flex-1 overflow-y-auto px-4 pb-8 pt-0 scrollbar-hide sm:px-6 lg:px-8">
         <FilterBar
           activeTab={activeTab}
           setActiveTab={setActiveTab}

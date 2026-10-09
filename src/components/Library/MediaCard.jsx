@@ -10,7 +10,7 @@ export default function MediaCard({
   return (
     <div
       onClick={() => onSelect(item.id)}
-      className="media-card group relative bg-slate-800/60 rounded-xl overflow-hidden border border-slate-700 hover:border-indigo-500/60 transition-colors cursor-pointer flex flex-col aspect-[4/5]"
+      className="media-card group relative flex aspect-[4/5] cursor-pointer flex-col overflow-hidden rounded-xl border border-outline-variant bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-[0_10px_24px_rgba(243,136,32,0.12)]"
     >
       <div className="flex-1 relative overflow-hidden bg-slate-900 flex items-center justify-center">
         <img
@@ -53,7 +53,7 @@ export default function MediaCard({
 
         {item.type === "video" && (
           <div className="play-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="w-12 h-12 rounded-full bg-indigo-600/90 flex items-center justify-center backdrop-blur-sm">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/90 backdrop-blur-sm">
               <span
                 className="material-symbols-outlined text-white ml-1"
                 style={{ fontVariationSettings: "'FILL' 1" }}
@@ -64,13 +64,13 @@ export default function MediaCard({
           </div>
         )}
       </div>
-      <div className="p-3 bg-slate-800/60 border-t border-slate-700 flex justify-between items-center shrink-0">
+      <div className="flex shrink-0 items-center justify-between border-t border-outline-variant bg-white p-3">
         {item.type === "video" ? (
-          <div className="bg-slate-900 px-2 py-1 rounded text-xs font-mono text-slate-400 font-medium">
+          <div className="rounded bg-surface-variant px-2 py-1 font-mono text-xs font-medium text-on-surface-variant">
             {item.duration}
           </div>
         ) : (
-          <div className="flex items-center gap-1 bg-slate-900 px-2 py-1 rounded text-xs font-mono text-slate-400 font-medium">
+          <div className="flex items-center gap-1 rounded bg-surface-variant px-2 py-1 font-mono text-xs font-medium text-on-surface-variant">
             <span className="material-symbols-outlined text-[14px]">image</span>
             IMG
           </div>
@@ -81,7 +81,7 @@ export default function MediaCard({
               e.stopPropagation();
               setMenuOpenId((id) => (id === item.id ? null : item.id));
             }}
-            className={`text-slate-400 hover:text-indigo-400 transition-colors ${
+            className={`text-on-surface-variant transition-colors hover:text-primary ${
               menuOpenId === item.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
             }`}
           >
@@ -99,11 +99,11 @@ export default function MediaCard({
               />
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="absolute bottom-full right-0 mb-2 w-36 rounded-lg bg-slate-900 border border-slate-700 shadow-xl z-40 overflow-hidden"
+                className="absolute bottom-full right-0 z-40 mb-2 w-36 overflow-hidden rounded-lg border border-outline-variant bg-white shadow-xl"
               >
                 <button
                   onClick={(e) => onDownload(item, e)}
-                  className="w-full flex items-center gap-2 text-left px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 transition-colors"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-on-surface transition-colors hover:bg-primary-container hover:text-primary"
                 >
                   <span className="material-symbols-outlined text-[16px]">download</span>
                   Download
@@ -112,7 +112,7 @@ export default function MediaCard({
                 {item.category === "element" && onDelete && (        // ← THÊM
                   <button
                     onClick={(e) => onDelete(item, e)}
-                    className="w-full flex items-center gap-2 text-left px-3 py-2 text-sm text-red-400 hover:bg-slate-800 transition-colors"
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-500 transition-colors hover:bg-red-50"
                   >
                     <span className="material-symbols-outlined text-[16px]">delete</span>
                     Xóa

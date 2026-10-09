@@ -28,7 +28,7 @@ export default function CopyButton({ text }) {
       onClick={handleCopy}
       title={copied ? 'Đã sao chép!' : 'Sao chép prompt'}
       className="mt-1 flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-xs
-                 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                 text-on-surface-variant transition-colors hover:bg-primary-container hover:text-primary"
     >
       {copied ? (
         <>

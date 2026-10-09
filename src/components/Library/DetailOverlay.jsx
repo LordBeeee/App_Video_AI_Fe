@@ -19,17 +19,17 @@ export default function DetailOverlay({
   thumbRefs,
 }) {
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex flex-col bg-background text-on-background animate-in fade-in duration-150">
       {/* Top bar */}
-      <div className="flex items-center justify-between px-6 h-16 shrink-0 border-b border-slate-800">
+      <div className="flex h-16 shrink-0 items-center justify-between border-b border-outline-variant bg-white px-6">
         <div className="flex items-center gap-3">
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-primary-container hover:text-primary"
           >
             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           </button>
-          <span className="text-white font-medium text-sm">
+          <span className="text-sm font-medium text-on-surface">
             {item.name || `${item.type}_${item.id}.${item.type === "video" ? "mp4" : "png"}`}
           </span>
         </div>
@@ -37,11 +37,11 @@ export default function DetailOverlay({
         <div className="flex items-center gap-2">
           <button
             onClick={() => onToggleFavorite(item.id)}
-            className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-300 hover:bg-slate-800 transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-primary-container hover:text-primary"
           >
             <span
               className={`material-symbols-outlined text-[20px] ${
-                item.favorite ? "text-red-500" : "text-slate-300"
+                item.favorite ? "text-red-500" : "text-on-surface-variant"
               }`}
               style={item.favorite ? { fontVariationSettings: "'FILL' 1" } : undefined}
             >
@@ -51,7 +51,7 @@ export default function DetailOverlay({
           <div className="relative">
             <button
               onClick={() => setOverlayMenuOpen((o) => !o)}
-              className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-300 hover:bg-slate-800 transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-primary-container hover:text-primary"
             >
               <span className="material-symbols-outlined text-[20px]">more_horiz</span>
             </button>
@@ -59,10 +59,10 @@ export default function DetailOverlay({
             {overlayMenuOpen && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setOverlayMenuOpen(false)} />
-                <div className="absolute right-0 mt-2 w-40 rounded-lg bg-slate-900 border border-slate-700 shadow-xl z-40 overflow-hidden">
+                <div className="absolute right-0 z-40 mt-2 w-40 overflow-hidden rounded-lg border border-outline-variant bg-white shadow-xl">
                   <button
                     onClick={(e) => onDownload(item, e)}
-                    className="w-full flex items-center gap-2 text-left px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 transition-colors"
+                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-on-surface transition-colors hover:bg-primary-container hover:text-primary"
                   >
                     <span className="material-symbols-outlined text-[16px]">download</span>
                     Download
@@ -71,7 +71,7 @@ export default function DetailOverlay({
                   {item.category === "element" && onDelete && (      // ← THÊM
                     <button
                       onClick={(e) => onDelete(item, e)}
-                      className="w-full flex items-center gap-2 text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-800 transition-colors"
+                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-500 transition-colors hover:bg-red-50"
                     >
                       <span className="material-symbols-outlined text-[16px]">delete</span>
                       Xóa

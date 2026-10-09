@@ -31,11 +31,7 @@ function getInitials(name = '') {
 }
 
 const COLOR_POOL = [
-  { bg: 'bg-[#6366f1]/20', text: 'text-[#818cf8]' },
-  { bg: 'bg-[#0ea5e9]/20', text: 'text-[#38bdf8]' },
-  { bg: 'bg-[#10b981]/20', text: 'text-[#34d399]' },
-  { bg: 'bg-[#f59e0b]/20', text: 'text-[#fbbf24]' },
-  { bg: 'bg-[#ec4899]/20', text: 'text-[#f472b6]' },
+  { bg: 'bg-primary-container', text: 'text-primary-hover' },
 ]
 
 function getColor(id = '') {
@@ -53,10 +49,10 @@ function formatDate(ts) {
 
 // ─── Style classes ────────────────────────────────────────────────────────────
 const inputCls =
-  'w-full bg-surface-container/50 border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-outline outline-none focus:border-primary/50 transition-colors'
+  'w-full bg-white border border-outline-variant rounded-lg px-4 py-2.5 text-sm text-on-surface placeholder-outline outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors'
 
 const inputErrCls =
-  'w-full bg-surface-container/50 border border-[#f87171]/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-outline outline-none focus:border-[#f87171]/70 transition-colors'
+  'w-full bg-white border border-[#f87171]/50 rounded-lg px-4 py-2.5 text-sm text-on-surface placeholder-outline outline-none focus:border-[#f87171]/70 transition-colors'
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 function InfoRow({ icon, label, value, mono }) {
@@ -65,7 +61,7 @@ function InfoRow({ icon, label, value, mono }) {
       <span className="material-symbols-outlined text-outline text-[18px] mt-0.5 flex-shrink-0">{icon}</span>
       <div className="min-w-0 flex-1">
         <p className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">{label}</p>
-        <p className={`text-sm text-slate-200 break-all ${mono ? 'font-mono' : ''}`}>
+        <p className={`break-all text-sm text-on-surface ${mono ? 'font-mono' : ''}`}>
           {value || <span className="italic text-outline text-xs">Chưa cập nhật</span>}
         </p>
       </div>
@@ -195,12 +191,12 @@ function ConfirmDialog({ message, onConfirm, onCancel }) {
       <div className="glass-panel rounded-2xl border border-outline-variant/20 p-6 max-w-sm w-full mx-4 space-y-4">
         <div className="flex items-start gap-3">
           <span className="material-symbols-outlined text-[#f87171] text-2xl flex-shrink-0">warning</span>
-          <p className="text-sm text-slate-300 leading-relaxed">{message}</p>
+          <p className="text-sm leading-relaxed text-on-surface-variant">{message}</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 py-2 rounded-lg border border-outline-variant/20 text-sm text-slate-400 hover:bg-surface-container-highest/30 transition-colors"
+            className="flex-1 rounded-lg border border-outline-variant py-2 text-sm text-on-surface-variant transition-colors hover:bg-surface-variant"
           >
             Hủy
           </button>
@@ -358,16 +354,16 @@ export default function EmployeeDetail() {
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pt-8 pb-8">
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white">Chi tiết nhân viên</h2>
-          <p className="text-slate-400 text-sm mt-1">{user?.email || '...'}</p>
+          <h2 className="text-2xl font-bold text-on-background">Chi tiết nhân viên</h2>
+          <p className="mt-1 text-sm text-on-surface-variant">{user?.email || '...'}</p>
         </div>
         <button
           onClick={() => navigate('/employees')}
-          className="flex items-center gap-2 rounded-lg border border-outline-variant/20 bg-surface-container/50 px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-white"
+          className="flex items-center gap-2 rounded-lg border border-outline-variant bg-white px-4 py-2 text-sm font-medium text-on-surface-variant transition-colors hover:border-primary hover:bg-primary-container hover:text-primary"
         >
           <span className="material-symbols-outlined text-lg">arrow_back</span>
           Quản lý nhân viên
@@ -423,7 +419,7 @@ export default function EmployeeDetail() {
 
                   {/* Họ và tên */}
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">
                       Họ và tên <span className="text-[#f87171]">*</span>
                     </label>
                     <input
@@ -438,7 +434,7 @@ export default function EmployeeDetail() {
 
                   {/* Biệt danh */}
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">
                       Biệt danh (username)
                     </label>
                     <input
@@ -452,7 +448,7 @@ export default function EmployeeDetail() {
 
                   {/* Số điện thoại */}
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">
                       Số điện thoại <span className="text-[#f87171]">*</span>
                     </label>
                     <input
@@ -476,7 +472,7 @@ export default function EmployeeDetail() {
                       saved
                         ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30'
                         : dirty
-                        ? 'bg-primary hover:bg-primary/80 text-white'
+                        ? 'bg-primary hover:bg-primary-hover text-on-primary'
                         : 'bg-surface-container/50 text-outline border border-outline-variant/20 cursor-not-allowed'
                     }`}
                   >

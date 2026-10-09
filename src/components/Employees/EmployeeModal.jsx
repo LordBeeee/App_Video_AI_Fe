@@ -2,15 +2,15 @@ import { useState, useMemo } from 'react'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 const inputCls =
-  'w-full bg-surface-container/50 border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-outline outline-none focus:border-primary/50 transition-colors'
+  'w-full bg-white border border-outline-variant rounded-lg px-4 py-2.5 text-sm text-on-surface placeholder-outline outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors'
 
 const inputErrCls =
-  'w-full bg-surface-container/50 border border-[#f87171]/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-outline outline-none focus:border-[#f87171]/70 transition-colors'
+  'w-full bg-white border border-[#f87171]/50 rounded-lg px-4 py-2.5 text-sm text-on-surface placeholder-outline outline-none focus:border-[#f87171]/70 transition-colors'
 
 function Field({ label, required, error, children }) {
   return (
     <div>
-      <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+      <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">
         {label} {required && <span className="text-[#f87171]">*</span>}
       </label>
       {children}
@@ -157,11 +157,11 @@ export default function EmployeeModal({ show, onClose, onSubmit, submitting, err
               <span className="material-symbols-outlined text-primary">person_add</span>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white">Tạo nhân viên</h3>
-              <p className="text-xs text-slate-400">Điền thông tin để thêm nhân viên mới</p>
+              <h3 className="text-lg font-semibold text-on-surface">Tạo nhân viên</h3>
+              <p className="text-xs text-on-surface-variant">Điền thông tin để thêm nhân viên mới</p>
             </div>
           </div>
-          <button onClick={onClose} disabled={submitting} className="p-1.5 rounded-lg hover:bg-surface-container-highest text-outline hover:text-white transition-colors">
+          <button onClick={onClose} disabled={submitting} className="rounded-lg p-1.5 text-outline transition-colors hover:bg-primary-container hover:text-primary">
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
         </div>
@@ -236,11 +236,11 @@ export default function EmployeeModal({ show, onClose, onSubmit, submitting, err
           {/* Buttons */}
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} disabled={submitting}
-              className="flex-1 px-4 py-2.5 rounded-lg border border-outline-variant/20 text-sm text-slate-300 hover:bg-surface-container-highest transition-colors disabled:opacity-50">
+              className="flex-1 rounded-lg border border-outline-variant px-4 py-2.5 text-sm text-on-surface-variant transition-colors hover:bg-surface-variant disabled:opacity-50">
               Hủy
             </button>
             <button type="submit" disabled={submitting || !canSubmit}
-              className="flex-1 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary/80 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-on-primary transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50">
               {submitting
                 ? <><span className="material-symbols-outlined text-sm animate-spin">progress_activity</span> Đang tạo...</>
                 : <><span className="material-symbols-outlined text-sm">check</span> Tạo nhân viên</>

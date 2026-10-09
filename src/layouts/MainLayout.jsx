@@ -11,7 +11,7 @@ export default function MainLayout({ children }) {
         onToggle={() => setIsSidebarCollapsed((current) => !current)}
       />
       <main
-        className={`h-screen overflow-y-auto pl-20 scrollbar-hide transition-[padding] duration-300 ease-in-out ${
+        className={`h-screen overflow-y-auto bg-background pl-20 text-on-background scrollbar-hide transition-[padding] duration-300 ease-in-out ${
           isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
         }`}
       >

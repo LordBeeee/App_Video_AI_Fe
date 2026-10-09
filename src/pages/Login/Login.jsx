@@ -35,21 +35,23 @@ export default function LoginCard() {
   }
 
   return (
-    <section className="min-h-screen w-full bg-[#070d1d] flex items-center justify-center px-4">
+    <section className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-background px-4">
+      <div className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-primary/15 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-28 -right-20 h-96 w-96 rounded-full bg-primary-container blur-3xl" />
       <main className="w-full max-w-[480px] z-10">
-        <div className="glass-panel rounded-xl p-10 flex flex-col items-center gap-8 shadow-2xl">
+        <div className="glass-panel flex flex-col items-center gap-8 rounded-2xl p-8 sm:p-10">
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-3 mb-6">
               <span className="material-symbols-outlined text-4xl text-primary">
                 auto_awesome
               </span>
 
-              <span className="text-xl font-black tracking-tighter text-white font-h2">
+              <span className="text-xl font-black tracking-tighter text-on-surface font-h2">
                 {/* CineAI */}
               </span>
             </div>
 
-            <h1 className="font-h2 text-h2 text-white">Welcome Back</h1>
+            <h1 className="font-h2 text-3xl font-bold text-on-surface">Welcome Back</h1>
 
             <p className="font-body-sm text-outline-variant uppercase tracking-widest text-[10px]">
               {/* Access your professional engine */}
@@ -68,7 +70,7 @@ export default function LoginCard() {
                 </span>
 
                 <input
-                  className="w-full bg-surface-container-highest/30 border border-outline-variant rounded-lg py-4 pl-12 pr-4 text-white font-mono-ui focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none"
+                  className="w-full rounded-xl border border-outline-variant bg-white py-4 pl-12 pr-4 text-on-surface outline-none transition-all font-mono-ui focus:border-primary focus:ring-2 focus:ring-primary/20"
                   placeholder="abc123@gmail.com"
                   type="email"
                   value={email}
@@ -89,7 +91,7 @@ export default function LoginCard() {
                 </span>
 
                 <input
-                  className="w-full bg-surface-container-highest/30 border border-outline-variant rounded-lg py-4 pl-12 pr-12 text-white font-mono-ui focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none"
+                  className="w-full rounded-xl border border-outline-variant bg-white py-4 pl-12 pr-12 text-on-surface outline-none transition-all font-mono-ui focus:border-primary focus:ring-2 focus:ring-primary/20"
                   placeholder="••••••••"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
@@ -116,7 +118,7 @@ export default function LoginCard() {
             )}
 
             <button
-              className="w-full bg-gradient-to-r from-primary-container to-primary py-4 rounded-lg text-on-primary-container font-label-caps text-sm tracking-[0.2em] neon-glow transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full rounded-xl bg-primary py-4 text-sm font-bold tracking-[0.16em] text-on-primary shadow-[0_10px_24px_rgba(243,136,32,0.25)] transition-all hover:bg-primary-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 font-label-caps"
               type="submit"
               disabled={loading}
             >

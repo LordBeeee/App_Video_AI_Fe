@@ -3,23 +3,26 @@
 @import "tailwindcss";
 
 @theme {
-  --color-surface-bright: #31394d;
-  --color-outline-variant: #464554;
-  --color-background: #0b1326;
-  --color-outline: #908fa0;
-  --color-surface-container-high: #222a3d;
-  --color-on-surface: #dae2fd;
-  --color-surface-container-low: #131b2e;
-  --color-primary: #c0c1ff;
-  --color-surface-container: #171f33;
-  --color-on-surface-variant: #c7c4d7;
-  --color-surface: #0b1326;
-  --color-on-background: #dae2fd;
-  --color-surface-container-highest: #2d3449;
-  --color-surface-container-lowest: #060e20;
-  --color-surface-variant: #2d3449;
-  --color-secondary: #4cd7f6;
-  --color-primary-container: #8083ff;
+  --color-surface-bright: #ffffff;
+  --color-outline-variant: #e9ded5;
+  --color-background: #fff8f2;
+  --color-outline: #8a7c71;
+  --color-surface-container-high: #f6eee8;
+  --color-on-surface: #2d241d;
+  --color-surface-container-low: #fffaf6;
+  --color-primary: #f38820;
+  --color-primary-hover: #d96f0a;
+  --color-on-primary: #2d1605;
+  --color-surface-container: #ffffff;
+  --color-on-surface-variant: #756a61;
+  --color-surface: #ffffff;
+  --color-on-background: #2d241d;
+  --color-surface-container-highest: #eee4dc;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-variant: #f8f1eb;
+  --color-secondary: #c65f08;
+  --color-primary-container: #fff1e3;
+  --color-on-primary-container: #7a3500;
 
   --font-h3: "Space Grotesk", sans-serif;
   --font-mono-ui: "Space Grotesk", sans-serif;
@@ -37,8 +40,8 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: #0b1326;
-  color: #dae2fd;
+  background: #fff8f2;
+  color: #2d241d;
   font-family: "Inter", sans-serif;
 }
 
@@ -66,7 +69,7 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #464554;
+  background: #f7c28f;
   border-radius: 10px;
 }
 
@@ -81,17 +84,17 @@ body {
 
 /* Employee */
 .glass-panel {
-  background: rgba(19, 27, 46, 0.4);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(70, 69, 84, 0.2);
+  background: #ffffff;
+  border: 1px solid #e9ded5;
+  box-shadow: 0 10px 30px rgba(92, 55, 24, 0.06);
 }
 .glow-hover:hover {
-  box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 10px 28px rgba(243, 136, 32, 0.16);
 }
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 .active-nav-border {
-  box-shadow: inset -2px 0 0 0 #c0c1ff;
+  box-shadow: inset 3px 0 0 0 #f38820;
 }
 /*  */

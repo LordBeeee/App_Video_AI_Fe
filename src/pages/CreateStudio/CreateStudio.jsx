@@ -31,12 +31,12 @@ function values(capabilities, key, fallback = []) {
 function FieldSelect({ label, value, onChange, options }) {
   if (!options?.length) return null;
   return (
-    <label className="space-y-2 text-sm text-slate-400">
+    <label className="space-y-2 text-sm text-on-surface-variant">
       <span>{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-xl border border-white/10 bg-[#22262d] px-3 py-3 text-sm font-medium text-white outline-none focus:border-white/30"
+        className="w-full rounded-xl border border-outline-variant bg-white px-3 py-3 text-sm font-medium text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
       >
         {options.map((option) => (
           <option key={String(option)} value={option}>
@@ -296,7 +296,7 @@ export default function CreateStudio() {
                 onClick={() =>
                   setOption("generateAudio", !options.generateAudio)
                 }
-                className={`w-full rounded-xl border px-3 py-3 text-sm ${options.generateAudio ? "border-cyan-400 bg-cyan-400/10 text-cyan-300" : "border-white/10 bg-[#22262d] text-slate-400"}`}
+                className={`w-full rounded-xl border px-3 py-3 text-sm ${options.generateAudio ? "border-primary bg-primary-container text-primary-hover" : "border-outline-variant bg-white text-on-surface-variant"}`}
               >
                 <span className="material-symbols-outlined mr-2 align-middle text-lg">
                   volume_up
@@ -326,15 +326,15 @@ export default function CreateStudio() {
   };
 
   return (
-    <div className="flex h-screen min-w-0 overflow-hidden bg-[#111418] text-white">
-      <section className="flex w-full shrink-0 flex-col border-r border-white/10 bg-[#14171b] lg:w-[480px]">
-        <div className="flex gap-2 border-b border-white/10 px-5 py-4">
+    <div className="flex h-screen min-w-0 overflow-hidden bg-background text-on-background">
+      <section className="flex w-full shrink-0 flex-col border-r border-outline-variant bg-white lg:w-[480px]">
+        <div className="flex gap-2 border-b border-outline-variant px-5 py-4">
           {MODALITIES.map((item) =>
             item.id === "chat" ? (
               <button
                 key={item.id}
                 onClick={() => navigate("/chat")}
-                className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-slate-400 hover:bg-white/5 hover:text-white"
+                className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-on-surface-variant hover:bg-primary-container hover:text-primary"
               >
                 <span className="material-symbols-outlined text-lg">
                   {item.icon}
@@ -345,7 +345,7 @@ export default function CreateStudio() {
               <Link
                 key={item.id}
                 to={`/create/${item.id}`}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 ${modality === item.id ? "bg-[#2a2e34] text-white" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 ${modality === item.id ? "bg-primary-container font-medium text-primary-hover" : "text-on-surface-variant hover:bg-primary-container hover:text-primary"}`}
               >
                 <span className="material-symbols-outlined text-lg">
                   {item.icon}
@@ -365,7 +365,7 @@ export default function CreateStudio() {
           />
 
           {modality !== "audio" && (
-            <div className="rounded-2xl border border-white/10 bg-[#181b20] p-4">
+            <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-4">
               <p className="mb-3 text-sm font-semibold">
                 Ảnh tham chiếu{" "}
                 <span className="font-normal text-slate-500">(tùy chọn)</span>
@@ -380,7 +380,7 @@ export default function CreateStudio() {
                         items.filter((_, i) => i !== index),
                       )
                     }
-                    className="group relative h-24 w-24 overflow-hidden rounded-xl border border-white/10"
+                    className="group relative h-24 w-24 overflow-hidden rounded-xl border border-outline-variant"
                   >
                     {reference.type === "video" ? (
                       <video
@@ -401,7 +401,7 @@ export default function CreateStudio() {
                   </button>
                 ))}
                 {references.length < 2 && (
-                  <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-white/20 bg-white/[0.03] text-slate-400 hover:border-white/40 hover:text-white">
+                  <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/30 bg-white text-on-surface-variant hover:border-primary hover:text-primary">
                     <span className="material-symbols-outlined">
                       add_photo_alternate
                     </span>
@@ -421,7 +421,7 @@ export default function CreateStudio() {
             </div>
           )}
 
-          <div className="rounded-2xl border border-white/10 bg-[#181b20] p-4">
+          <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-4">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-sm font-semibold">
                 {modality === "audio" ? "Kịch bản" : "Prompt"}
@@ -437,7 +437,7 @@ export default function CreateStudio() {
                   ? "Nhập nội dung bạn muốn chuyển thành giọng nói..."
                   : "Mô tả nội dung bạn muốn tạo..."
               }
-              className="w-full resize-none bg-transparent text-sm leading-6 text-white outline-none placeholder:text-slate-600"
+              className="w-full resize-none bg-transparent text-sm leading-6 text-on-surface outline-none placeholder:text-outline"
             />
           </div>
 
@@ -449,7 +449,7 @@ export default function CreateStudio() {
           )}
           {quoteError && <p className="text-xs text-amber-300">{quoteError}</p>}
           {result && (
-            <div className="rounded-2xl border border-white/10 bg-[#181b20] p-4 lg:hidden">
+            <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-4 lg:hidden">
               <div className="mb-3 flex items-center justify-between">
                 <p className="font-semibold">Kết quả gần nhất</p>
                 <span className="text-xs text-slate-500">{result.status}</span>
@@ -467,7 +467,7 @@ export default function CreateStudio() {
                   className={
                     result.status === "failed"
                       ? "text-sm text-red-300"
-                      : "text-sm text-slate-400"
+                      : "text-sm text-on-surface-variant"
                   }
                 >
                   {result.errorMessage || "Nội dung đang được xử lý…"}
@@ -495,7 +495,7 @@ export default function CreateStudio() {
                     href={url}
                     target="_blank"
                     rel="noreferrer"
-                    className="block border-t border-white/10 px-3 py-2 text-center text-xs text-cyan-300"
+                    className="block border-t border-outline-variant px-3 py-2 text-center text-xs text-primary"
                   >
                     Mở hoặc tải xuống
                   </a>
@@ -505,12 +505,12 @@ export default function CreateStudio() {
           )}
         </div>
 
-        <div className="border-t border-white/10 bg-[#14171b] p-5">
+        <div className="border-t border-outline-variant bg-white p-5">
           <button
             type="button"
             disabled={!quote || generating}
             onClick={generate}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-4 font-semibold text-black transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-slate-500"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-4 font-semibold text-on-primary shadow-[0_8px_20px_rgba(243,136,32,0.22)] transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-container-highest disabled:text-outline"
           >
             {generating
               ? "Đang xử lý..."
@@ -530,13 +530,13 @@ export default function CreateStudio() {
         </div>
       </section>
 
-      <section className="relative hidden min-w-0 flex-1 flex-col items-center justify-center overflow-hidden bg-[#111418] px-8 lg:flex">
+      <section className="relative hidden min-w-0 flex-1 flex-col items-center justify-center overflow-hidden bg-background px-8 lg:flex">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(56,189,248,0.09),transparent_45%)]" />
         <div className="relative z-10 flex w-full max-w-4xl flex-col items-center">
           {!result && (
             <div className="text-center">
-              <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl border border-white/10 bg-white/[0.04]">
-                <span className="material-symbols-outlined text-4xl text-cyan-300">
+              <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl border border-primary/20 bg-primary-container">
+                <span className="material-symbols-outlined text-4xl text-primary">
                   {MODALITIES.find((item) => item.id === modality)?.icon}
                 </span>
               </div>
@@ -548,7 +548,7 @@ export default function CreateStudio() {
           )}
           {result && !result.outputUrls?.length && (
             <div className="text-center">
-              <div className="mx-auto mb-5 h-12 w-12 animate-spin rounded-full border-2 border-white/10 border-t-cyan-300" />
+              <div className="mx-auto mb-5 h-12 w-12 animate-spin rounded-full border-2 border-primary/15 border-t-primary" />
               <h2 className="text-xl font-semibold">
                 {result.status === "failed"
                   ? "Tạo nội dung thất bại"
@@ -601,14 +601,14 @@ export default function CreateStudio() {
                   </div>
                 )}
               </div>
-              <div className="mt-5 flex items-center justify-between text-sm text-slate-400">
+              <div className="mt-5 flex items-center justify-between text-sm text-on-surface-variant">
                 <span>Đã lưu vào Thư viện</span>
                 <div className="flex items-center gap-4">
                   <a
                     href={result.outputUrls[0]}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-cyan-300 hover:text-cyan-200"
+                    className="text-primary hover:text-primary-hover"
                   >
                     Tải xuống
                   </a>
@@ -619,12 +619,12 @@ export default function CreateStudio() {
         </div>
       </section>
 
-      <aside className="hidden w-72 shrink-0 border-l border-white/10 bg-[#14171b] p-4 xl:block">
+      <aside className="hidden w-72 shrink-0 border-l border-outline-variant bg-white p-4 xl:block">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="font-semibold">Gần đây</h3>
           <button
             onClick={loadHistory}
-            className="text-slate-500 hover:text-white"
+            className="text-on-surface-variant hover:text-primary"
           >
             <span className="material-symbols-outlined text-lg">refresh</span>
           </button>
@@ -634,7 +634,7 @@ export default function CreateStudio() {
             <button
               key={item.id}
               onClick={() => setResult(item)}
-              className={`flex w-full gap-3 rounded-xl border p-2 text-left transition ${result?.id === item.id ? "border-cyan-400/60 bg-cyan-400/10" : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06]"}`}
+              className={`flex w-full gap-3 rounded-xl border p-2 text-left transition ${result?.id === item.id ? "border-primary bg-primary-container" : "border-outline-variant bg-white hover:border-primary/40 hover:bg-surface-container-low"}`}
             >
               <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-black/40">
                 {item.thumbnailUrl ? (
@@ -653,7 +653,7 @@ export default function CreateStudio() {
                 />
               </div>
               <div className="min-w-0 flex-1 py-1">
-                <p className="line-clamp-2 text-sm text-slate-200">
+                <p className="line-clamp-2 text-sm text-on-surface">
                   {item.prompt}
                 </p>
                 <div className="mt-2 flex items-center justify-between gap-2 text-xs text-slate-500">

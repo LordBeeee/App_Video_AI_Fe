@@ -84,10 +84,10 @@ export default function GenerationChart({
       : null;
 
   return (
-    <div className="bg-slate-900/60 border border-slate-800 backdrop-blur-sm rounded-2xl p-8 relative">
+    <div className="relative rounded-2xl border border-outline-variant bg-white p-5 shadow-[0_10px_30px_rgba(92,55,24,0.06)] sm:p-8">
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5 mb-10">
-        <h3 className="text-lg font-bold text-white">Thống kê Generations</h3>
+        <h3 className="text-lg font-bold text-on-surface">Thống kê Generations</h3>
 
         <div className="flex flex-col md:flex-row md:items-center gap-5">
           <div className="flex items-center gap-3">
@@ -95,15 +95,15 @@ export default function GenerationChart({
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                className="h-10 min-w-[145px] appearance-none rounded-lg border border-slate-700 bg-slate-900/70 px-4 py-2.5 pr-10 text-sm font-semibold text-white outline-none cursor-pointer transition-all focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                className="h-10 min-w-[145px] cursor-pointer appearance-none rounded-lg border border-outline-variant bg-white px-4 py-2.5 pr-10 text-sm font-semibold text-on-surface outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary"
               >
                 {months.map((m) => (
-                  <option key={m} value={m} className="bg-slate-800 text-white">
+                  <option key={m} value={m}>
                     Tháng {m}
                   </option>
                 ))}
               </select>
-              <span className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] leading-none text-slate-400">
+              <span className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] leading-none text-on-surface-variant">
                 expand_more
               </span>
             </div>
@@ -112,15 +112,15 @@ export default function GenerationChart({
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="h-10 min-w-[130px] appearance-none rounded-lg border border-slate-700 bg-slate-900/70 px-4 py-2.5 pr-10 text-sm font-semibold text-white outline-none cursor-pointer transition-all focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                className="h-10 min-w-[130px] cursor-pointer appearance-none rounded-lg border border-outline-variant bg-white px-4 py-2.5 pr-10 text-sm font-semibold text-on-surface outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary"
               >
                 {years.map((y) => (
-                  <option key={y} value={y} className="bg-slate-800 text-white">
+                  <option key={y} value={y}>
                     Năm {y}
                   </option>
                 ))}
               </select>
-              <span className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] leading-none text-slate-400">
+              <span className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] leading-none text-on-surface-variant">
                 expand_more
               </span>
             </div>
@@ -128,13 +128,13 @@ export default function GenerationChart({
 
           <div className="flex items-center gap-6">
             {[
-              { color: 'bg-indigo-500', shadow: 'shadow-[0_0_8px_rgba(99,102,241,0.6)]',  label: 'Prompt' },
-              { color: 'bg-cyan-400',   shadow: 'shadow-[0_0_8px_rgba(76,215,246,0.6)]',  label: 'Ảnh'   },
-              { color: 'bg-purple-500', shadow: 'shadow-[0_0_8px_rgba(168,85,247,0.6)]',  label: 'Video' },
+              { color: 'bg-primary', shadow: 'shadow-[0_0_8px_rgba(243,136,32,0.45)]', label: 'Prompt' },
+              { color: 'bg-[#ffad5c]', shadow: 'shadow-[0_0_8px_rgba(255,173,92,0.45)]', label: 'Ảnh' },
+              { color: 'bg-[#bd5706]', shadow: 'shadow-[0_0_8px_rgba(189,87,6,0.4)]', label: 'Video' },
             ].map(({ color, shadow, label }) => (
               <div key={label} className="flex items-center gap-2">
                 <span className={`w-3 h-3 rounded-full ${color} ${shadow}`} />
-                <span className="text-xs font-mono text-slate-300">{label}</span>
+                <span className="font-mono text-xs text-on-surface-variant">{label}</span>
               </div>
             ))}
           </div>
@@ -164,7 +164,7 @@ export default function GenerationChart({
             {/* Grid lines */}
             <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
               {yLabels.map((v) => (
-                <div key={v} className="border-t border-slate-800/50 w-full" />
+                <div key={v} className="w-full border-t border-outline-variant/70" />
               ))}
             </div>
 
@@ -188,8 +188,8 @@ export default function GenerationChart({
                 >
                   <defs>
                     <linearGradient id="indigoGradient" x1="0" x2="0" y1="0" y2="1">
-                      <stop offset="0%"   stopColor="#6366f1" stopOpacity="0.3" />
-                      <stop offset="100%" stopColor="#6366f1" stopOpacity="0"   />
+                      <stop offset="0%"   stopColor="#f38820" stopOpacity="0.28" />
+                      <stop offset="100%" stopColor="#f38820" stopOpacity="0"   />
                     </linearGradient>
                   </defs>
 
@@ -211,17 +211,17 @@ export default function GenerationChart({
 
                   {/* Prompts line */}
                   {promptPath && (
-                    <path d={promptPath} fill="none" stroke="#6366f1" strokeWidth="3" strokeLinecap="round" />
+                    <path d={promptPath} fill="none" stroke="#f38820" strokeWidth="3" strokeLinecap="round" />
                   )}
 
                   {/* Images line */}
                   {imagesPath && (
-                    <path d={imagesPath} fill="none" stroke="#22d3ee" strokeWidth="3" strokeLinecap="round" />
+                    <path d={imagesPath} fill="none" stroke="#ffad5c" strokeWidth="3" strokeLinecap="round" />
                   )}
 
                   {/* Videos line */}
                   {videosPath && (
-                    <path d={videosPath} fill="none" stroke="#a855f7" strokeWidth="3" strokeDasharray="8 4" strokeLinecap="round" />
+                    <path d={videosPath} fill="none" stroke="#bd5706" strokeWidth="3" strokeDasharray="8 4" strokeLinecap="round" />
                   )}
 
                   {/* Empty state */}
@@ -243,16 +243,16 @@ export default function GenerationChart({
                     }}
                   >
                     <div
-                      className="rounded-xl border border-slate-700/80 bg-slate-900/95 backdrop-blur-sm px-4 py-3 shadow-xl"
+                      className="rounded-xl border border-outline-variant bg-white px-4 py-3 shadow-xl"
                       style={{ minWidth: 140 }}
                     >
                       <p className="text-[10px] text-slate-500 mb-2 font-mono">
                         Ngày {hoveredData.day}
                       </p>
                       {[
-                        { dot: 'bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.8)]',  label: 'Prompt', val: hoveredData.prompt },
-                        { dot: 'bg-cyan-400   shadow-[0_0_6px_rgba(34,211,238,0.8)]',  label: 'Ảnh',    val: hoveredData.images },
-                        { dot: 'bg-purple-500 shadow-[0_0_6px_rgba(168,85,247,0.8)]',  label: 'Video',  val: hoveredData.videos },
+                        { dot: 'bg-primary', label: 'Prompt', val: hoveredData.prompt },
+                        { dot: 'bg-[#ffad5c]', label: 'Ảnh', val: hoveredData.images },
+                        { dot: 'bg-[#bd5706]', label: 'Video', val: hoveredData.videos },
                       ].map(({ dot, label, val }, i) => (
                         <div
                           key={label}
@@ -260,9 +260,9 @@ export default function GenerationChart({
                         >
                           <div className="flex items-center gap-1.5">
                             <span className={`w-2 h-2 rounded-full ${dot}`} />
-                            <span className="text-[11px] text-slate-400">{label}</span>
+                            <span className="text-[11px] text-on-surface-variant">{label}</span>
                           </div>
-                          <span className="text-[11px] font-bold text-white">{val}</span>
+                          <span className="text-[11px] font-bold text-on-surface">{val}</span>
                         </div>
                       ))}
                     </div>
@@ -273,7 +273,7 @@ export default function GenerationChart({
           </div>
 
           {/* X-axis */}
-          <div className="relative border-t border-slate-800" style={{ height: 24 }}>
+          <div className="relative border-t border-outline-variant" style={{ height: 24 }}>
             {data.map((d, i) => {
               const pct      = data.length > 1 ? (i / (data.length - 1)) * 100 : 0;
               const isHovered = hoveredIndex === i;
@@ -286,7 +286,7 @@ export default function GenerationChart({
                   <div className={`w-px h-1.5 ${isHovered ? 'bg-slate-300' : 'bg-slate-700'}`} />
                   <span
                     className={`text-[9px] leading-none mt-0.5 transition-colors ${
-                      isHovered ? 'font-bold text-white' : 'text-slate-500'
+                      isHovered ? 'font-bold text-on-surface' : 'text-on-surface-variant'
                     }`}
                   >
                     D{d.day}

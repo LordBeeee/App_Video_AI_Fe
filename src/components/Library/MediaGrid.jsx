@@ -12,7 +12,7 @@ export default function MediaGrid({
 }) {
   if (items.length === 0) {
     return (
-      <div className="mt-12 text-center text-slate-400 flex flex-col items-center justify-center gap-4 py-12 border border-dashed border-slate-700 rounded-2xl bg-slate-900/40">
+      <div className="mt-12 flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-primary/30 bg-white py-12 text-center text-on-surface-variant">
         <span className="material-symbols-outlined text-4xl opacity-50">search_off</span>
         <p>
           {favoritesOnly

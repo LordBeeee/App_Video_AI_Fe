@@ -60,11 +60,7 @@ function getInitials(name = '') {
   return name.trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'ME'
 }
 const COLOR_POOL = [
-  { bg: 'bg-[#6366f1]/20', text: 'text-[#818cf8]' },
-  { bg: 'bg-[#0ea5e9]/20', text: 'text-[#38bdf8]' },
-  { bg: 'bg-[#10b981]/20', text: 'text-[#34d399]' },
-  { bg: 'bg-[#f59e0b]/20', text: 'text-[#fbbf24]' },
-  { bg: 'bg-[#ec4899]/20', text: 'text-[#f472b6]' },
+  { bg: 'bg-primary-container', text: 'text-primary-hover' },
 ]
 function getColor(id = '') {
   const idx = [...String(id)].reduce((a, c) => a + c.charCodeAt(0), 0) % COLOR_POOL.length
@@ -78,8 +74,8 @@ function formatDate(ts) {
 }
 
 // ─── Style ────────────────────────────────────────────────────────────────────
-const inputCls    = 'w-full bg-surface-container/50 border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-outline outline-none focus:border-primary/50 transition-colors'
-const inputErrCls = 'w-full bg-surface-container/50 border border-[#f87171]/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-outline outline-none focus:border-[#f87171]/70 transition-colors'
+const inputCls    = 'w-full bg-white border border-outline-variant rounded-lg px-4 py-2.5 text-sm text-on-surface placeholder-outline outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors'
+const inputErrCls = 'w-full bg-white border border-[#f87171]/50 rounded-lg px-4 py-2.5 text-sm text-on-surface placeholder-outline outline-none focus:border-[#f87171]/70 transition-colors'
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 function InfoRow({ icon, label, value, mono }) {
@@ -88,7 +84,7 @@ function InfoRow({ icon, label, value, mono }) {
       <span className="material-symbols-outlined text-outline text-[18px] mt-0.5 flex-shrink-0">{icon}</span>
       <div className="min-w-0 flex-1">
         <p className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">{label}</p>
-        <p className={`text-sm text-slate-200 break-all ${mono ? 'font-mono' : ''}`}>
+        <p className={`break-all text-sm text-on-surface ${mono ? 'font-mono' : ''}`}>
           {value || <span className="italic text-outline text-xs">Chưa cập nhật</span>}
         </p>
       </div>
@@ -333,11 +329,11 @@ export default function Profile () {
 
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pt-8 pb-8">
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-white">Cài đặt tài khoản</h2>
-        <p className="text-slate-400 text-sm mt-1">{user?.email || '...'}</p>
+        <h2 className="text-2xl font-bold text-on-background">Cài đặt tài khoản</h2>
+        <p className="mt-1 text-sm text-on-surface-variant">{user?.email || '...'}</p>
       </div>
 
       {loading && <SkeletonDetail />}
@@ -377,7 +373,7 @@ export default function Profile () {
                 <div className="space-y-4">
 
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">
                       Họ và tên <span className="text-[#f87171]">*</span>
                     </label>
                     <input
@@ -391,7 +387,7 @@ export default function Profile () {
                   </div>
 
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Biệt danh (username)</label>
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">Biệt danh (username)</label>
                     <input
                       type="text"
                       value={form.username}
@@ -402,7 +398,7 @@ export default function Profile () {
                   </div>
 
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">
                       Số điện thoại <span className="text-[#f87171]">*</span>
                     </label>
                     <input
@@ -423,7 +419,7 @@ export default function Profile () {
                     disabled={!dirty || saving}
                     className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-sm font-medium transition-all ${
                       saved  ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30'
-                      : dirty ? 'bg-primary hover:bg-primary/80 text-white'
+                      : dirty ? 'bg-primary hover:bg-primary-hover text-on-primary'
                               : 'bg-surface-container/50 text-outline border border-outline-variant/20 cursor-not-allowed'
                     }`}
                   >
@@ -443,7 +439,7 @@ export default function Profile () {
 
                   {/* Mật khẩu hiện tại */}
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">
                       Mật khẩu hiện tại <span className="text-[#f87171]">*</span>
                     </label>
                     <PasswordInput
@@ -459,7 +455,7 @@ export default function Profile () {
 
                   {/* Mật khẩu mới */}
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">
                       Mật khẩu mới <span className="text-[#f87171]">*</span>
                     </label>
                     <PasswordInput
@@ -475,7 +471,7 @@ export default function Profile () {
 
                   {/* Xác nhận mật khẩu mới */}
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">
                       Xác nhận mật khẩu mới <span className="text-[#f87171]">*</span>
                     </label>
                     <PasswordInput
@@ -496,7 +492,7 @@ export default function Profile () {
                     disabled={!pwdCanSubmit || changingPwd}
                     className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-sm font-medium transition-all ${
                       pwdSaved     ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30'
-                      : pwdCanSubmit ? 'bg-primary hover:bg-primary/80 text-white'
+                      : pwdCanSubmit ? 'bg-primary hover:bg-primary-hover text-on-primary'
                                     : 'bg-surface-container/50 text-outline border border-outline-variant/20 cursor-not-allowed'
                     }`}
                   >

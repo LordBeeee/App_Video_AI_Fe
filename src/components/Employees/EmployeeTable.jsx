@@ -34,10 +34,10 @@ function DeleteConfirmModal({ user, deleting, onConfirm, onCancel }) {
           <div className="w-10 h-10 rounded-full bg-[#f87171]/15 flex items-center justify-center flex-shrink-0">
             <span className="material-symbols-outlined text-[#f87171]">delete_forever</span>
           </div>
-          <h3 className="text-white font-semibold text-base">Xóa nhân viên</h3>
+          <h3 className="text-base font-semibold text-on-surface">Xóa nhân viên</h3>
         </div>
-        <p className="text-slate-400 text-sm leading-relaxed mb-1">Bạn có chắc muốn xóa nhân viên</p>
-        <p className="text-white font-semibold text-sm mb-1">{user.fullName || user.email}?</p>
+        <p className="mb-1 text-sm leading-relaxed text-on-surface-variant">Bạn có chắc muốn xóa nhân viên</p>
+        <p className="mb-1 text-sm font-semibold text-on-surface">{user.fullName || user.email}?</p>
         <p className="text-[#f87171] text-xs leading-relaxed mb-6">
           Toàn bộ dự án, video, ảnh và dữ liệu liên quan sẽ bị xóa vĩnh viễn, không thể khôi phục.
         </p>
@@ -45,7 +45,7 @@ function DeleteConfirmModal({ user, deleting, onConfirm, onCancel }) {
           <button
             onClick={onCancel}
             disabled={deleting}
-            className="flex-1 px-4 py-2.5 rounded-xl border border-outline-variant/30 text-slate-300 text-sm hover:bg-surface-container-highest/40 transition-colors disabled:opacity-50"
+            className="flex-1 rounded-xl border border-outline-variant px-4 py-2.5 text-sm text-on-surface-variant transition-colors hover:bg-surface-variant disabled:opacity-50"
           >
             Hủy
           </button>
@@ -105,7 +105,7 @@ export default function EmployeeTable({ users, loading, query, togglingId, onTog
               Array.from({ length: EMPLOYEE_PAGE_LIMIT }).map((_, i) => <SkeletonRow key={i} />)
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-16 text-center text-slate-400">
+                <td colSpan={6} className="px-6 py-16 text-center text-on-surface-variant">
                   {query ? 'Không tìm thấy nhân viên phù hợp' : 'Chưa có nhân viên nào'}
                 </td>
               </tr>
@@ -119,20 +119,20 @@ export default function EmployeeTable({ users, loading, query, togglingId, onTog
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-3">
                         <UserAvatar user={user} />
-                        <span className="font-medium text-white">{user.fullName || '—'}</span>
+                        <span className="font-medium text-on-surface">{user.fullName || '—'}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-5 text-slate-300 font-mono-ui">{user.email}</td>
-                    <td className="px-6 py-5 text-slate-300">
+                    <td className="px-6 py-5 text-on-surface-variant font-mono-ui">{user.email}</td>
+                    <td className="px-6 py-5 text-on-surface-variant">
                       {user.phone || <span className="text-outline italic text-xs">Chưa cập nhật</span>}
                     </td>
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-2">
                         <Dot color={locked ? 'red' : 'green'} />
-                        <span className="text-sm text-slate-300">{locked ? 'Đã khóa' : 'Hoạt động'}</span>
+                        <span className="text-sm text-on-surface-variant">{locked ? 'Đã khóa' : 'Hoạt động'}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-5 text-slate-300 text-sm">
+                    <td className="px-6 py-5 text-sm text-on-surface-variant">
                       {formatLastLogin(user.lastLoginAt)}
                     </td>
                     <td className="px-6 py-5">

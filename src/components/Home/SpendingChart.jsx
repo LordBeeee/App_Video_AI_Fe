@@ -84,10 +84,10 @@ export default function SpendingChart({
       : null;
 
   return (
-    <div className="bg-slate-900/60 border border-slate-800 backdrop-blur-sm rounded-2xl p-8 relative">
+    <div className="relative rounded-2xl border border-outline-variant bg-white p-5 shadow-[0_10px_30px_rgba(92,55,24,0.06)] sm:p-8">
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5 mb-10">
-        <h3 className="text-lg font-bold text-white">Thống kê Tiền đã dùng</h3>
+        <h3 className="text-lg font-bold text-on-surface">Thống kê Tiền đã dùng</h3>
 
         <div className="flex flex-col md:flex-row md:items-center gap-5">
           <div className="flex items-center gap-3">
@@ -95,15 +95,15 @@ export default function SpendingChart({
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                className="h-10 min-w-[145px] appearance-none rounded-lg border border-slate-700 bg-slate-900/70 px-4 py-2.5 pr-10 text-sm font-semibold text-white outline-none cursor-pointer transition-all focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="h-10 min-w-[145px] cursor-pointer appearance-none rounded-lg border border-outline-variant bg-white px-4 py-2.5 pr-10 text-sm font-semibold text-on-surface outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary"
               >
                 {months.map((m) => (
-                  <option key={m} value={m} className="bg-slate-800 text-white">
+                  <option key={m} value={m}>
                     Tháng {m}
                   </option>
                 ))}
               </select>
-              <span className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] leading-none text-slate-400">
+              <span className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] leading-none text-on-surface-variant">
                 expand_more
               </span>
             </div>
@@ -112,23 +112,23 @@ export default function SpendingChart({
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="h-10 min-w-[130px] appearance-none rounded-lg border border-slate-700 bg-slate-900/70 px-4 py-2.5 pr-10 text-sm font-semibold text-white outline-none cursor-pointer transition-all focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="h-10 min-w-[130px] cursor-pointer appearance-none rounded-lg border border-outline-variant bg-white px-4 py-2.5 pr-10 text-sm font-semibold text-on-surface outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary"
               >
                 {years.map((y) => (
-                  <option key={y} value={y} className="bg-slate-800 text-white">
+                  <option key={y} value={y}>
                     Năm {y}
                   </option>
                 ))}
               </select>
-              <span className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] leading-none text-slate-400">
+              <span className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] leading-none text-on-surface-variant">
                 expand_more
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
-            <span className="text-xs font-mono text-slate-300">Tiền</span>
+            <span className="h-3 w-3 rounded-full bg-primary shadow-[0_0_8px_rgba(243,136,32,0.45)]" />
+            <span className="font-mono text-xs text-on-surface-variant">Tiền</span>
           </div>
         </div>
       </div>
@@ -159,7 +159,7 @@ export default function SpendingChart({
             {/* Grid lines */}
             <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
               {yLabels.map((v) => (
-                <div key={v} className="border-t border-slate-800/50 w-full" />
+                <div key={v} className="w-full border-t border-outline-variant/70" />
               ))}
             </div>
 
@@ -182,8 +182,8 @@ export default function SpendingChart({
                 >
                   <defs>
                     <linearGradient id="amberGradient" x1="0" x2="0" y1="0" y2="1">
-                      <stop offset="0%"   stopColor="#f59e0b" stopOpacity="0.45" />
-                      <stop offset="100%" stopColor="#f59e0b" stopOpacity="0"    />
+                      <stop offset="0%"   stopColor="#f38820" stopOpacity="0.4" />
+                      <stop offset="100%" stopColor="#f38820" stopOpacity="0"    />
                     </linearGradient>
                   </defs>
 
@@ -208,7 +208,7 @@ export default function SpendingChart({
                     <path
                       d={linePath}
                       fill="none"
-                      stroke="#fbbf24"
+                      stroke="#f38820"
                       strokeWidth="6"
                       strokeLinecap="round"
                       opacity="0.2"
@@ -220,7 +220,7 @@ export default function SpendingChart({
                     <path
                       d={linePath}
                       fill="none"
-                      stroke="#f59e0b"
+                      stroke="#d96f0a"
                       strokeWidth="3"
                       strokeLinecap="round"
                     />
@@ -244,7 +244,7 @@ export default function SpendingChart({
                     }}
                   >
                     <div
-                      className="rounded-xl border border-slate-700/80 bg-slate-900/95 backdrop-blur-sm px-4 py-3 shadow-xl"
+                      className="rounded-xl border border-outline-variant bg-white px-4 py-3 shadow-xl"
                       style={{ minWidth: 150 }}
                     >
                       <p className="text-[10px] text-slate-500 mb-2 font-mono">
@@ -252,10 +252,10 @@ export default function SpendingChart({
                       </p>
                       <div className="flex items-center justify-between gap-6">
                         <div className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
-                          <span className="text-[11px] text-slate-400">Chi tiêu</span>
+                          <span className="h-2 w-2 rounded-full bg-primary" />
+                          <span className="text-[11px] text-on-surface-variant">Chi tiêu</span>
                         </div>
-                        <span className="text-[11px] font-bold text-white">
+                        <span className="text-[11px] font-bold text-on-surface">
                           {formatVND(hoveredData.total)}
                         </span>
                       </div>
@@ -267,7 +267,7 @@ export default function SpendingChart({
           </div>
 
           {/* X-axis */}
-          <div className="relative border-t border-slate-800" style={{ height: 24 }}>
+          <div className="relative border-t border-outline-variant" style={{ height: 24 }}>
             {data.map((d, i) => {
               const pct       = data.length > 1 ? (i / (data.length - 1)) * 100 : 0;
               const isHovered = hoveredIndex === i;
@@ -280,7 +280,7 @@ export default function SpendingChart({
                   <div className={`w-px h-1.5 ${isHovered ? 'bg-slate-300' : 'bg-slate-700'}`} />
                   <span
                     className={`text-[9px] leading-none mt-0.5 transition-colors ${
-                      isHovered ? 'font-bold text-white' : 'text-slate-500'
+                      isHovered ? 'font-bold text-on-surface' : 'text-on-surface-variant'
                     }`}
                   >
                     D{d.day}

@@ -61,13 +61,13 @@ export default function Home() {
     new Intl.NumberFormat('vi-VN').format(Math.round(cost)) + ' VND';
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pt-8">
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white">
+          <h2 className="text-2xl font-bold text-on-background">
             Phân tích Dữ liệu và Thống kê
           </h2>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="mt-1 text-sm text-on-surface-variant">
             {isSystemView
               ? 'Dữ liệu tổng quan của toàn hệ thống.'
               : 'Dữ liệu tổng quan của bạn đã làm các dự án.'}
@@ -80,12 +80,12 @@ export default function Home() {
             <select
               value={viewMode}
               onChange={(e) => setViewMode(e.target.value)}
-              className="h-10 min-w-[150px] appearance-none rounded-lg border border-slate-700 bg-slate-900/70 px-4 py-2.5 pr-10 text-sm font-semibold text-white outline-none cursor-pointer transition-all focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="h-10 min-w-[150px] cursor-pointer appearance-none rounded-lg border border-outline-variant bg-white px-4 py-2.5 pr-10 text-sm font-semibold text-on-surface outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary"
             >
-              <option value="self" className="bg-slate-800 text-white">Bản thân</option>
-              <option value="system" className="bg-slate-800 text-white">Hệ thống</option>
+              <option value="self">Bản thân</option>
+              <option value="system">Hệ thống</option>
             </select>
-            <span className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] leading-none text-slate-400">
+            <span className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[20px] leading-none text-on-surface-variant">
               expand_more
             </span>
           </div>
