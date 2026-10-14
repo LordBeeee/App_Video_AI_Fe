@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { countTokens, decode, encode } from "gpt-tokenizer";
 import ModelPicker from "../../components/CreateStudio/ModelPicker";
 import InfoPanel from "../../components/Library/InfoPanel";
 import { uploadAssetApi } from "../../services/asset.service";
@@ -17,6 +18,15 @@ const MODALITIES = [
   { id: "audio", label: "Audio", icon: "graphic_eq" },
   { id: "chat", label: "Chat", icon: "chat_bubble" },
 ];
+
+const MEDIA_PROMPT_TOKEN_LIMIT = 4000;
+
+function limitMediaPrompt(value) {
+  const tokens = encode(value);
+  return tokens.length <= MEDIA_PROMPT_TOKEN_LIMIT
+    ? value
+    : decode(tokens.slice(0, MEDIA_PROMPT_TOKEN_LIMIT));
+}
 
 const money = (value) =>
   `${new Intl.NumberFormat("vi-VN").format(Number(value || 0))} ₫`;
@@ -147,6 +157,15 @@ export default function CreateStudio() {
   );
   const capabilities = model?.capabilities || {};
   const referenceLimit = referenceLimitFor(modality, capabilities);
+  const isMediaPrompt = modality === "image" || modality === "video";
+  const promptTokenCount = useMemo(
+    () => (isMediaPrompt ? countTokens(prompt) : 0),
+    [isMediaPrompt, prompt],
+  );
+
+  useEffect(() => {
+    if (isMediaPrompt) setPrompt((current) => limitMediaPrompt(current));
+  }, [isMediaPrompt]);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -606,11 +625,22 @@ export default function CreateStudio() {
               <p className="text-sm font-semibold">
                 {modality === "audio" ? "Kịch bản" : "Prompt"}
               </p>
-              <span className="text-xs text-slate-600">{prompt.length}</span>
+              <span className="text-xs text-slate-600">
+                {isMediaPrompt
+                  ? `${promptTokenCount.toLocaleString("vi-VN")} / ${MEDIA_PROMPT_TOKEN_LIMIT.toLocaleString("vi-VN")} token`
+                  : `${prompt.length.toLocaleString("vi-VN")} ký tự`}
+              </span>
             </div>
             <textarea
               value={prompt}
-              onChange={(event) => setPrompt(event.target.value)}
+              onChange={(event) => {
+                const nextPrompt = event.target.value;
+                if (!isMediaPrompt) {
+                  setPrompt(nextPrompt);
+                  return;
+                }
+                setPrompt(limitMediaPrompt(nextPrompt));
+              }}
               rows={8}
               placeholder={
                 modality === "audio"
@@ -697,27 +727,40 @@ export default function CreateStudio() {
         </div>
 
         <div className="border-t border-outline-variant bg-white p-4">
-          <button
-            type="button"
-            disabled={!quote || generating}
-            onClick={generate}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-4 font-semibold text-on-primary shadow-[0_8px_20px_rgba(243,136,32,0.22)] transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-container-highest disabled:text-outline"
-          >
-            {generating
-              ? "Đang xử lý..."
-              : `Tạo ${modality === "image" ? "ảnh" : modality === "video" ? "video" : "audio"}`}
-            {quote && (
-              <>
-                <span className="text-lg">✦</span>
-                <span>{money(quote.maxPriceVnd)}</span>
-              </>
-            )}
-          </button>
-          {quote && quote.minPriceVnd !== quote.maxPriceVnd && (
-            <p className="mt-2 text-center text-xs text-slate-500">
-              Ước tính {money(quote.minPriceVnd)} – {money(quote.maxPriceVnd)}
-            </p>
-          )}
+          <div className="grid grid-cols-[minmax(112px,0.85fr)_minmax(0,1.45fr)] gap-2">
+            <div className="flex min-h-14 min-w-0 flex-col justify-center rounded-xl border border-outline-variant bg-surface-container-low px-3 shadow-[0_2px_8px_rgba(92,55,24,0.04)]">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                Tạm tính
+              </span>
+              <span
+                className={`mt-0.5 truncate text-sm font-bold ${quote ? "text-primary-hover" : "text-slate-400"}`}
+                title={quote ? money(quote.maxPriceVnd) : "Chưa có báo giá"}
+              >
+                {quote ? money(quote.maxPriceVnd) : "— ₫"}
+              </span>
+              {quote && quote.minPriceVnd !== quote.maxPriceVnd && (
+                <span className="truncate text-[10px] text-slate-500">
+                  Từ {money(quote.minPriceVnd)}
+                </span>
+              )}
+            </div>
+
+            <button
+              type="button"
+              disabled={!quote || generating}
+              onClick={generate}
+              className="flex min-h-14 min-w-0 items-center justify-center gap-2 rounded-xl bg-primary px-3 font-semibold text-on-primary shadow-[0_8px_20px_rgba(243,136,32,0.22)] transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-container-highest disabled:text-outline"
+            >
+              <span className="material-symbols-outlined text-[21px]">
+                bolt
+              </span>
+              <span className="truncate">
+                {generating
+                  ? "Đang xử lý..."
+                  : `Tạo ${modality === "image" ? "ảnh" : modality === "video" ? "video" : "audio"}`}
+              </span>
+            </button>
+          </div>
         </div>
       </section>
 
