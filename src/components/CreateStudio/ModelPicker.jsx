@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
 const MODALITY_META = {
-  image: { icon: "image", label: "ảnh" },
-  video: { icon: "smart_display", label: "video" },
-  audio: { icon: "graphic_eq", label: "giọng nói" },
+  image: { label: "ảnh" },
+  video: { label: "video" },
+  audio: { label: "giọng nói" },
 };
 
 function modelIdentity(model) {
@@ -180,11 +180,6 @@ export default function ModelPicker({ modality, models, value, onChange }) {
                     : "border-outline-variant bg-white hover:border-primary/40 hover:bg-surface-container-low"
                 }`}
               >
-                <span
-                  className={`material-symbols-outlined flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${selected ? "bg-primary/15 text-primary" : "bg-surface-variant text-on-surface-variant group-hover:text-primary"}`}
-                >
-                  {meta.icon}
-                </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="break-words text-sm font-semibold leading-5 text-on-surface sm:text-base">
@@ -252,9 +247,6 @@ export default function ModelPicker({ modality, models, value, onChange }) {
         aria-expanded={open}
         className="flex w-full items-center gap-3 rounded-xl border border-outline-variant bg-white p-3 text-left transition hover:border-primary/40 hover:bg-primary-container/40 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <span className="material-symbols-outlined flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-container text-primary">
-          {meta.icon}
-        </span>
         <span className="min-w-0 flex-1">
           <span className="block text-[11px] font-medium text-slate-500">
             {models.length ? selectedIdentity.provider : "Đang tải catalog..."}

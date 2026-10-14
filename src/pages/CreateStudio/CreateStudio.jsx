@@ -651,24 +651,11 @@ export default function CreateStudio() {
             />
           </div>
 
-          <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-3 shadow-[0_8px_24px_rgba(92,55,24,0.05)]">
-            <div className="mb-2.5 flex items-center gap-2">
-              <span className="material-symbols-outlined flex h-7 w-7 items-center justify-center rounded-lg bg-primary-container text-[18px] text-primary">
-                tune
-              </span>
-              <p className="text-sm font-semibold text-on-surface">
-                Cài đặt {modality === "image" ? "ảnh" : modality === "video" ? "video" : "audio"}
-              </p>
-            </div>
-            {renderOptions()}
-          </div>
-
           {error && (
             <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
               {error}
             </div>
           )}
-          {quoteError && <p className="text-xs text-amber-300">{quoteError}</p>}
           {result && (
             <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-4 lg:hidden">
               <div className="mb-3 flex items-center justify-between">
@@ -726,7 +713,59 @@ export default function CreateStudio() {
           )}
         </div>
 
-        <div className="border-t border-outline-variant bg-white p-4">
+        <div className="space-y-2 border-t border-outline-variant bg-white p-3 sm:p-4">
+          <details className="group rounded-2xl border border-outline-variant bg-surface-container-low shadow-[0_6px_20px_rgba(92,55,24,0.05)]">
+            <summary className="flex cursor-pointer list-none items-center gap-2.5 rounded-2xl px-3 py-2.5 transition hover:bg-primary-container/40 [&::-webkit-details-marker]:hidden">
+              <span className="material-symbols-outlined flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-container text-[19px] text-primary">
+                tune
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold text-on-surface">
+                  Cài đặt {modality === "image" ? "ảnh" : modality === "video" ? "video" : "audio"}
+                </span>
+                <span className="mt-0.5 flex min-w-0 items-center gap-1.5 overflow-hidden text-[11px] text-slate-500">
+                  {modality === "image" && (
+                    <>
+                      {options.aspectRatio && <span className="truncate">{options.aspectRatio}</span>}
+                      {options.resolution && <span className="truncate">· {options.resolution}</span>}
+                      {options.quality && <span className="truncate">· {options.quality}</span>}
+                      {options.n && <span className="truncate">· {options.n} ảnh</span>}
+                    </>
+                  )}
+                  {modality === "video" && (
+                    <>
+                      {options.aspectRatio && <span className="truncate">{options.aspectRatio}</span>}
+                      {options.resolution && <span className="truncate">· {options.resolution}</span>}
+                      {options.size && <span className="truncate">{options.size}</span>}
+                      {options.duration && <span className="truncate">· {options.duration}s</span>}
+                      {capabilities.generateAudio && (
+                        <span className="truncate">· {options.generateAudio ? "Có âm thanh" : "Tắt âm thanh"}</span>
+                      )}
+                    </>
+                  )}
+                  {modality === "audio" && (
+                    <>
+                      {options.voice && <span className="truncate">{options.voice}</span>}
+                      {options.speed && <span className="truncate">· {options.speed}x</span>}
+                    </>
+                  )}
+                </span>
+              </span>
+              <span className="material-symbols-outlined shrink-0 text-xl text-slate-500 transition-transform duration-200 group-open:rotate-180">
+                expand_more
+              </span>
+            </summary>
+            <div className="max-h-[36vh] overflow-y-auto border-t border-outline-variant p-3">
+              {renderOptions()}
+            </div>
+          </details>
+
+          {quoteError && (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+              {quoteError}
+            </p>
+          )}
+
           <div className="grid grid-cols-[minmax(112px,0.85fr)_minmax(0,1.45fr)] gap-2">
             <div className="flex min-h-14 min-w-0 flex-col justify-center rounded-xl border border-outline-variant bg-surface-container-low px-3 shadow-[0_2px_8px_rgba(92,55,24,0.04)]">
               <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
