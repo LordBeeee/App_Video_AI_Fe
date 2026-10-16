@@ -1,6 +1,9 @@
 import api from './api'
 
 export async function uploadAssetApi(file) {
+  if (file.type.startsWith('image/') && file.size > 10_000_000) {
+    throw new Error('Ảnh tải lên không được vượt quá 10 MB')
+  }
   const formData = new FormData()
   formData.append('file', file)
   try {

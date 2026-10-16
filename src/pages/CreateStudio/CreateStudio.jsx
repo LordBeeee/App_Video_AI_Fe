@@ -274,6 +274,12 @@ export default function CreateStudio() {
   }, [modality, selectedModel]);
 
   useEffect(() => {
+    if (!error) return undefined;
+    const timer = setTimeout(() => setError(""), 6000);
+    return () => clearTimeout(timer);
+  }, [error]);
+
+  useEffect(() => {
     setQuote(null);
     setQuoteError("");
     if (!selectedModel || (modality !== "video" && !prompt.trim())) return;
@@ -733,11 +739,6 @@ export default function CreateStudio() {
             />
           </div>
 
-          {error && (
-            <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-              {error}
-            </div>
-          )}
           {result && (
             <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-4 lg:hidden">
               <div className="mb-3 flex items-center justify-between">
@@ -1060,6 +1061,23 @@ export default function CreateStudio() {
           ))}
         </div>
       </aside>
+      {error && (
+        <div
+          role="alert"
+          className="fixed right-4 top-4 z-[100] flex w-[min(24rem,calc(100vw-2rem))] items-start gap-3 rounded-xl border border-red-200 bg-white px-4 py-3 text-sm text-red-700 shadow-xl"
+        >
+          <span className="material-symbols-outlined text-xl">error</span>
+          <span className="min-w-0 flex-1">{error}</span>
+          <button
+            type="button"
+            aria-label="Đóng thông báo lỗi"
+            onClick={() => setError("")}
+            className="rounded p-0.5 hover:bg-red-50"
+          >
+            <span className="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
