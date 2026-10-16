@@ -30,6 +30,10 @@ function limitMediaPrompt(value) {
 
 const money = (value) =>
   `${new Intl.NumberFormat("vi-VN").format(Number(value || 0))} ₫`;
+const optionLabel = (value) => ({
+  first_frame: "Ảnh đầu / ảnh cuối",
+  refer_image: "Ảnh tham chiếu",
+})[value] || String(value);
 
 function values(capabilities, key, fallback = []) {
   const value = capabilities?.[key];
@@ -55,7 +59,7 @@ function referenceLimitFor(modality, capabilities) {
     return Math.max(0, Number(capabilities?.input_references?.max) || 0);
   }
   if (modality === "video") {
-    return Math.min(2, new Set(capabilities?.frameImages || []).size);
+    return Number(capabilities?.maxReferenceImages || 0);
   }
   return 0;
 }
@@ -80,7 +84,7 @@ function FieldSelect({
         {icon}
       </span>
       <span className="min-w-0 flex-1 whitespace-nowrap px-1.5 text-[13px] font-bold text-on-surface">
-        {value || emptyLabel || "Chọn"}
+        {value ? optionLabel(value) : emptyLabel || "Chọn"}
       </span>
       <select
         aria-label={label}
@@ -91,7 +95,7 @@ function FieldSelect({
         {emptyLabel && <option value="">{emptyLabel}</option>}
         {options.map((option) => (
           <option key={String(option)} value={option}>
-            {String(option)}
+            {optionLabel(option)}
           </option>
         ))}
       </select>
@@ -156,7 +160,9 @@ export default function CreateStudio() {
     [models, selectedModel],
   );
   const capabilities = model?.capabilities || {};
-  const referenceLimit = referenceLimitFor(modality, capabilities);
+  const referenceLimit = modality === "video" && options.referenceMode !== "refer_image"
+    ? Math.min(2, referenceLimitFor(modality, capabilities))
+    : referenceLimitFor(modality, capabilities);
   const isMediaPrompt = modality === "image" || modality === "video";
   const promptTokenCount = useMemo(
     () => (isMediaPrompt ? countTokens(prompt) : 0),
@@ -221,10 +227,14 @@ export default function CreateStudio() {
           ? { aspectRatio: capabilities.aspectRatios[0] }
           : {}),
         ...(capabilities.durations?.length
-          ? { duration: capabilities.durations[0] }
+          ? { duration: capabilities.durations.includes(5) ? 5 : capabilities.durations[0] }
           : {}),
         ...(capabilities.sizes?.length ? { size: "" } : {}),
         ...(capabilities.generateAudio ? { generateAudio: false } : {}),
+        ...(capabilities.referenceModes?.length
+          ? { referenceMode: capabilities.referenceModes[0] }
+          : {}),
+        ...(capabilities.multiShot ? { multiShot: false } : {}),
         ...(capabilities.seed ? { seed: "" } : {}),
       });
     }
@@ -237,7 +247,7 @@ export default function CreateStudio() {
   useEffect(() => {
     setQuote(null);
     setQuoteError("");
-    if (!selectedModel || !prompt.trim()) return;
+    if (!selectedModel || (modality !== "video" && !prompt.trim())) return;
     const sequence = ++quoteSequence.current;
     const timer = setTimeout(async () => {
       try {
@@ -299,7 +309,7 @@ export default function CreateStudio() {
   };
 
   const generate = async () => {
-    if (!quote || generating) return;
+    if (!quote || generating || !prompt.trim() || (modality === "video" && !references.length)) return;
     setGenerating(true);
     setError("");
     try {
@@ -382,20 +392,46 @@ export default function CreateStudio() {
     if (modality === "video")
       return (
         <div className="grid grid-cols-12 gap-2">
-          <FieldSelect
-            label="Tỷ lệ"
-            icon="aspect_ratio"
-            value={options.aspectRatio || ""}
-            onChange={(v) =>
-              setOptions((current) => ({
-                ...current,
-                aspectRatio: v,
-                size: "",
-              }))
-            }
-            options={capabilities.aspectRatios || []}
-            className="col-span-4"
-          />
+          {(!capabilities.referenceModes || options.referenceMode === "refer_image") && (
+            <FieldSelect
+              label="Tỷ lệ"
+              icon="aspect_ratio"
+              value={options.aspectRatio || ""}
+              onChange={(v) =>
+                setOptions((current) => ({
+                  ...current,
+                  aspectRatio: v,
+                  size: "",
+                }))
+              }
+              options={capabilities.aspectRatios || []}
+              className="col-span-4"
+            />
+          )}
+          {capabilities.referenceModes?.length > 0 && (
+            <FieldSelect
+              label="Cách dùng ảnh"
+              icon="photo_library"
+              value={options.referenceMode || "first_frame"}
+              onChange={(v) => {
+                setOption("referenceMode", v);
+                if (v === "first_frame") setReferences((items) => items.slice(0, 2));
+              }}
+              options={capabilities.referenceModes}
+              className="col-span-6"
+            />
+          )}
+          {capabilities.multiShot && (
+            <label className="col-span-6 flex min-h-12 items-center gap-2 rounded-xl border border-outline-variant bg-white px-3 text-xs font-semibold text-on-surface">
+              <input
+                type="checkbox"
+                checked={!!options.multiShot}
+                onChange={(event) => setOption("multiShot", event.target.checked)}
+                className="accent-primary"
+              />
+              Nhiều cảnh
+            </label>
+          )}
           <FieldSelect
             label="Độ phân giải"
             icon="high_quality"
@@ -564,9 +600,11 @@ export default function CreateStudio() {
           {referenceLimit > 0 && (
             <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-4">
               <p className="mb-3 text-sm font-semibold">
-                {modality === "video" ? "Ảnh khung hình" : "Ảnh tham chiếu"}{" "}
+                 {modality === "video" && options.referenceMode === "refer_image"
+                   ? "Ảnh tham chiếu"
+                   : modality === "video" ? "Ảnh khung hình" : "Ảnh tham chiếu"}{" "}
                 <span className="font-normal text-slate-500">
-                  (tùy chọn, tối đa {referenceLimit})
+                   ({modality === "video" ? "cần ít nhất 1 ảnh, " : "tùy chọn, "}tối đa {referenceLimit})
                 </span>
               </p>
               <div className="flex flex-wrap gap-3">
@@ -597,6 +635,11 @@ export default function CreateStudio() {
                     <span className="absolute inset-0 hidden items-center justify-center bg-black/60 group-hover:flex">
                       Xóa
                     </span>
+                    {modality === "video" && options.referenceMode !== "refer_image" && (
+                      <span className="absolute bottom-0 left-0 right-0 bg-black/65 py-1 text-center text-[10px] text-white">
+                        {index === 0 ? "Ảnh đầu" : "Ảnh cuối"}
+                      </span>
+                    )}
                   </button>
                 ))}
                 {references.length < referenceLimit && (
@@ -609,7 +652,7 @@ export default function CreateStudio() {
                     </span>
                     <input
                       type="file"
-                      accept="image/*"
+                      accept={modality === "video" ? "image/jpeg,image/png" : "image/*"}
                       className="hidden"
                       disabled={uploading}
                       onChange={uploadReference}
@@ -626,7 +669,9 @@ export default function CreateStudio() {
                 {modality === "audio" ? "Kịch bản" : "Prompt"}
               </p>
               <span className="text-xs text-slate-600">
-                {isMediaPrompt
+                {modality === "video" && capabilities.maxPromptCharacters
+                  ? `${prompt.length.toLocaleString("vi-VN")} / ${capabilities.maxPromptCharacters.toLocaleString("vi-VN")} ký tự`
+                  : isMediaPrompt
                   ? `${promptTokenCount.toLocaleString("vi-VN")} / ${MEDIA_PROMPT_TOKEN_LIMIT.toLocaleString("vi-VN")} token`
                   : `${prompt.length.toLocaleString("vi-VN")} ký tự`}
               </span>
@@ -639,7 +684,9 @@ export default function CreateStudio() {
                   setPrompt(nextPrompt);
                   return;
                 }
-                setPrompt(limitMediaPrompt(nextPrompt));
+                setPrompt(modality === "video" && capabilities.maxPromptCharacters
+                  ? nextPrompt.slice(0, capabilities.maxPromptCharacters)
+                  : limitMediaPrompt(nextPrompt));
               }}
               rows={8}
               placeholder={
@@ -741,6 +788,8 @@ export default function CreateStudio() {
                       {capabilities.generateAudio && (
                         <span className="truncate">· {options.generateAudio ? "Có âm thanh" : "Tắt âm thanh"}</span>
                       )}
+                      {capabilities.nativeAudioIncluded && <span className="truncate">· Có âm thanh</span>}
+                      {capabilities.multiShot && options.multiShot && <span className="truncate">· Nhiều cảnh</span>}
                     </>
                   )}
                   {modality === "audio" && (
@@ -786,7 +835,7 @@ export default function CreateStudio() {
 
             <button
               type="button"
-              disabled={!quote || generating}
+              disabled={!quote || generating || !prompt.trim() || (modality === "video" && !references.length)}
               onClick={generate}
               className="flex min-h-14 min-w-0 items-center justify-center gap-2 rounded-xl bg-primary px-3 font-semibold text-on-primary shadow-[0_8px_20px_rgba(243,136,32,0.22)] transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-surface-container-highest disabled:text-outline"
             >
@@ -825,7 +874,7 @@ export default function CreateStudio() {
               <h2 className="text-xl font-semibold">
                 {result.status === "failed"
                   ? "Tạo nội dung thất bại"
-                  : "OpenRouter đang xử lý..."}
+                   : "Kling đang xử lý..."}
               </h2>
               <p
                 className={`mt-2 text-sm ${result.status === "failed" ? "text-red-300" : "text-slate-500"}`}

@@ -12,7 +12,7 @@ function modelIdentity(model) {
   const separator = name.indexOf(":");
   if (separator < 0) {
     return {
-      provider: model?.id?.split("/")[0] || "OpenRouter",
+      provider: model?.provider || model?.id?.split("/")[0] || "AI",
       name,
     };
   }
@@ -52,6 +52,8 @@ function capabilityTags(model, modality) {
       tags.push(`${Math.min(...durations)}–${Math.max(...durations)} giây`);
     }
     if (capabilities.generateAudio) tags.push("Có âm thanh");
+    if (capabilities.nativeAudioIncluded) tags.push("Có âm thanh mặc định");
+    if (model?.pricing?.unitType === "unpublished_api_rate") tags.push("Chưa có giá API");
   }
 
   if (modality === "audio" && model?.voices?.length) {
@@ -125,7 +127,7 @@ export default function ModelPicker({ modality, models, value, onChange }) {
                 Chọn model tạo {meta.label}
               </h2>
               <p className="mt-1 text-sm text-slate-500">
-                {models.length} model khả dụng từ OpenRouter
+                {models.length} model khả dụng
               </p>
             </div>
             <button
