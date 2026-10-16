@@ -87,7 +87,7 @@ export default function FilterBar({
           </span>
           Favorites
         </button>
-        {activeTab === "Reference" && <select aria-label="Provider" className="rounded-lg border border-outline-variant bg-white px-3 py-2 text-sm" value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)}><option value="all">All Providers</option><option value="Kling AI">Kling AI</option></select>}
+        {activeTab === "Reference" && <select aria-label="Provider" className="rounded-lg border border-outline-variant bg-white px-3 py-3 text-sm" value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)}><option value="all">All Providers</option><option value="Kling AI">Kling AI</option></select>}
         
         <div className="relative">
           <button
