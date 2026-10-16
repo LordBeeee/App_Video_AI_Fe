@@ -86,7 +86,7 @@ export async function updateEmployeeApi(id, formData) {
   }
 }
 
-/** Reset mật khẩu về Bideptrai123@@ */
+/** Tạo mật khẩu tạm mới; trả về mật khẩu một lần cho admin. */
 export async function resetEmployeePasswordApi(id) {
   try {
     const res = await api.patch(`/users/${id}/reset-password`)

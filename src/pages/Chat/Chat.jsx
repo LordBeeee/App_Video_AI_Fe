@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import ConversationList from '../../components/Chat/ConversationList'
+import MessageList from '../../components/Chat/MessageList'
+import ChatComposer from '../../components/Chat/ChatComposer'
 import {
   createConversation,
   createPriceQuote,
@@ -8,8 +11,6 @@ import {
   getConversations,
   streamChatMessage,
 } from '../../services/aiPlatform.service'
-
-const money = (value) => `${new Intl.NumberFormat('vi-VN').format(Number(value || 0))} ₫`
 
 export default function Chat() {
   const [models, setModels] = useState([])
@@ -23,6 +24,7 @@ export default function Chat() {
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
   const endRef = useRef(null)
+  const quoteRequest = useRef(0)
   const selectedModel = useMemo(() => models.find((item) => item.id === modelSlug), [models, modelSlug])
 
   const refreshConversations = async () => setConversations(await getConversations())
@@ -44,14 +46,22 @@ export default function Chat() {
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
   useEffect(() => {
+    const request = ++quoteRequest.current
     setQuote(null)
     if (!draft.trim() || !modelSlug) return
     const timer = setTimeout(() => {
       createPriceQuote({
         modality: 'chat', modelSlug, prompt: draft, options: { maxOutputTokens },
-      }).then(setQuote).catch(() => setQuote(null))
+      }).then((next) => {
+        if (request === quoteRequest.current) setQuote(next)
+      }).catch(() => {
+        if (request === quoteRequest.current) setQuote(null)
+      })
     }, 450)
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      quoteRequest.current += 1
+    }
   }, [draft, modelSlug, maxOutputTokens])
 
   const newChat = () => {
@@ -67,6 +77,7 @@ export default function Chat() {
     setError('')
     const content = draft.trim()
     setDraft('')
+    quoteRequest.current += 1
     setQuote(null)
     let conversation = active
     try {
@@ -91,19 +102,12 @@ export default function Chat() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-on-background">
-      <aside className="hidden w-72 shrink-0 border-r border-outline-variant bg-white p-4 xl:flex xl:flex-col">
-        <button onClick={newChat} className="flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 font-semibold text-on-primary shadow-sm hover:bg-primary-hover">
-          <span className="material-symbols-outlined">add</span> Cuộc trò chuyện mới
-        </button>
-        <div className="custom-scrollbar mt-5 flex-1 space-y-2 overflow-y-auto">
-          {conversations.map((item) => (
-            <button key={item.id} onClick={() => setActive(item)} className={`w-full rounded-xl px-3 py-3 text-left text-sm ${active?.id === item.id ? 'bg-primary-container text-primary-hover' : 'text-on-surface-variant hover:bg-surface-variant'}`}>
-              <p className="truncate font-medium">{item.title}</p>
-              <p className="mt-1 truncate text-xs text-slate-600">{item.modelSlug}</p>
-            </button>
-          ))}
-        </div>
-      </aside>
+      <ConversationList
+        conversations={conversations}
+        activeId={active?.id}
+        onNew={newChat}
+        onSelect={setActive}
+      />
 
       <main className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-outline-variant bg-white px-5 py-4">
@@ -119,44 +123,22 @@ export default function Chat() {
           </select>
         </header>
 
-        <div className="custom-scrollbar mx-auto flex w-full max-w-4xl flex-1 flex-col gap-5 overflow-y-auto px-5 py-8">
-          {!messages.length && (
-            <div className="m-auto max-w-xl text-center">
-              <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl border border-primary/20 bg-primary-container"><span className="material-symbols-outlined text-4xl text-primary">chat_bubble</span></div>
-              <h1 className="text-2xl font-semibold">Bạn muốn sáng tạo điều gì?</h1>
-              <p className="mt-2 text-sm leading-6 text-slate-500">Chat nhiều lượt với {selectedModel?.name || 'model AI'} và biết trước khoảng chi phí của từng câu trả lời.</p>
-            </div>
-          )}
-          {messages.map((message) => (
-            <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-7 ${message.role === 'user' ? 'bg-primary text-on-primary' : 'border border-outline-variant bg-white text-on-surface shadow-sm'}`}>
-                <p className="whitespace-pre-wrap">{message.content || (sending ? 'Đang suy nghĩ…' : '')}</p>
-                {message.chargedVnd != null && <p className="mt-2 text-right text-[11px] text-emerald-400">{money(message.chargedVnd)}</p>}
-              </div>
-            </div>
-          ))}
-          <div ref={endRef} />
-        </div>
-
-        <div className="mx-auto w-full max-w-4xl px-5 pb-6">
-          {error && <p className="mb-2 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm text-red-300">{error}</p>}
-          <div className="rounded-2xl border border-outline-variant bg-white p-3 shadow-[0_10px_30px_rgba(92,55,24,0.08)] focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
-            <textarea value={draft} onChange={(event) => setDraft(event.target.value)} rows={3}
-              onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); send() } }}
-              placeholder="Nhập tin nhắn…" className="w-full resize-none bg-transparent px-2 text-sm leading-6 outline-none placeholder:text-slate-600" />
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-xs text-slate-500">Tối đa
-                <select value={maxOutputTokens} onChange={(event) => setMaxOutputTokens(Number(event.target.value))} className="rounded-lg bg-surface-variant px-2 py-1 text-on-surface">
-                  {[512, 1024, 2048, 4096].map((value) => <option key={value} value={value}>{value} tokens</option>)}
-                </select>
-              </label>
-              <button onClick={send} disabled={!quote || sending} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-on-primary hover:bg-primary-hover disabled:bg-surface-container-highest disabled:text-outline">
-                {quote ? `${money(quote.minPriceVnd)} – ${money(quote.maxPriceVnd)}` : 'Đang ước tính'}
-                <span className="material-symbols-outlined text-lg">arrow_upward</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <MessageList
+          messages={messages}
+          selectedModel={selectedModel}
+          sending={sending}
+          endRef={endRef}
+        />
+        <ChatComposer
+          draft={draft}
+          onDraftChange={setDraft}
+          maxOutputTokens={maxOutputTokens}
+          onMaxOutputTokensChange={setMaxOutputTokens}
+          quote={quote}
+          sending={sending}
+          error={error}
+          onSend={send}
+        />
       </main>
     </div>
   )

@@ -20,7 +20,7 @@ export async function uploadAssetApi(file) {
   }
 }
 
-export async function getLibraryAssetsApi({ tab = 'creative', type = 'all', favorite = false, page = 1, pageSize = 30 } = {}) {
+export async function getLibraryAssetsApi({ tab = 'creative', type = 'all', favorite = false } = {}) {
   try {
     const res = await api.get('/assets', { params: { tab, type, favorite } })
     return res.data

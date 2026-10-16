@@ -1,73 +1,48 @@
-# React + TypeScript + Vite
+# Video AI frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Giao diện React, Vite và Tailwind cho Video AI. FE gọi API backend qua
+`VITE_API_BASE_URL`; phiên đăng nhập dùng cookie do backend cấp.
 
-Currently, two official plugins are available:
+## Chạy từ bản clone mới
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Cần Node.js `^20.19.0` hoặc `>=22.12.0` và npm. Chạy backend trước theo README
+của repo `be_video-ai`; API mặc định ở `http://localhost:3000`.
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm ci
+cp .env.example .env
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Trên PowerShell, dùng `Copy-Item .env.example .env` để sao chép file cấu hình.
+Mở `http://localhost:5173`. Nếu API chạy ở địa chỉ khác, sửa
+`VITE_API_BASE_URL` trong `.env` rồi khởi động lại Vite. Backend cần cho phép
+origin của FE qua `FRONTEND_URL`. Các biến `VITE_*` sẽ xuất hiện trong bundle
+trình duyệt, vì vậy không đặt API key hoặc mật khẩu vào đây.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Tài khoản quản trị đầu tiên được tạo bằng lệnh `db:create-admin` của backend.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Lệnh kiểm tra
+
+```bash
+npm run lint
+npm run build
 ```
+
+`npm run preview` phục vụ bản build tại máy. Khi triển khai FE, cấu hình
+`VITE_API_BASE_URL` trên môi trường build và cho phép origin của trang trong
+backend. `vercel.json` đã chuyển các URL của SPA về `index.html`.
+
+## Vị trí code
+
+- `src/pages/`: các màn hình theo route; page ghép component và điều phối dữ liệu.
+- `src/components/`: các khối giao diện, chia theo màn hình hoặc nhóm dùng chung.
+- `src/services/`: lời gọi API; `api.ts` là Axios client dùng chung.
+- `src/store/`: trạng thái phiên đăng nhập.
+- `src/utils/`, `src/types/`, `src/constants/`: hàm thuần, kiểu dữ liệu và hằng số.
+- `src/layouts/`: bố cục chung của các trang sau đăng nhập.
+
+Luồng tạo nội dung nằm ở `src/pages/CreateStudio/` và
+`src/components/CreateStudio/`. Khi thêm một chức năng, đặt UI cạnh các
+component cùng màn hình; chỉ chuyển thành component dùng chung khi có nơi khác
+cần dùng lại.
