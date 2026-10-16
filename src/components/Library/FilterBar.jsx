@@ -1,4 +1,4 @@
-export const FILTER_TABS = ["Creative", "Upload"];
+export const FILTER_TABS = ["Creative", "Upload", "Reference"];
 
 export const TYPE_OPTIONS = [
   { value: "all", label: "All" },
@@ -19,6 +19,9 @@ export default function FilterBar({
   uploading,
   fileInputRef,
   onUploadFile,
+  onCreateReference,
+  providerFilter,
+  setProviderFilter,
 }) {
   return (
     <div className="sticky top-0 z-20 -mx-4 mb-4 flex flex-wrap items-center justify-between gap-3 bg-background/95 px-4 pb-2 pt-2 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
@@ -39,6 +42,7 @@ export default function FilterBar({
       </div>
 
       <div className="flex items-center gap-3">
+        {activeTab === "Reference" && <button type="button" onClick={onCreateReference} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-on-primary"><span className="material-symbols-outlined text-[18px]">add</span>Tạo Reference</button>}
         {activeTab === "Upload" && (
           <>
             <input
@@ -83,13 +87,14 @@ export default function FilterBar({
           </span>
           Favorites
         </button>
+        {activeTab === "Reference" && <select aria-label="Provider" className="rounded-lg border border-outline-variant bg-white px-3 py-2 text-sm" value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)}><option value="all">All Providers</option><option value="Kling AI">Kling AI</option></select>}
         
         <div className="relative">
           <button
             onClick={() => setDropdownOpen((o) => !o)}
             className="flex items-center gap-1.5 rounded-lg border border-outline-variant bg-white px-4 py-2 text-sm font-medium text-on-surface-variant transition-colors hover:border-primary hover:text-primary"
           >
-            {TYPE_OPTIONS.find((o) => o.value === typeFilter)?.label}
+            {activeTab === "Reference" && typeFilter === "audio" ? "Voice" : TYPE_OPTIONS.find((o) => o.value === typeFilter)?.label}
             <span className="material-symbols-outlined text-[18px]">expand_more</span>
           </button>
 
@@ -108,7 +113,7 @@ export default function FilterBar({
                       : "text-on-surface hover:bg-surface-variant"
                   }`}
                 >
-                  {opt.label}
+                  {activeTab === "Reference" && opt.value === "audio" ? "Voice" : opt.label}
                 </button>
               ))}
             </div>

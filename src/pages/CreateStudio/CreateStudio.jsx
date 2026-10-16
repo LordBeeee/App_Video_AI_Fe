@@ -4,6 +4,7 @@ import { countTokens, decode, encode } from "gpt-tokenizer";
 import ModelPicker from "../../components/CreateStudio/ModelPicker";
 import InfoPanel from "../../components/Library/InfoPanel";
 import { uploadAssetApi } from "../../services/asset.service";
+import AssetPicker from "../../components/Library/AssetPicker";
 import {
   createGeneration,
   createPriceQuote,
@@ -148,6 +149,7 @@ export default function CreateStudio() {
   const [quoteError, setQuoteError] = useState("");
   const [references, setReferences] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [referencePickerOpen, setReferencePickerOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
@@ -684,7 +686,8 @@ export default function CreateStudio() {
                   </button>
                 ))}
                 {references.length < referenceLimit && (
-                  <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/30 bg-white text-on-surface-variant hover:border-primary hover:text-primary">
+                  <div className="flex h-24 w-24 flex-col items-center justify-center rounded-xl border border-dashed border-primary/30 bg-white text-on-surface-variant">
+                    <label className="flex cursor-pointer flex-col items-center hover:text-primary">
                     <span className="material-symbols-outlined">
                       add_photo_alternate
                     </span>
@@ -698,11 +701,14 @@ export default function CreateStudio() {
                       disabled={uploading}
                       onChange={uploadReference}
                     />
-                  </label>
+                    </label>
+                    <button type="button" onClick={() => setReferencePickerOpen(true)} className="mt-1 rounded border border-outline-variant px-1.5 text-[11px] hover:text-primary">History</button>
+                  </div>
                 )}
               </div>
             </div>
           )}
+          {referencePickerOpen && <AssetPicker type="image" max={referenceLimit - references.length} onClose={() => setReferencePickerOpen(false)} onConfirm={(assets) => setReferences((current) => [...current, ...assets.filter((asset) => !current.some((item) => String(item.id) === String(asset.id))).map((asset) => ({ id: Number(asset.id), url: asset.storedUrl, type: asset.assetType }))].slice(0, referenceLimit))} />}
 
           <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-4">
             <div className="mb-3 flex items-center justify-between">
