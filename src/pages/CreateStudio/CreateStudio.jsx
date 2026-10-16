@@ -153,7 +153,9 @@ export default function CreateStudio() {
   const [history, setHistory] = useState([]);
   const [error, setError] = useState("");
   const [promptCopied, setPromptCopied] = useState(false);
+  const [videoSettingsOpen, setVideoSettingsOpen] = useState(false);
   const quoteSequence = useRef(0);
+  const videoSettingsRef = useRef(null);
 
   const model = useMemo(
     () => models.find((item) => item.id === selectedModel),
@@ -241,8 +243,35 @@ export default function CreateStudio() {
     if (modality === "audio") {
       setOptions({ voice: model.voices?.[0] || "", speed: 1 });
     }
-    setReferences((current) => current.slice(0, referenceLimit));
-  }, [model, modality, capabilities, referenceLimit]);
+  }, [model, modality, capabilities]);
+
+  useEffect(() => {
+    setReferences((current) =>
+      current.length > referenceLimit ? current.slice(0, referenceLimit) : current,
+    );
+  }, [referenceLimit]);
+
+  useEffect(() => {
+    if (!videoSettingsOpen) return undefined;
+    const closeOnOutsideClick = (event) => {
+      if (!videoSettingsRef.current?.contains(event.target)) {
+        setVideoSettingsOpen(false);
+      }
+    };
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setVideoSettingsOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [videoSettingsOpen]);
+
+  useEffect(() => {
+    setVideoSettingsOpen(false);
+  }, [modality, selectedModel]);
 
   useEffect(() => {
     setQuote(null);
@@ -432,20 +461,30 @@ export default function CreateStudio() {
               Nhiều cảnh
             </label>
           )}
-          <FieldSelect
-            label="Độ phân giải"
-            icon="high_quality"
-            value={options.resolution || ""}
-            onChange={(v) =>
-              setOptions((current) => ({
-                ...current,
-                resolution: v,
-                size: "",
-              }))
-            }
-            options={capabilities.resolutions || []}
-            className="col-span-4"
-          />
+          {capabilities.resolutions?.length > 0 && (
+            <div className="col-span-12">
+              <p className="mb-2 text-xs font-semibold text-on-surface-variant">Độ phân giải</p>
+              <div className="flex gap-1 rounded-xl bg-surface-variant p-1">
+                {capabilities.resolutions.map((resolution) => (
+                  <button
+                    key={resolution}
+                    type="button"
+                    aria-pressed={options.resolution === resolution}
+                    onClick={() =>
+                      setOptions((current) => ({ ...current, resolution, size: "" }))
+                    }
+                    className={`min-h-10 flex-1 rounded-lg px-3 text-sm font-semibold transition ${
+                      options.resolution === resolution
+                        ? "bg-white text-primary-hover shadow-sm"
+                        : "text-on-surface-variant hover:text-on-surface"
+                    }`}
+                  >
+                    {resolution}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           {capabilities.seed && (
             <SeedField
               value={options.seed}
@@ -454,22 +493,14 @@ export default function CreateStudio() {
             />
           )}
           {capabilities.durations?.length > 0 && (
-            <div className="col-span-12 rounded-xl border border-outline-variant bg-white px-3 py-2.5 shadow-[0_2px_8px_rgba(92,55,24,0.04)]">
-              <div className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-1.5 font-medium text-slate-500">
-                  <span className="material-symbols-outlined text-[17px] text-primary">
-                    schedule
-                  </span>
-                  Thời lượng
-                </span>
-                <span className="rounded-md bg-primary-container px-2 py-0.5 font-bold text-primary-hover">
+            <div className="col-span-12 pt-2">
+              <div className="flex items-center justify-between text-xs font-semibold text-on-surface-variant">
+                <span>Thời lượng</span>
+                <span className="rounded-lg bg-primary-container px-2.5 py-1 text-sm text-primary-hover">
                   {options.duration}s
                 </span>
               </div>
-              <div className="mt-2 flex items-center gap-2">
-                <span className="w-6 text-[10px] font-medium text-slate-400">
-                  {capabilities.durations[0]}s
-                </span>
+              <div className="mt-3 flex items-center gap-3">
                 <input
                   type="range"
                   aria-label="Thời lượng video"
@@ -490,13 +521,20 @@ export default function CreateStudio() {
                       capabilities.durations[Number(event.target.value)],
                     )
                   }
-                  className="h-1.5 min-w-0 flex-1 cursor-pointer accent-primary disabled:cursor-default disabled:opacity-50"
+                  className="h-2 min-w-0 flex-1 cursor-pointer accent-primary disabled:cursor-default disabled:opacity-50"
                 />
-                <span className="w-7 text-right text-[10px] font-medium text-slate-400">
-                  {capabilities.durations.at(-1)}s
-                </span>
+              </div>
+              <div className="mt-1 flex justify-between text-[11px] text-on-surface-variant">
+                <span>{capabilities.durations[0]}s</span>
+                <span>{capabilities.durations.at(-1)}s</span>
               </div>
             </div>
+          )}
+          {capabilities.nativeAudioIncluded && (
+            <p className="col-span-12 flex items-center gap-2 rounded-xl bg-primary-container/70 px-3 py-2.5 text-xs text-on-primary-container">
+              <span className="material-symbols-outlined text-[18px]">volume_up</span>
+              Model này tạo âm thanh mặc định.
+            </p>
           )}
           <FieldSelect
             label="Kích thước"
@@ -560,7 +598,7 @@ export default function CreateStudio() {
 
   return (
     <div className="flex h-screen min-w-0 overflow-hidden bg-background text-on-background">
-      <section className="flex w-full shrink-0 flex-col border-r border-outline-variant bg-white lg:w-[380px]">
+      <section className="relative z-20 flex w-full shrink-0 flex-col border-r border-outline-variant bg-white lg:w-[380px]">
         <div className="grid grid-cols-4 gap-1 border-b border-outline-variant px-3 py-4">
           {MODALITIES.map((item) =>
             item.id === "chat" ? (
@@ -603,9 +641,6 @@ export default function CreateStudio() {
                  {modality === "video" && options.referenceMode === "refer_image"
                    ? "Ảnh tham chiếu"
                    : modality === "video" ? "Ảnh khung hình" : "Ảnh tham chiếu"}{" "}
-                <span className="font-normal text-slate-500">
-                   ({modality === "video" ? "cần ít nhất 1 ảnh, " : "tùy chọn, "}tối đa {referenceLimit})
-                </span>
               </p>
               <div className="flex flex-wrap gap-3">
                 {references.map((reference, index) => (
@@ -761,6 +796,52 @@ export default function CreateStudio() {
         </div>
 
         <div className="space-y-2 border-t border-outline-variant bg-white p-3 sm:p-4">
+          {modality === "video" ? (
+            <div ref={videoSettingsRef} className="relative">
+              {videoSettingsOpen && (
+                <div
+                  id="video-settings-panel"
+                  className="absolute bottom-[calc(100%+0.75rem)] left-0 z-30 max-h-[min(65vh,480px)] w-[min(440px,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-outline-variant bg-white p-4 shadow-[0_18px_55px_rgba(92,55,24,0.18)] sm:p-5"
+                >
+                  <div className="mb-4 flex items-start justify-between gap-3">
+                    <h2 className="text-base font-semibold text-on-surface">Cài đặt video</h2>
+                    <button
+                      type="button"
+                      aria-label="Đóng cài đặt video"
+                      onClick={() => setVideoSettingsOpen(false)}
+                      className="rounded-lg p-1 text-on-surface-variant hover:bg-surface-variant"
+                    >
+                      <span className="material-symbols-outlined text-xl">close</span>
+                    </button>
+                  </div>
+                  {renderOptions()}
+                </div>
+              )}
+              <button
+                type="button"
+                aria-expanded={videoSettingsOpen}
+                aria-controls="video-settings-panel"
+                onClick={() => setVideoSettingsOpen((open) => !open)}
+                className={`flex min-h-12 w-full items-center gap-3 rounded-xl border px-3 text-left transition ${
+                  videoSettingsOpen
+                    ? "border-primary bg-primary-container/60"
+                    : "border-outline-variant bg-surface-container-low hover:border-primary/50"
+                }`}
+              >
+                <span className="material-symbols-outlined text-xl text-primary">tune</span>
+                <span className="min-w-0 flex-1 truncate text-sm font-semibold text-on-surface">
+                  {options.aspectRatio && `${options.aspectRatio} · `}
+                  {options.resolution || "Độ phân giải"} · {options.duration || 5}s
+                  {capabilities.nativeAudioIncluded && " · Có âm thanh"}
+                  {capabilities.generateAudio && (options.generateAudio ? " · Có âm thanh" : " · Tắt âm thanh")}
+                  {capabilities.multiShot && options.multiShot && " · Nhiều cảnh"}
+                </span>
+                <span className="material-symbols-outlined text-lg text-on-surface-variant">
+                  {videoSettingsOpen ? "keyboard_arrow_down" : "keyboard_arrow_up"}
+                </span>
+              </button>
+            </div>
+          ) : (
           <details className="group rounded-2xl border border-outline-variant bg-surface-container-low shadow-[0_6px_20px_rgba(92,55,24,0.05)]">
             <summary className="flex cursor-pointer list-none items-center gap-2.5 rounded-2xl px-3 py-2.5 transition hover:bg-primary-container/40 [&::-webkit-details-marker]:hidden">
               <span className="material-symbols-outlined flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-container text-[19px] text-primary">
@@ -768,7 +849,7 @@ export default function CreateStudio() {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-semibold text-on-surface">
-                  Cài đặt {modality === "image" ? "ảnh" : modality === "video" ? "video" : "audio"}
+                  Cài đặt {modality === "image" ? "ảnh" : "audio"}
                 </span>
                 <span className="mt-0.5 flex min-w-0 items-center gap-1.5 overflow-hidden text-[11px] text-slate-500">
                   {modality === "image" && (
@@ -777,19 +858,6 @@ export default function CreateStudio() {
                       {options.resolution && <span className="truncate">· {options.resolution}</span>}
                       {options.quality && <span className="truncate">· {options.quality}</span>}
                       {options.n && <span className="truncate">· {options.n} ảnh</span>}
-                    </>
-                  )}
-                  {modality === "video" && (
-                    <>
-                      {options.aspectRatio && <span className="truncate">{options.aspectRatio}</span>}
-                      {options.resolution && <span className="truncate">· {options.resolution}</span>}
-                      {options.size && <span className="truncate">{options.size}</span>}
-                      {options.duration && <span className="truncate">· {options.duration}s</span>}
-                      {capabilities.generateAudio && (
-                        <span className="truncate">· {options.generateAudio ? "Có âm thanh" : "Tắt âm thanh"}</span>
-                      )}
-                      {capabilities.nativeAudioIncluded && <span className="truncate">· Có âm thanh</span>}
-                      {capabilities.multiShot && options.multiShot && <span className="truncate">· Nhiều cảnh</span>}
                     </>
                   )}
                   {modality === "audio" && (
@@ -808,6 +876,7 @@ export default function CreateStudio() {
               {renderOptions()}
             </div>
           </details>
+          )}
 
           {quoteError && (
             <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
