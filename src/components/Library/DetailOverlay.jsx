@@ -12,6 +12,7 @@ export default function DetailOverlay({
   onToggleFavorite,
   onDownload,
   onDelete,
+  deleting,
   overlayMenuOpen,
   setOverlayMenuOpen,
   onCopyPrompt,
@@ -30,7 +31,7 @@ export default function DetailOverlay({
             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           </button>
           <span className="text-sm font-medium text-on-surface">
-            {item.name || `${item.type}_${item.id}.${item.type === "video" ? "mp4" : "png"}`}
+            {item.name || `${item.type}_${item.id}.${item.type === "video" ? "mp4" : item.type === "audio" ? "mp3" : "png"}`}
           </span>
         </div>
 
@@ -68,10 +69,11 @@ export default function DetailOverlay({
                     Download
                   </button>
 
-                  {item.category === "element" && onDelete && (      // ← THÊM
+                  {item.category === "reference" && onDelete && (
                     <button
                       onClick={(e) => onDelete(item, e)}
-                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-500 transition-colors hover:bg-red-50"
+                      disabled={deleting || ["submitting", "submitted", "processing"].includes(item.deleteStatus)}
+                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-500 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <span className="material-symbols-outlined text-[16px]">delete</span>
                       Xóa
@@ -88,7 +90,7 @@ export default function DetailOverlay({
       <div className="flex-1 flex overflow-hidden min-h-0">
         <PreviewPanel item={item} onPrev={onPrev} onNext={onNext} />
 
-        {(item.category === "creative" || item.category === "element") && (
+        {(item.category === "creative" || item.category === "reference") && (
           <InfoPanel item={item} onCopyPrompt={onCopyPrompt} promptCopied={promptCopied} />
         )}
 

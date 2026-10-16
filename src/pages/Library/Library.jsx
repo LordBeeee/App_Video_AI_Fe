@@ -4,13 +4,13 @@ import {
   setAssetFavoriteApi,
   uploadAssetApi,
   getReferencesApi,
+  deleteReferenceApi,
 } from "../../services/asset.service";
 
 import FilterBar from "../../components/Library/FilterBar";
 import MediaGrid from "../../components/Library/MediaGrid";
 import DetailOverlay from "../../components/Library/DetailOverlay";
 import CreateReferenceModal from "../../components/Library/CreateReferenceModal";
-import ReferenceCard from "../../components/Library/ReferenceCard";
 import { mapAssetToItem } from "../../utils/library.utils";
 
 export default function Library() {
@@ -24,6 +24,7 @@ export default function Library() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [creatingReference, setCreatingReference] = useState(false);
+  const [deletingReferenceId, setDeletingReferenceId] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const [menuOpenId, setMenuOpenId] = useState(null);
   const [overlayMenuOpen, setOverlayMenuOpen] = useState(false);
@@ -59,7 +60,9 @@ export default function Library() {
   }, [fetchItems]);
 
   useEffect(() => {
-    if (activeTab !== "Reference" || !items.some((item) => ["submitted", "processing"].includes(item.status))) return;
+    if (activeTab !== "Reference" || !items.some((item) =>
+      ["submitted", "processing"].includes(item.status) ||
+      ["submitted", "processing"].includes(item.deleteStatus))) return;
     const timer = setInterval(fetchItems, 10000);
     return () => clearInterval(timer);
   }, [activeTab, items, fetchItems]);
@@ -95,9 +98,12 @@ export default function Library() {
     e?.stopPropagation();
     setMenuOpenId(null);
     setOverlayMenuOpen(false);
-    const fileName = item.name || `${item.type}_${item.id}.${item.type === "video" ? "mp4" : "png"}`;
+    const url = item.type === "video" ? (item.videoSrc || item.src) : item.type === "audio" ? (item.trialUrl || item.src) : item.src;
+    const extension = item.type === "video" ? "mp4" : item.type === "audio" ? "mp3" : "png";
+    const baseName = item.name || `${item.type}_${item.id}`;
+    const fileName = /\.[a-z0-9]{2,5}$/i.test(baseName) ? baseName : `${baseName}.${extension}`;
     try {
-      const res = await fetch(item.src, { mode: "cors" });
+      const res = await fetch(url, { mode: "cors" });
       if (!res.ok) throw new Error("Network response was not ok");
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
@@ -110,7 +116,7 @@ export default function Library() {
       URL.revokeObjectURL(blobUrl);
     } catch (err) {
       console.error("Download failed, opening in new tab instead:", err);
-      window.open(item.src, "_blank", "noopener,noreferrer");
+      window.open(url, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -124,6 +130,23 @@ export default function Library() {
     } catch (err) {
       setItems((prev) => prev.map((item) => (item.id === id ? { ...item, favorite: !next } : item)));
       alert(err.message);
+    }
+  };
+
+  const handleDeleteReference = async (item) => {
+    setMenuOpenId(null);
+    setOverlayMenuOpen(false);
+    if (!window.confirm(`Xóa Reference "${item.name || item.id}" khỏi Kling và thư viện?`)) return;
+    setDeletingReferenceId(item.id);
+    try {
+      await deleteReferenceApi(item.id);
+      setSelectedId((current) => current === item.id ? null : current);
+      await fetchItems();
+    } catch (err) {
+      alert(err.message);
+      await fetchItems();
+    } finally {
+      setDeletingReferenceId(null);
     }
   };
 
@@ -178,19 +201,7 @@ export default function Library() {
         />
 
         {fetchError && <p role="alert" className="mb-4 text-sm text-red-500">{fetchError}</p>}
-        {activeTab === "Reference" && !loading && !fetchError && !filteredItems.length && <div className="mt-12 flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-primary/30 bg-white py-12 text-center text-on-surface-variant"><span className="material-symbols-outlined text-4xl opacity-50">search_off</span><p>Chưa có Reference phù hợp.</p></div>}
-        {activeTab === "Reference" ? (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {filteredItems.map((item) => (
-              <ReferenceCard
-                key={item.id}
-                item={item}
-                onSelect={setSelectedId}
-                onToggleFavorite={toggleFavorite}
-              />
-            ))}
-          </div>
-        ) : <MediaGrid
+        <MediaGrid
           items={filteredItems}
           favoritesOnly={favoritesOnly}
           onSelect={setSelectedId}
@@ -198,7 +209,10 @@ export default function Library() {
           menuOpenId={menuOpenId}
           setMenuOpenId={setMenuOpenId}
           onDownload={handleDownload}
-        />}
+          onDelete={activeTab === "Reference" ? handleDeleteReference : undefined}
+          deletingId={deletingReferenceId}
+          emptyMessage={activeTab === "Reference" && !loading && !fetchError ? "Chưa có Reference phù hợp." : undefined}
+        />
       </div>
 
       {/* Detail / Preview Overlay */}
@@ -212,6 +226,8 @@ export default function Library() {
           onSelect={setSelectedId}
           onToggleFavorite={toggleFavorite}
           onDownload={handleDownload}
+          onDelete={activeTab === "Reference" ? handleDeleteReference : undefined}
+          deleting={deletingReferenceId === selectedItem.id}
           overlayMenuOpen={overlayMenuOpen}
           setOverlayMenuOpen={setOverlayMenuOpen}
           onCopyPrompt={handleCopyPrompt}

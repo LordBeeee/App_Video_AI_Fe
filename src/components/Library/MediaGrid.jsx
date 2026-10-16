@@ -9,15 +9,17 @@ export default function MediaGrid({
   setMenuOpenId,
   onDownload,
   onDelete,
+  deletingId,
+  emptyMessage,
 }) {
   if (items.length === 0) {
     return (
       <div className="mt-12 flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-primary/30 bg-white py-12 text-center text-on-surface-variant">
         <span className="material-symbols-outlined text-4xl opacity-50">search_off</span>
         <p>
-          {favoritesOnly
+          {emptyMessage || (favoritesOnly
             ? "Bạn chưa thích tài nguyên nào."
-            : "Không có tài nguyên nào phù hợp với bộ lọc."}
+            : "Không có tài nguyên nào phù hợp với bộ lọc.")}
         </p>
       </div>
     );
@@ -35,6 +37,7 @@ export default function MediaGrid({
           setMenuOpenId={setMenuOpenId}
           onDownload={onDownload}
           onDelete={onDelete}
+          deleting={deletingId === item.id}
         />
       ))}
     </div>

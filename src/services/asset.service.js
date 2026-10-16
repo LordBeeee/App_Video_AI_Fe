@@ -54,3 +54,13 @@ export async function createVoiceApi(payload) {
   const res = await api.post('/references/voices', payload)
   return res.data
 }
+
+export async function deleteReferenceApi(assetId) {
+  try {
+    const res = await api.delete(`/references/${assetId}`)
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Xóa Reference thất bại')
+  }
+}

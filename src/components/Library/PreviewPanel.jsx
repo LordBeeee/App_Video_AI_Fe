@@ -15,7 +15,12 @@ export default function PreviewPanel({ item, onPrev, onNext }) {
       </button>
 
       <div className="max-w-3xl w-full max-h-[70vh] rounded-xl overflow-hidden bg-black flex items-center justify-center">
-        {item.type === "video" ? (
+        {item.type === "audio" ? (
+          <div className="flex w-full flex-col items-center gap-6 bg-primary-container p-10">
+            <span className="material-symbols-outlined text-7xl text-primary">graphic_eq</span>
+            <audio key={item.id} src={item.trialUrl || item.src} controls className="w-full max-w-lg" />
+          </div>
+        ) : item.type === "video" ? (
           <video
             key={item.id}
             src={item.videoSrc || item.src}

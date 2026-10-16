@@ -13,7 +13,15 @@ export default function ThumbnailRail({ items, selectedId, onSelect, thumbRefs }
                 : "border-transparent hover:border-primary/40"
             }`}
           >
-            <img src={item.src} alt={item.alt} className="w-full h-full object-cover" />
+            {item.type === "audio" ? (
+              <span className="flex h-full w-full items-center justify-center bg-primary-container text-primary">
+                <span className="material-symbols-outlined">graphic_eq</span>
+              </span>
+            ) : item.type === "video" ? (
+              <video src={item.videoSrc || item.src} muted className="h-full w-full object-cover" />
+            ) : (
+              <img src={item.src} alt={item.alt} className="w-full h-full object-cover" />
+            )}
           </button>
         ))}
       </div>
