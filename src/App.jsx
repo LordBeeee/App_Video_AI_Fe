@@ -8,6 +8,8 @@ import './App.css'
 import Library from './pages/Library/Library'
 import Employees from './pages/Employees/Employees'
 import EmployeeDetail from './pages/Employees/EmployeeDetail'
+import ExpenseOverview from './pages/Employees/ExpenseOverview'
+import EmployeeAiUsage from './pages/Employees/EmployeeAiUsage'
 import Profile from './pages/Profile/Profile'
 import Project from './pages/Project/Project'
 import CreateStudio from './pages/CreateStudio/CreateStudio'
@@ -18,20 +20,24 @@ function App() {
   return (
     <Routes>
       <Route element={<ProtectedRoute />}>
-        <Route path="/" element={ <MainLayout> <Home /> </MainLayout>}/>
-        <Route path="/create-video" element={<Navigate to="/create/video" replace />} />
-        <Route path="/create/:modality" element={ <MainLayout> <CreateStudio /> </MainLayout>}/>
-        <Route path="/chat" element={ <MainLayout> <Chat /> </MainLayout>}/>
-        <Route path="/wallet" element={ <MainLayout> <Wallet /> </MainLayout>}/>
-        <Route path="/create-video-motion-control" element={<Navigate to="/create/video" replace />} />
-        <Route path="/library" element={ <MainLayout> <Library /> </MainLayout>}/>
-        <Route path="/profile" element={ <MainLayout> <Profile /> </MainLayout>}/>
-        <Route path="/projects" element={ <MainLayout> <Project /> </MainLayout>}/>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/create/:modality" element={<CreateStudio />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/wallet" element={<Wallet />} />
+          <Route path="/library" element={<Library />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/projects" element={<Project />} />
 
-        <Route element={<AdminRoute />}>
-          <Route path="/employees" element={<MainLayout><Employees /></MainLayout>} />
-          <Route path="/employees/:id" element={ <MainLayout> <EmployeeDetail /> </MainLayout>}/>
+          <Route element={<AdminRoute />}>
+            <Route path="/employees" element={<Employees />} />
+            <Route path="/employees/expenses" element={<ExpenseOverview />} />
+            <Route path="/employees/:id/ai-usage" element={<EmployeeAiUsage />} />
+            <Route path="/employees/:id" element={<EmployeeDetail />} />
+          </Route>
         </Route>
+        <Route path="/create-video" element={<Navigate to="/create/video" replace />} />
+        <Route path="/create-video-motion-control" element={<Navigate to="/create/video" replace />} />
       </Route>
 
       <Route path="/login" element={<Login />} />

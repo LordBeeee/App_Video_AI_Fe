@@ -156,6 +156,7 @@ export default function EmployeeTable({ users, loading, query, togglingId, onTog
                           icon="payments"
                           title="Chi tiết chi tiêu"
                           hoverClass="hover:text-secondary hover:bg-secondary/10"
+                          onClick={() => navigate(`/employees/${user.id}/ai-usage`)}
                         />
                         <ActionBtn
                           icon="delete"

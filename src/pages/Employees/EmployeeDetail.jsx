@@ -246,6 +246,14 @@ export default function EmployeeDetail() {
           <h2 className="text-2xl font-bold text-on-background">Chi tiết nhân viên</h2>
           <p className="mt-1 text-sm text-on-surface-variant">{user?.email || '...'}</p>
         </div>
+        <div className="flex flex-wrap justify-end gap-2">
+        <button
+          onClick={() => navigate(`/employees/${id}/ai-usage`)}
+          className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-on-primary transition-colors hover:bg-primary-hover"
+        >
+          <span className="material-symbols-outlined text-lg">monitoring</span>
+          Chi tiết sử dụng AI
+        </button>
         <button
           onClick={() => navigate('/employees')}
           className="flex items-center gap-2 rounded-lg border border-outline-variant bg-white px-4 py-2 text-sm font-medium text-on-surface-variant transition-colors hover:border-primary hover:bg-primary-container hover:text-primary"
@@ -253,6 +261,7 @@ export default function EmployeeDetail() {
           <span className="material-symbols-outlined text-lg">arrow_back</span>
           Quản lý nhân viên
         </button>
+        </div>
       </div>
 
       {/* Loading skeleton */}

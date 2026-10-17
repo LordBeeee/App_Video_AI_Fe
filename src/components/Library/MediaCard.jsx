@@ -1,3 +1,9 @@
+const TYPE_META = {
+  video: { icon: "movie", label: "Video" },
+  audio: { icon: "graphic_eq", label: "Âm thanh" },
+  image: { icon: "image", label: "Ảnh" },
+};
+
 export default function MediaCard({
   item,
   onSelect,
@@ -10,40 +16,35 @@ export default function MediaCard({
 }) {
   const isReference = item.category === "reference";
   const deletePending = deleting || ["submitting", "submitted", "processing"].includes(item.deleteStatus);
-  const status = deletePending ? "Đang xóa" : item.deleteStatus === "failed" ? "Xóa thất bại" : item.status === "failed" ? "Lỗi" : item.status && item.status !== "succeed" ? "Đang xử lý" : null;
+  const refStatus = deletePending ? "Đang xóa" : item.deleteStatus === "failed" ? "Xóa thất bại" : item.status === "failed" ? "Lỗi" : item.status && item.status !== "succeed" ? "Đang xử lý" : null;
+  const badge = isReference ? refStatus : item.status && item.status !== "succeeded" ? (item.status === "failed" ? "Lỗi" : "Đang xử lý") : null;
+  const bad = badge === "Lỗi" || badge === "Xóa thất bại";
+  const meta = TYPE_META[item.type] || TYPE_META.image;
+  const caption = item.name || (item.type === "video" && !isReference ? item.duration : "");
+  const open = menuOpenId === item.id;
 
   return (
     <div
       onClick={() => onSelect(item.id)}
       title={isReference ? [item.name, item.provider, item.deleteError || item.error].filter(Boolean).join(" · ") : undefined}
-      className="media-card group relative flex aspect-[4/5] cursor-pointer flex-col overflow-hidden rounded-xl border border-outline-variant bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-[0_10px_24px_rgba(243,136,32,0.12)]"
+      className="lb-it"
     >
-      <div className="flex-1 relative overflow-hidden bg-slate-900 flex items-center justify-center">
+      <div className="lb-m">
         {item.type === "audio" ? (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-primary-container p-4">
-            <span className="material-symbols-outlined text-6xl text-primary">graphic_eq</span>
-            <audio controls src={item.trialUrl || item.src} onClick={(e) => e.stopPropagation()} className="w-full" />
+          <div className="lb-au">
+            <span className="material-symbols-outlined">graphic_eq</span>
+            <audio controls src={item.trialUrl || item.src} onClick={(e) => e.stopPropagation()} />
           </div>
         ) : item.type === "video" ? (
-          <video src={item.videoSrc || item.src} muted className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          <video src={item.videoSrc || item.src} muted />
         ) : (
-          <img
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-            src={item.src}
-            alt={item.alt}
-          />
+          <img src={item.src} alt={item.alt} />
         )}
 
-        {(isReference ? status : item.status && item.status !== "succeeded") && (
-          <span className="absolute left-2 top-2 z-10 flex items-center gap-1 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm" title={item.deleteError || item.error}>
-            {(isReference ? status === "Lỗi" || status === "Xóa thất bại" : item.status === "failed") ? (
-              <span className="text-red-400">{isReference ? status : "Lỗi"}</span>
-            ) : (
-              <>
-                <span className="h-2.5 w-2.5 animate-spin rounded-full border-2 border-slate-500 border-t-yellow-400" />
-                <span className="text-yellow-300">{isReference ? status : "Đang xử lý"}</span>
-              </>
-            )}
+        {badge && (
+          <span className={`lb-bd${bad ? " bad" : ""}`} title={item.deleteError || item.error}>
+            <span className={`material-symbols-outlined${bad ? "" : " spin"}`}>{bad ? "error" : "progress_activity"}</span>
+            {badge}
           </span>
         )}
 
@@ -54,46 +55,26 @@ export default function MediaCard({
             onToggleFavorite(item.id);
           }}
           aria-label={item.favorite ? "Bỏ yêu thích" : "Yêu thích"}
+          title={item.favorite ? "Bỏ yêu thích" : "Yêu thích"}
           aria-pressed={item.favorite}
-          className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-sm bg-black/40 transition-opacity duration-200 z-10 ${
-            item.favorite ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-          }`}
+          className={`lb-fav${item.favorite ? " on" : ""}`}
         >
-          <span
-            className={`material-symbols-outlined text-[18px] transition-colors ${
-              item.favorite ? "text-red-500" : "text-white hover:text-red-400"
-            }`}
-            style={item.favorite ? { fontVariationSettings: "'FILL' 1" } : undefined}
-          >
-            favorite
-          </span>
+          <span className="material-symbols-outlined" style={item.favorite ? { fontVariationSettings: "'FILL' 1" } : undefined}>favorite</span>
         </button>
 
         {item.type === "video" && (
-          <div className="play-overlay pointer-events-none absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/90 backdrop-blur-sm">
-              <span
-                className="material-symbols-outlined text-white ml-1"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                play_arrow
-              </span>
-            </div>
+          <div className="lb-play">
+            <span className="c"><span className="material-symbols-outlined">play_arrow</span></span>
           </div>
         )}
       </div>
-      <div className="flex shrink-0 items-center justify-between border-t border-outline-variant bg-white p-3">
-        {item.type === "video" ? (
-          <div className="rounded bg-surface-variant px-2 py-1 font-mono text-xs font-medium text-on-surface-variant">
-            {isReference ? "VIDEO" : item.duration}
-          </div>
-        ) : (
-          <div className="flex items-center gap-1 rounded bg-surface-variant px-2 py-1 font-mono text-xs font-medium text-on-surface-variant">
-            <span className="material-symbols-outlined text-[14px]">{item.type === "audio" ? "graphic_eq" : "image"}</span>
-            {item.type === "audio" ? "VOICE" : "IMG"}
-          </div>
-        )}
-        <div className="relative">
+
+      <div className="lb-ft">
+        <span className="lb-ty" title={meta.label}>
+          <span className="material-symbols-outlined">{meta.icon}</span>
+          {caption && <span className="t">{caption}</span>}
+        </span>
+        <div className="lb-mn">
           <button
             type="button"
             onClick={(e) => {
@@ -101,43 +82,29 @@ export default function MediaCard({
               setMenuOpenId((id) => (id === item.id ? null : item.id));
             }}
             aria-label="Mở menu tài nguyên"
-            className={`text-on-surface-variant transition-colors hover:text-primary ${
-              menuOpenId === item.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-            }`}
+            title="Tùy chọn"
+            className={`au-ico${open ? " open" : ""}`}
           >
-            <span className="material-symbols-outlined text-[18px]">more_horiz</span>
+            <span className="material-symbols-outlined">more_horiz</span>
           </button>
 
-          {menuOpenId === item.id && (
+          {open && (
             <>
               <div
-                className="fixed inset-0 z-30"
+                className="lb-bk"
                 onClick={(e) => {
                   e.stopPropagation();
                   setMenuOpenId(null);
                 }}
               />
-              <div
-                onClick={(e) => e.stopPropagation()}
-                className="absolute bottom-full right-0 z-40 mb-2 w-36 overflow-hidden rounded-lg border border-outline-variant bg-white shadow-xl"
-              >
-                <button
-                  type="button"
-                  onClick={(e) => onDownload(item, e)}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-on-surface transition-colors hover:bg-primary-container hover:text-primary"
-                >
-                  <span className="material-symbols-outlined text-[16px]">download</span>
-                  Download
+              <div onClick={(e) => e.stopPropagation()} className="lb-menu">
+                <button type="button" onClick={(e) => onDownload(item, e)} className="lb-mi">
+                  <span className="material-symbols-outlined">download</span>
+                  Tải xuống
                 </button>
-
                 {isReference && onDelete && (
-                  <button
-                    type="button"
-                    onClick={(e) => onDelete(item, e)}
-                    disabled={deletePending}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-500 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                  <button type="button" onClick={(e) => onDelete(item, e)} disabled={deletePending} className="lb-mi bad">
+                    <span className="material-symbols-outlined">delete</span>
                     Xóa
                   </button>
                 )}

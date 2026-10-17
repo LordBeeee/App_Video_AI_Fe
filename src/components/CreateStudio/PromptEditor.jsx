@@ -34,13 +34,12 @@ export default function PromptEditor({ modality, capabilities, prompt, setPrompt
       : `${prompt.length.toLocaleString("vi-VN")} ký tự`;
 
   return (
-    <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <p className="text-sm font-semibold">
-          {modality === "audio" ? "Kịch bản" : "Prompt"}
-        </p>
-        <span className="text-xs text-slate-600">{countLabel}</span>
-      </div>
+    <div className="st-box">
+      <p className="st-lb">
+        <span className="ic"><span className="material-symbols-outlined">edit_note</span></span>
+        <span className="g">{modality === "audio" ? "Kịch bản" : "Prompt"}</span>
+        <em>{countLabel}</em>
+      </p>
       <textarea
         value={prompt}
         onChange={handleChange}
@@ -50,7 +49,7 @@ export default function PromptEditor({ modality, capabilities, prompt, setPrompt
             ? "Nhập nội dung bạn muốn chuyển thành giọng nói..."
             : "Mô tả nội dung bạn muốn tạo..."
         }
-        className="w-full resize-none bg-transparent text-sm leading-6 text-on-surface outline-none placeholder:text-outline"
+        className="st-ta"
       />
     </div>
   );
