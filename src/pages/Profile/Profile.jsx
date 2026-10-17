@@ -1,22 +1,9 @@
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { validateFullName, validatePhone, formatDate } from '../../utils/userDetail.utils'
+import { InfoRow, SectionLabel, FieldError, AvatarUploader, Toast } from '../../components/UserDetail/UserDetailUI'
 import { profileService } from '../../services/profile.service'
 import { updateProfileApi, changePasswordApi } from '../../services/user.service'
 import { useAuthStore } from '../../store/auth.store'
-
-// ─── Validators ───────────────────────────────────────────────────────────────
-const VN_PHONE_RE = /^(0[35789]\d{8}|02\d{9})$/
-const FULLNAME_RE = /^[\p{L}]+([\s]+[\p{L}]+)+$/u
-
-function validateFullName(v) {
-  if (!v.trim()) return 'Họ và tên không được để trống'
-  if (!FULLNAME_RE.test(v.trim())) return 'Phải có ít nhất 2 từ, chỉ chứa chữ cái'
-  return ''
-}
-function validatePhone(v) {
-  if (!v.trim()) return 'Số điện thoại không được để trống'
-  if (!VN_PHONE_RE.test(v.trim())) return 'Sai định dạng số Việt Nam (vd: 0901234567)'
-  return ''
-}
 
 // ─── Password strength (giống EmployeeModal) ──────────────────────────────────
 const PWD_RULES = [
@@ -55,61 +42,11 @@ function PasswordStrength({ password }) {
   )
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function getInitials(name = '') {
-  return name.trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'ME'
-}
-const COLOR_POOL = [
-  { bg: 'bg-[#6366f1]/20', text: 'text-[#818cf8]' },
-  { bg: 'bg-[#0ea5e9]/20', text: 'text-[#38bdf8]' },
-  { bg: 'bg-[#10b981]/20', text: 'text-[#34d399]' },
-  { bg: 'bg-[#f59e0b]/20', text: 'text-[#fbbf24]' },
-  { bg: 'bg-[#ec4899]/20', text: 'text-[#f472b6]' },
-]
-function getColor(id = '') {
-  const idx = [...String(id)].reduce((a, c) => a + c.charCodeAt(0), 0) % COLOR_POOL.length
-  return COLOR_POOL[idx]
-}
-function formatDate(ts) {
-  if (!ts) return '—'
-  return new Date(ts).toLocaleString('vi-VN', {
-    hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric',
-  })
-}
-
 // ─── Style ────────────────────────────────────────────────────────────────────
-const inputCls    = 'w-full bg-surface-container/50 border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-outline outline-none focus:border-primary/50 transition-colors'
-const inputErrCls = 'w-full bg-surface-container/50 border border-[#f87171]/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-outline outline-none focus:border-[#f87171]/70 transition-colors'
+const inputCls    = 'w-full bg-white border border-outline-variant rounded-lg px-4 py-2.5 text-sm text-on-surface placeholder-outline outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors'
+const inputErrCls = 'w-full bg-white border border-[#f87171]/50 rounded-lg px-4 py-2.5 text-sm text-on-surface placeholder-outline outline-none focus:border-[#f87171]/70 transition-colors'
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-function InfoRow({ icon, label, value, mono }) {
-  return (
-    <div className="flex items-start gap-3 py-3 border-b border-outline-variant/10 last:border-0">
-      <span className="material-symbols-outlined text-outline text-[18px] mt-0.5 flex-shrink-0">{icon}</span>
-      <div className="min-w-0 flex-1">
-        <p className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">{label}</p>
-        <p className={`text-sm text-slate-200 break-all ${mono ? 'font-mono' : ''}`}>
-          {value || <span className="italic text-outline text-xs">Chưa cập nhật</span>}
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function SectionLabel({ children }) {
-  return <p className="text-[10px] uppercase tracking-widest text-slate-500 mb-3">{children}</p>
-}
-
-function FieldError({ message }) {
-  if (!message) return null
-  return (
-    <p className="mt-1 text-[11px] text-[#f87171] flex items-center gap-1">
-      <span className="material-symbols-outlined text-[12px]">error</span>
-      {message}
-    </p>
-  )
-}
-
 function PasswordInput({ value, onChange, onBlur, placeholder, error, showToggle }) {
   const [show, setShow] = useState(false)
   return (
@@ -128,41 +65,6 @@ function PasswordInput({ value, onChange, onBlur, placeholder, error, showToggle
           <span className="material-symbols-outlined text-[18px]">{show ? 'visibility_off' : 'visibility'}</span>
         </button>
       )}
-    </div>
-  )
-}
-
-function AvatarUploader({ user, avatarPreview, onFileChange }) {
-  const fileRef = useRef(null)
-  const color   = getColor(String(user?.id ?? ''))
-  return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="relative group cursor-pointer" onClick={() => fileRef.current?.click()}>
-        {avatarPreview
-          ? <img src={avatarPreview} alt="avatar" className="w-24 h-24 rounded-full object-cover border-2 border-primary/30" />
-          : <div className={`w-24 h-24 rounded-full ${color.bg} flex items-center justify-center ${color.text} font-bold text-2xl border-2 border-primary/30`}>{getInitials(user?.fullName)}</div>
-        }
-        <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-          <span className="material-symbols-outlined text-white text-2xl">photo_camera</span>
-        </div>
-      </div>
-      <button type="button" onClick={() => fileRef.current?.click()}
-        className="text-xs text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
-        <span className="material-symbols-outlined text-sm">upload</span>
-        Thay ảnh đại diện
-      </button>
-      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
-    </div>
-  )
-}
-
-function Toast({ message, type = 'success', onClose }) {
-  useEffect(() => { const t = setTimeout(onClose, 3000); return () => clearTimeout(t) }, [onClose])
-  const colors = { success: 'bg-[#4ade80]/10 border-[#4ade80]/30 text-[#4ade80]', error: 'bg-[#f87171]/10 border-[#f87171]/30 text-[#f87171]' }
-  return (
-    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium shadow-xl ${colors[type]}`}>
-      <span className="material-symbols-outlined text-sm">{type === 'success' ? 'check_circle' : 'error'}</span>
-      {message}
     </div>
   )
 }
@@ -202,19 +104,23 @@ export default function Profile () {
   const [toast, setToast]               = useState(null)
   const setStoreUser = useAuthStore((state) => state.setUser)
   
-  useEffect(() => { loadProfile() }, [])
-
-  async function loadProfile() {
-    try {
-      setLoading(true)
-      const data = await profileService.getMe()
-      applyUser(data)
-    } catch (err) {
-      showToast(err.message || 'Không thể tải thông tin', 'error')
-    } finally {
-      setLoading(false)
-    }
-  }
+  useEffect(() => {
+    let active = true
+    profileService.getMe()
+      .then((data) => {
+        if (!active) return
+        setUser(data)
+        setForm({ fullName: data.fullName || '', username: data.username || '', phone: data.phone || '' })
+        setAvatarPreview(data.avatarUrl || null)
+      })
+      .catch((err) => {
+        if (active) setToast({ message: err.message || 'Không thể tải thông tin', type: 'error' })
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => { active = false }
+  }, [])
 
   function applyUser(data) {
     setUser(data)
@@ -333,11 +239,11 @@ export default function Profile () {
 
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pt-8 pb-8">
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-white">Cài đặt tài khoản</h2>
-        <p className="text-slate-400 text-sm mt-1">{user?.email || '...'}</p>
+        <h2 className="text-2xl font-bold text-on-background">Cài đặt tài khoản</h2>
+        <p className="mt-1 text-sm text-on-surface-variant">{user?.email || '...'}</p>
       </div>
 
       {loading && <SkeletonDetail />}
@@ -348,7 +254,7 @@ export default function Profile () {
 
             {/* ── LEFT PANEL ─────────────────────────────────────────────────── */}
             <div className="p-6 flex flex-col gap-6">
-              <AvatarUploader user={user} avatarPreview={avatarPreview} onFileChange={handleFileChange} />
+              <AvatarUploader user={user} avatarPreview={avatarPreview} onFileChange={handleFileChange} fallbackInitials="ME" />
 
               {/* Badge vai trò */}
               <div className="flex flex-col items-center">
@@ -377,7 +283,7 @@ export default function Profile () {
                 <div className="space-y-4">
 
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">
                       Họ và tên <span className="text-[#f87171]">*</span>
                     </label>
                     <input
@@ -391,7 +297,7 @@ export default function Profile () {
                   </div>
 
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Biệt danh (username)</label>
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">Biệt danh (username)</label>
                     <input
                       type="text"
                       value={form.username}
@@ -402,7 +308,7 @@ export default function Profile () {
                   </div>
 
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">
                       Số điện thoại <span className="text-[#f87171]">*</span>
                     </label>
                     <input
@@ -423,7 +329,7 @@ export default function Profile () {
                     disabled={!dirty || saving}
                     className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-sm font-medium transition-all ${
                       saved  ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30'
-                      : dirty ? 'bg-primary hover:bg-primary/80 text-white'
+                      : dirty ? 'bg-primary hover:bg-primary-hover text-on-primary'
                               : 'bg-surface-container/50 text-outline border border-outline-variant/20 cursor-not-allowed'
                     }`}
                   >
@@ -443,7 +349,7 @@ export default function Profile () {
 
                   {/* Mật khẩu hiện tại */}
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">
                       Mật khẩu hiện tại <span className="text-[#f87171]">*</span>
                     </label>
                     <PasswordInput
@@ -459,7 +365,7 @@ export default function Profile () {
 
                   {/* Mật khẩu mới */}
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">
                       Mật khẩu mới <span className="text-[#f87171]">*</span>
                     </label>
                     <PasswordInput
@@ -475,7 +381,7 @@ export default function Profile () {
 
                   {/* Xác nhận mật khẩu mới */}
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">
                       Xác nhận mật khẩu mới <span className="text-[#f87171]">*</span>
                     </label>
                     <PasswordInput
@@ -496,7 +402,7 @@ export default function Profile () {
                     disabled={!pwdCanSubmit || changingPwd}
                     className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-sm font-medium transition-all ${
                       pwdSaved     ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30'
-                      : pwdCanSubmit ? 'bg-primary hover:bg-primary/80 text-white'
+                      : pwdCanSubmit ? 'bg-primary hover:bg-primary-hover text-on-primary'
                                     : 'bg-surface-container/50 text-outline border border-outline-variant/20 cursor-not-allowed'
                     }`}
                   >

@@ -73,51 +73,43 @@
 //   )
 // }
 import { useState, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'   // ← thêm
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/auth.store'
 
-export default function SettingsButton() {
-  const [open, setOpen] = useState(false)
-  const clearSession    = useAuthStore((s) => s.clearSession)
-  const navigate        = useNavigate()            // ← thêm
-  const ref             = useRef(null)
+export default function SettingsButton({ onOpenChange }) {
+  const [open, setOpenState] = useState(false)
+  const clearSession = useAuthStore((s) => s.clearSession)
+  const navigate = useNavigate()
+  const ref = useRef(null)
+
+  const setOpen = (v) => {
+    setOpenState(v)
+    onOpenChange?.(v)
+  }
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (ref.current && !ref.current.contains(event.target)) setOpen(false)
+    const onDown = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpenState(false)
+        onOpenChange?.(false)
+      }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [onOpenChange])
 
   return (
-    <div className="relative" ref={ref}>
-      <button type="button" onClick={() => setOpen(!open)}
-        className="text-slate-500 transition-colors hover:text-slate-300" title="Settings">
+    <div className="sb-set" ref={ref}>
+      <button type="button" onClick={() => setOpen(!open)} title="Cài đặt" aria-label="Cài đặt">
         <span className="material-symbols-outlined">settings</span>
       </button>
-
       {open && (
-        <div className="absolute bottom-2 left-9 min-w-44 translate-x-2 rounded-xl 
-            border border-indigo-500/20 bg-slate-950/95 px-2 py-2 
-            shadow-[0_0_20px_rgba(99,102,241,0.2)] backdrop-blur-xl transition-all duration-200 z-50">
-
-          {/* Cài đặt → navigate đến /profile */}
-          <button
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-200 hover:bg-indigo-500/10"
-            onClick={() => { navigate('/profile'); setOpen(false) }}   //
-          >
-            <span className="material-symbols-outlined text-base">settings</span>
-            Cài đặt
+        <div className="sb-menu">
+          <button type="button" onClick={() => { navigate('/profile'); setOpen(false) }}>
+            <span className="material-symbols-outlined">settings</span>Cài đặt
           </button>
-
-          {/* Đăng xuất */}
-          <button
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-400 hover:bg-red-500/10"
-            onClick={() => { clearSession(); window.location.href = '/login' }}
-          >
-            <span className="material-symbols-outlined text-base">logout</span>
-            Đăng xuất
+          <button type="button" className="out" onClick={() => { clearSession(); window.location.href = '/login' }}>
+            <span className="material-symbols-outlined">logout</span>Đăng xuất
           </button>
         </div>
       )}

@@ -1,88 +1,43 @@
 import { useAuthStore } from '../../store/auth.store'
+import { useSidebarStore } from '../../store/sidebar.store'
 import NavMenu from './NavMenu'
 import SettingsButton from './SettingsButton'
+import './sidebar.css'
 
 export default function Sidebar() {
   const user = useAuthStore((state) => state.user)
+  const locked = useSidebarStore((s) => s.locked)
+  const toggleLock = useSidebarStore((s) => s.toggleLock)
+  const hover = useSidebarStore((s) => s.hover)
+  const setHover = useSidebarStore((s) => s.setHover)
+  const menu = useSidebarStore((s) => s.menu)
+  const setMenu = useSidebarStore((s) => s.setMenu)
+  const open = locked || hover || menu
 
   return (
-    <aside className="fixed left-0 top-0 z-50 flex h-full w-16 flex-col items-center border-r border-indigo-500/10 bg-slate-950/40 py-8 font-space-grotesk tracking-tight shadow-[0_0_20px_rgba(99,102,241,0.1)] backdrop-blur-xl">
-      <div className="mb-10">
-        <span className="text-xl font-bold tracking-tighter text-indigo-500">
-          C
-        </span>
+    <aside className={`sb${open ? ' open' : ''}`} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+      <div className="sb-head">
+        <div className="sb-logo">AI</div>
+        <div className="sb-brand sb-t"><b>AI Studio</b><span>Create without limits</span></div>
+        <button
+          type="button"
+          className={`sb-lock${locked ? ' on' : ''}`}
+          onClick={toggleLock}
+          title={locked ? 'Bỏ khóa thanh bên' : 'Khóa thanh bên luôn mở'}
+          aria-label={locked ? 'Bỏ khóa thanh bên' : 'Khóa thanh bên luôn mở'}
+          aria-pressed={locked}
+        >
+          <span className="material-symbols-outlined">{locked ? 'lock' : 'lock_open'}</span>
+        </button>
       </div>
-
-      {/* <nav className="flex flex-1 flex-col gap-8">
-        <button
-          type="button"
-          className="flex w-full scale-95 items-center justify-center border-r-2 border-indigo-500 py-2 text-indigo-400 transition-transform active:scale-90"
-          title="Home"
-        >
-          <span className="material-symbols-outlined">home</span>
-        </button>
-
-        <button
-          type="button"
-          className="flex w-full scale-95 items-center justify-center py-2 text-slate-500 transition-all hover:bg-indigo-500/5 hover:text-slate-300 active:scale-90"
-          title="Create"
-        >
-          <span className="material-symbols-outlined">movie_creation</span>
-        </button>
-
-        <button
-          type="button"
-          className="flex w-full scale-95 items-center justify-center py-2 text-slate-500 transition-all hover:bg-indigo-500/5 hover:text-slate-300 active:scale-90"
-          title="Library"
-        >
-          <span className="material-symbols-outlined">video_library</span>
-        </button>
-
-        <button
-          type="button"
-          className="flex w-full scale-95 items-center justify-center py-2 text-slate-500 transition-all hover:bg-indigo-500/5 hover:text-slate-300 active:scale-90"
-          title="Models"
-        >
-          <span className="material-symbols-outlined">memory</span>
-        </button>
-
-        <button
-          type="button"
-          className="flex w-full scale-95 items-center justify-center py-2 text-slate-500 transition-all hover:bg-indigo-500/5 hover:text-slate-300 active:scale-90"
-          title="Community"
-        >
-          <span className="material-symbols-outlined">groups</span>
-        </button>
-      </nav> */}
       <NavMenu />
-
-      <div className="mt-auto flex flex-col items-center gap-6">
-        <SettingsButton />
-
-        <div className="group relative">
-          <div className="h-8 w-8 overflow-hidden rounded-full border border-indigo-500/30 bg-slate-800">
-            {user?.avatarUrl ? (
-              <img
-                alt={user.fullName || 'User profile'}
-                className="h-full w-full object-cover"
-                src={user.avatarUrl}
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-xs font-bold text-indigo-300">
-                {user?.fullName?.charAt(0) || user?.email?.charAt(0) || 'U'}
-              </div>
-            )}
+      <div className="sb-foot">
+        <div className="sb-user">
+          <div className="sb-av">
+            <span>{user?.avatarUrl ? <img src={user.avatarUrl} alt={user.fullName || 'Avatar'} /> : (user?.fullName?.[0] || user?.email?.[0] || 'U')}</span>
           </div>
-
-          <div className="pointer-events-none absolute bottom-0 left-12 min-w-44 translate-x-2 rounded-xl border border-indigo-500/20 bg-slate-950/95 px-4 py-3 opacity-0 shadow-[0_0_20px_rgba(99,102,241,0.2)] backdrop-blur-xl transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
-            <p className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
-              {(user?.roleName || 'USER').toUpperCase()}
-            </p>
-
-            <p className="mt-1 truncate text-sm font-semibold text-slate-100">
-              {user?.fullName || 'Chưa có tên'}
-            </p>
-          </div>
+          <div className="sb-who sb-t"><b>{user?.fullName || 'Người dùng'}</b><span>{user?.email}</span></div>
+          {open && <SettingsButton onOpenChange={setMenu} />}
         </div>
       </div>
     </aside>

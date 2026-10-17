@@ -86,7 +86,7 @@ export async function updateEmployeeApi(id, formData) {
   }
 }
 
-/** Reset mật khẩu về Bideptrai123@@ */
+/** Tạo mật khẩu tạm mới; trả về mật khẩu một lần cho admin. */
 export async function resetEmployeePasswordApi(id) {
   try {
     const res = await api.patch(`/users/${id}/reset-password`)
@@ -148,5 +148,48 @@ export async function getSystemDailyStatsApi({ month, year }) {
   } catch (error) {
     const msg = error.response?.data?.message
     throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Lấy thống kê ngày hệ thống thất bại')
+  }
+}
+
+/** Admin: tổng quan chi phí AI của nhân viên theo số ngày gần nhất */
+export async function getExpenseOverviewApi({ days = 30 } = {}) {
+  try {
+    const res = await api.get('/users/expense-overview', { params: { days } })
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Lấy tổng quan chi phí AI thất bại')
+  }
+}
+
+/** Admin: thống kê sử dụng AI của 1 nhân viên */
+export async function getEmployeeAiUsageApi(id, { days = 30 } = {}) {
+  try {
+    const res = await api.get(`/users/${id}/ai-usage`, { params: { days } })
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Lấy thống kê AI của nhân viên thất bại')
+  }
+}
+
+/** Admin: lịch sử sử dụng AI của 1 nhân viên */
+export async function getEmployeeAiHistoryApi(id, { page = 1, limit = 10, status = '', modality = '' } = {}) {
+  try {
+    const res = await api.get(`/users/${id}/ai-usage/history`, { params: { page, limit, status, modality } })
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Lấy lịch sử sử dụng AI thất bại')
+  }
+}
+
+export async function getMySpendingApi() {
+  try {
+    const res = await api.get('/users/me/spending')
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Lấy chi tiêu của bạn thất bại')
   }
 }

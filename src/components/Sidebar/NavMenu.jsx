@@ -1,46 +1,38 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../../store/auth.store'
 
+const primary = [
+  { to: '/', label: 'Trang chủ', icon: 'home' },
+  { to: '/create/image', label: 'Tạo ảnh', icon: 'image' },
+  { to: '/create/video', label: 'Tạo video', icon: 'smart_display' },
+  { to: '/create/audio', label: 'Tạo giọng nói', icon: 'graphic_eq', badge: 'NEW' },
+  { to: '/chat', label: 'Chat AI', icon: 'chat_bubble', badge: 'NEW' },
+  { to: '/library', label: 'Thư viện', icon: 'video_library' },
+  { to: '/wallet', label: 'Ví & thanh toán', icon: 'account_balance_wallet' },
+  { to: '/projects', label: 'Dự án', icon: 'deployed_code' },
+]
+
 export default function NavMenu() {
   const location = useLocation()
   const user = useAuthStore((state) => state.user)
-  const isAdmin = user?.roleName === 'admin'
-
-  const isActive = (path) => location.pathname === path
-
-  const linkClass = (path) =>
-    isActive(path)
-      ? 'flex w-full scale-95 items-center justify-center border-r-2 border-indigo-500 py-2 text-indigo-400 transition-transform active:scale-90'
-      : 'flex w-full scale-95 items-center justify-center py-2 text-slate-500 transition-all hover:bg-indigo-500/5 hover:text-slate-300 active:scale-90'
+  const items = user?.roleName === 'admin'
+    ? [...primary,
+        { to: '/employees/expenses', label: 'Chi phí AI', icon: 'monitoring' },
+        { to: '/employees', label: 'Quản trị người dùng', icon: 'groups' }]
+    : primary
 
   return (
-    <nav className="flex flex-1 flex-col gap-8">
-      <Link to="/" title="Home" className={linkClass('/')}>
-        <span className="material-symbols-outlined">home</span>
-      </Link>
-
-      <Link to="/create-video" title="Tạo Video" className={linkClass('/create-video')}>
-        <span className="material-symbols-outlined">movie_creation</span>
-      </Link>
-
-      <Link to="/library" title="Thư Viện" className={linkClass('/library')}>
-        <span className="material-symbols-outlined">video_library</span>
-      </Link>
-
-      {/* <Link to="/create-video-flow" title="Tự động tạo video" className={linkClass('/create-video-flow')}>
-        <span className="material-symbols-outlined">memory</span>
-      </Link> */}
-
-      <Link to="/projects" title="Dự án" className={linkClass('/projects')}>
-        <span className="material-symbols-outlined">deployed_code</span>
-      </Link>
-
-      {/* Chỉ hiện với admin */}
-      {isAdmin && (
-        <Link to="/employees" title="Nhân Viên" className={linkClass('/employees')}>
-          <span className="material-symbols-outlined">groups</span>
-        </Link>
-      )}
+    <nav className="sb-nav">
+      {items.map((item) => {
+        const active = item.to === '/' ? location.pathname === '/' : (item.to === '/employees' ? location.pathname === '/employees' || /^\/employees\/\d+/.test(location.pathname) : location.pathname.startsWith(item.to))
+        return (
+          <Link key={item.to} to={item.to} title={item.label} className={`sb-it${active ? ' on' : ''}`}>
+            <span className="material-symbols-outlined">{item.icon}</span>
+            <span className="sb-t">{item.label}</span>
+            {item.badge && <span className="sb-bd sb-t">{item.badge}</span>}
+          </Link>
+        )
+      })}
     </nav>
   )
 }

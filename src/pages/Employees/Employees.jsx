@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { getAllUsersApi, getEmployeeStatsApi, toggleUserStatusApi, createEmployeeApi, deleteEmployeeApi } from '../../services/user.service'
 import { EMPLOYEE_PAGE_LIMIT } from '../../constants/employee'
-import EmployeeStatCards   from '../../components/Employees/EmployeeStatCards'
-import EmployeeTable       from '../../components/Employees/EmployeeTable'
+import { Page, Tile } from '../../components/Aurora/AuroraUI'
+import EmployeeCards       from '../../components/Employees/EmployeeCards'
 import EmployeeModal       from '../../components/Employees/EmployeeModal'
-import EmployeePagination  from '../../components/Employees/EmployeePagination'
+import { formatVND }       from '../../utils/employee.utils'
+import { moneyShort }      from '../../utils/aurora.utils'
 
 const INITIAL_STATS = { total: 0, active: 0, banned: 0, monthlySpending: 0 }
 
@@ -100,50 +102,55 @@ export default function Employees() {
 
   const totalPages = Math.max(1, Math.ceil(total / EMPLOYEE_PAGE_LIMIT))
 
-  return (
-    <div className="max-w-7xl mx-auto space-y-8 pt-8 pb-8">
+  const pageNums = Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+    const start = Math.min(Math.max(page - 2, 1), Math.max(totalPages - 4, 1))
+    return start + i
+  })
 
-      <div>
-        <h2 className="text-2xl font-bold text-white">Nhân Viên</h2>
-        <p className="text-slate-400 text-sm mt-1">Danh sách nhân viên sẽ được hiển thị ở đây.</p>
+  return (
+    <Page>
+      <header className="au-head">
+        <h1 className="au-title au-fd">Nhân sự</h1>
+        <div className="au-tools">
+          <label className="au-search" style={{ background: '#fff', border: 'var(--wbd)', width: 260 }}>
+            <span className="material-symbols-outlined">search</span>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm theo tên…" aria-label="Tìm nhân viên" />
+          </label>
+          <Link to="/employees/expenses" className="au-btn icon" title="Chi phí AI" aria-label="Chi phí AI">
+            <span className="material-symbols-outlined">monitoring</span>
+          </Link>
+          <button type="button" className="au-btn solid" onClick={() => { setShowModal(true); setFormError('') }}>
+            <span className="material-symbols-outlined">person_add</span>Tạo
+          </button>
+        </div>
+      </header>
+
+      <div className="au-tiles">
+        <Tile loading={statsLoading} icon="groups" label="Tổng nhân sự" value={stats.total} />
+        <Tile loading={statsLoading} icon="check_circle" label="Hoạt động" value={stats.active} />
+        <Tile loading={statsLoading} icon="lock" tone="dark" label="Bị khóa" value={stats.banned} note={!stats.banned ? 'Chưa khóa tài khoản nào' : undefined} />
+        <Tile loading={statsLoading} icon="payments" tone="orange" label="Chi tháng này" value={moneyShort(stats.monthlySpending)} title={formatVND(stats.monthlySpending)} hint="Tiền nhân viên tiêu tháng này" note={!stats.monthlySpending ? 'Chưa phát sinh chi phí tháng này' : undefined} />
       </div>
 
-      <EmployeeStatCards stats={stats} loading={statsLoading} />
+      <EmployeeCards
+        users={users} loading={loading} query={query}
+        togglingId={togglingId} onToggle={handleToggle}
+        onDelete={handleDelete}
+      />
 
-      <div className="glass-panel rounded-xl overflow-hidden border border-outline-variant/10">
-
-        <div className="px-6 py-5 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/50">
-          <h3 className="text-lg font-semibold text-white">Danh sách nhân viên</h3>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-surface-container/50 border border-outline-variant/20 rounded-lg px-3 py-2">
-              <span className="material-symbols-outlined text-lg text-outline">search</span>
-              <input
-                type="text" value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Tìm theo họ và tên..."
-                className="bg-transparent text-sm text-white placeholder-outline outline-none w-48"
-              />
-            </div>
-            <button
-              onClick={() => { setShowModal(true); setFormError('') }}
-              className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-colors"
-            >
-              <span className="material-symbols-outlined text-lg">person_add</span>
-              Tạo nhân viên
-            </button>
-          </div>
+      <div className="au-pgn">
+        <span>{users.length}/{total}</span>
+        <div>
+          <button type="button" className="au-ico" disabled={page === 1} onClick={() => setPage(p => p - 1)} aria-label="Trang trước">
+            <span className="material-symbols-outlined">chevron_left</span>
+          </button>
+          {pageNums.map(p => (
+            <button key={p} type="button" className={`au-ico${p === page ? ' on' : ''}`} onClick={() => setPage(p)}>{p}</button>
+          ))}
+          <button type="button" className="au-ico" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} aria-label="Trang sau">
+            <span className="material-symbols-outlined">chevron_right</span>
+          </button>
         </div>
-
-        <EmployeeTable
-          users={users} loading={loading} query={query}
-          togglingId={togglingId} onToggle={handleToggle}
-          onDelete={handleDelete}
-        />
-
-        <EmployeePagination
-          page={page} totalPages={totalPages}
-          total={total} showing={users.length}
-          onPageChange={setPage}
-        />
       </div>
 
       <EmployeeModal
@@ -153,6 +160,6 @@ export default function Employees() {
         submitting={submitting}
         error={formError}
       />
-    </div>
+    </Page>
   )
 }

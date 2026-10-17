@@ -2,15 +2,15 @@ import { useState, useMemo } from 'react'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 const inputCls =
-  'w-full bg-surface-container/50 border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-outline outline-none focus:border-primary/50 transition-colors'
+  'w-full bg-white/5 border border-[#ff7a1a]/30 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#ff7a1a] transition-colors'
 
 const inputErrCls =
-  'w-full bg-surface-container/50 border border-[#f87171]/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-outline outline-none focus:border-[#f87171]/70 transition-colors'
+  'w-full bg-white/5 border border-[#f87171]/60 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#f87171] transition-colors'
 
 function Field({ label, required, error, children }) {
   return (
     <div>
-      <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+      <label className="mb-1.5 block text-xs text-[#ffb070]">
         {label} {required && <span className="text-[#f87171]">*</span>}
       </label>
       {children}
@@ -69,16 +69,16 @@ function PasswordStrength({ password }) {
     <div className="mt-2 space-y-2">
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map(i => (
-          <div key={i} className={`h-1 flex-1 rounded-full transition-colors duration-300 ${passed >= i ? color : 'bg-surface-container-highest/50'}`} />
+          <div key={i} className={`h-1 flex-1 rounded-full transition-colors duration-300 ${passed >= i ? color : 'bg-white/10'}`} />
         ))}
       </div>
       <div className="grid grid-cols-2 gap-x-3 gap-y-1">
         {results.map(r => (
           <div key={r.id} className="flex items-center gap-1.5">
-            <span className={`material-symbols-outlined text-[14px] ${r.ok ? 'text-[#4ade80]' : 'text-slate-600'}`}>
+            <span className={`material-symbols-outlined text-[14px] ${r.ok ? 'text-[#4ade80]' : 'text-white/30'}`}>
               {r.ok ? 'check_circle' : 'radio_button_unchecked'}
             </span>
-            <span className={`text-[11px] ${r.ok ? 'text-slate-400' : 'text-slate-600'}`}>{r.label}</span>
+            <span className={`text-[11px] ${r.ok ? 'text-white/70' : 'text-white/30'}`}>{r.label}</span>
           </div>
         ))}
       </div>
@@ -146,22 +146,21 @@ export default function EmployeeModal({ show, onClose, onSubmit, submitting, err
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !submitting && onClose()} />
+      <div className="absolute inset-0 bg-[#140e0a]/60 backdrop-blur-sm" onClick={() => !submitting && onClose()} />
 
-      <div className="relative w-full max-w-md glass-panel rounded-2xl border border-outline-variant/20 p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="au-mo-box relative" style={{ maxWidth: 440 }}>
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-              <span className="material-symbols-outlined text-primary">person_add</span>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ boxShadow: 'inset 0 0 0 1.5px #ff7a1a' }}>
+              <span className="material-symbols-outlined" style={{ color: '#ff7a1a' }}>person_add</span>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white">Tạo nhân viên</h3>
-              <p className="text-xs text-slate-400">Điền thông tin để thêm nhân viên mới</p>
+              <h3 className="text-lg font-bold text-white">Tạo nhân viên</h3>
             </div>
           </div>
-          <button onClick={onClose} disabled={submitting} className="p-1.5 rounded-lg hover:bg-surface-container-highest text-outline hover:text-white transition-colors">
+          <button onClick={onClose} disabled={submitting} className="rounded-full p-1.5 text-white/60 transition-colors hover:bg-white/10 hover:text-[#ff7a1a]">
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
         </div>
@@ -218,7 +217,7 @@ export default function EmployeeModal({ show, onClose, onSubmit, submitting, err
                 className={`${touched.password && !isPasswordValid(form.password) && form.password ? inputErrCls : inputCls} pr-10`}
               />
               <button type="button" onClick={() => setShowPassword(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-slate-300 transition-colors" tabIndex={-1}>
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-[#ff7a1a] transition-colors" tabIndex={-1}>
                 <span className="material-symbols-outlined text-[18px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
               </button>
             </div>
@@ -236,11 +235,11 @@ export default function EmployeeModal({ show, onClose, onSubmit, submitting, err
           {/* Buttons */}
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} disabled={submitting}
-              className="flex-1 px-4 py-2.5 rounded-lg border border-outline-variant/20 text-sm text-slate-300 hover:bg-surface-container-highest transition-colors disabled:opacity-50">
+              className="flex-1 rounded-full border border-white/20 px-4 py-2.5 text-sm text-white/80 transition-colors hover:border-[#ff7a1a] disabled:opacity-50">
               Hủy
             </button>
             <button type="submit" disabled={submitting || !canSubmit}
-              className="flex-1 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary/80 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#ff7a1a] px-4 py-2.5 text-sm font-semibold text-[#241c17] transition-colors hover:bg-[#ffb070] disabled:cursor-not-allowed disabled:opacity-50">
               {submitting
                 ? <><span className="material-symbols-outlined text-sm animate-spin">progress_activity</span> Đang tạo...</>
                 : <><span className="material-symbols-outlined text-sm">check</span> Tạo nhân viên</>

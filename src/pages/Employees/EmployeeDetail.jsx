@@ -1,4 +1,6 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import { validateFullName, validatePhone, formatDate } from '../../utils/userDetail.utils'
+import { InfoRow, SectionLabel, FieldError, AvatarUploader, Toast } from '../../components/UserDetail/UserDetailUI'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   getEmployeeByIdApi,
@@ -7,86 +9,14 @@ import {
   resetEmployeePasswordApi,
 } from '../../services/user.service'
 
-// ─── Validators ───────────────────────────────────────────────────────────────
-const VN_PHONE_RE = /^(0[35789]\d{8}|02\d{9})$/
-const FULLNAME_RE = /^[a-zA-ZÀ-ỹ]+(\s+[a-zA-ZÀ-ỹ]+)+$/u
-
-function validateFullName(v) {
-  if (!v.trim()) return 'Họ và tên không được để trống'
-  if (!FULLNAME_RE.test(v.trim())) return 'Phải có ít nhất 2 từ, chỉ chứa chữ cái'
-  return ''
-}
-
-function validatePhone(v) {
-  if (!v.trim()) return 'Số điện thoại không được để trống'
-  if (!VN_PHONE_RE.test(v.trim())) return 'Sai định dạng số Việt Nam (vd: 0901234567)'
-  return ''
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function getInitials(name = '') {
-  return (
-    name.trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'NV'
-  )
-}
-
-const COLOR_POOL = [
-  { bg: 'bg-[#6366f1]/20', text: 'text-[#818cf8]' },
-  { bg: 'bg-[#0ea5e9]/20', text: 'text-[#38bdf8]' },
-  { bg: 'bg-[#10b981]/20', text: 'text-[#34d399]' },
-  { bg: 'bg-[#f59e0b]/20', text: 'text-[#fbbf24]' },
-  { bg: 'bg-[#ec4899]/20', text: 'text-[#f472b6]' },
-]
-
-function getColor(id = '') {
-  const idx = [...String(id)].reduce((a, c) => a + c.charCodeAt(0), 0) % COLOR_POOL.length
-  return COLOR_POOL[idx]
-}
-
-function formatDate(ts) {
-  if (!ts) return '—'
-  return new Date(ts).toLocaleString('vi-VN', {
-    hour: '2-digit', minute: '2-digit',
-    day: '2-digit', month: '2-digit', year: 'numeric',
-  })
-}
-
 // ─── Style classes ────────────────────────────────────────────────────────────
 const inputCls =
-  'w-full bg-surface-container/50 border border-outline-variant/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-outline outline-none focus:border-primary/50 transition-colors'
+  'w-full bg-white border border-outline-variant rounded-lg px-4 py-2.5 text-sm text-on-surface placeholder-outline outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors'
 
 const inputErrCls =
-  'w-full bg-surface-container/50 border border-[#f87171]/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-outline outline-none focus:border-[#f87171]/70 transition-colors'
+  'w-full bg-white border border-[#f87171]/50 rounded-lg px-4 py-2.5 text-sm text-on-surface placeholder-outline outline-none focus:border-[#f87171]/70 transition-colors'
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-function InfoRow({ icon, label, value, mono }) {
-  return (
-    <div className="flex items-start gap-3 py-3 border-b border-outline-variant/10 last:border-0">
-      <span className="material-symbols-outlined text-outline text-[18px] mt-0.5 flex-shrink-0">{icon}</span>
-      <div className="min-w-0 flex-1">
-        <p className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">{label}</p>
-        <p className={`text-sm text-slate-200 break-all ${mono ? 'font-mono' : ''}`}>
-          {value || <span className="italic text-outline text-xs">Chưa cập nhật</span>}
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function SectionLabel({ children }) {
-  return <p className="text-[10px] uppercase tracking-widest text-slate-500 mb-3">{children}</p>
-}
-
-function FieldError({ message }) {
-  if (!message) return null
-  return (
-    <p className="mt-1 text-[11px] text-[#f87171] flex items-center gap-1">
-      <span className="material-symbols-outlined text-[12px]">error</span>
-      {message}
-    </p>
-  )
-}
-
 function DangerBtn({ icon, label, onClick, loading, variant = 'warning' }) {
   const colors = {
     warning: 'border-[#f87171]/30 text-[#f87171] hover:bg-[#f87171]/10',
@@ -105,43 +35,6 @@ function DangerBtn({ icon, label, onClick, loading, variant = 'warning' }) {
       }
       {label}
     </button>
-  )
-}
-
-function AvatarUploader({ user, avatarPreview, onFileChange }) {
-  const fileRef = useRef(null)
-  const color = getColor(String(user?.id ?? ''))
-
-  return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="relative group cursor-pointer" onClick={() => fileRef.current?.click()}>
-        {avatarPreview ? (
-          <img
-            src={avatarPreview}
-            alt="avatar"
-            className="w-24 h-24 rounded-full object-cover border-2 border-primary/30"
-          />
-        ) : (
-          <div className={`w-24 h-24 rounded-full ${color.bg} flex items-center justify-center ${color.text} font-bold text-2xl border-2 border-primary/30`}>
-            {getInitials(user?.fullName)}
-          </div>
-        )}
-        <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-          <span className="material-symbols-outlined text-white text-2xl">photo_camera</span>
-        </div>
-      </div>
-
-      <button
-        type="button"
-        onClick={() => fileRef.current?.click()}
-        className="text-xs text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
-      >
-        <span className="material-symbols-outlined text-sm">upload</span>
-        Thay ảnh đại diện
-      </button>
-
-      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
-    </div>
   )
 }
 
@@ -168,39 +61,18 @@ function SkeletonDetail() {
   )
 }
 
-function Toast({ message, type = 'success', onClose }) {
-  useEffect(() => {
-    const t = setTimeout(onClose, 3000)
-    return () => clearTimeout(t)
-  }, [onClose])
-
-  const colors = {
-    success: 'bg-[#4ade80]/10 border-[#4ade80]/30 text-[#4ade80]',
-    error:   'bg-[#f87171]/10 border-[#f87171]/30 text-[#f87171]',
-  }
-
-  return (
-    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium shadow-xl ${colors[type]}`}>
-      <span className="material-symbols-outlined text-sm">
-        {type === 'success' ? 'check_circle' : 'error'}
-      </span>
-      {message}
-    </div>
-  )
-}
-
 function ConfirmDialog({ message, onConfirm, onCancel }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="glass-panel rounded-2xl border border-outline-variant/20 p-6 max-w-sm w-full mx-4 space-y-4">
         <div className="flex items-start gap-3">
           <span className="material-symbols-outlined text-[#f87171] text-2xl flex-shrink-0">warning</span>
-          <p className="text-sm text-slate-300 leading-relaxed">{message}</p>
+          <p className="text-sm leading-relaxed text-on-surface-variant">{message}</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 py-2 rounded-lg border border-outline-variant/20 text-sm text-slate-400 hover:bg-surface-container-highest/30 transition-colors"
+            className="flex-1 rounded-lg border border-outline-variant py-2 text-sm text-on-surface-variant transition-colors hover:bg-surface-variant"
           >
             Hủy
           </button>
@@ -233,20 +105,28 @@ export default function EmployeeDetail() {
   const [saved, setSaved]             = useState(false)
   const [toast, setToast]             = useState(null)
   const [confirm, setConfirm]         = useState(null)
+  const [temporaryPassword, setTemporaryPassword] = useState('')
 
-  useEffect(() => { loadUser() }, [id])
-
-  async function loadUser() {
-    try {
-      setLoading(true)
-      const data = await getEmployeeByIdApi(id)
-      applyUser(data)
-    } catch (err) {
-      showToast(err.message, 'error')
-    } finally {
-      setLoading(false)
-    }
-  }
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    getEmployeeByIdApi(id)
+      .then((data) => {
+        if (!active) return
+        setUser(data)
+        setForm({ fullName: data.fullName || '', username: data.username || '', phone: data.phone || '' })
+        setErrs({ fullName: '', phone: '' })
+        setAvatarPreview(data.avatarUrl || null)
+        setAvatarFile(null)
+      })
+      .catch((err) => {
+        if (active) setToast({ message: err.message, type: 'error' })
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => { active = false }
+  }, [id])
 
   function applyUser(data) {
     setUser(data)
@@ -340,13 +220,14 @@ export default function EmployeeDetail() {
 
   async function handleReset() {
     setConfirm({
-      message: 'Reset mật khẩu về "Bideptrai123@@"? Nhân viên cần đổi mật khẩu sau khi đăng nhập.',
+      message: 'Tạo mật khẩu tạm mới cho nhân viên? Mật khẩu hiện tại sẽ không còn dùng được.',
       onConfirm: async () => {
         setConfirm(null)
         setResetting(true)
         try {
-          await resetEmployeePasswordApi(id)
-          showToast('Đã reset mật khẩu thành công')
+          const result = await resetEmployeePasswordApi(id)
+          setTemporaryPassword(result.temporaryPassword)
+          showToast('Đã tạo mật khẩu tạm. Hãy sao chép và gửi cho nhân viên qua kênh an toàn.')
         } catch (err) {
           showToast(err.message, 'error')
         } finally {
@@ -358,20 +239,29 @@ export default function EmployeeDetail() {
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pt-8 pb-8">
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white">Chi tiết nhân viên</h2>
-          <p className="text-slate-400 text-sm mt-1">{user?.email || '...'}</p>
+          <h2 className="text-2xl font-bold text-on-background">Chi tiết nhân viên</h2>
+          <p className="mt-1 text-sm text-on-surface-variant">{user?.email || '...'}</p>
         </div>
+        <div className="flex flex-wrap justify-end gap-2">
+        <button
+          onClick={() => navigate(`/employees/${id}/ai-usage`)}
+          className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-on-primary transition-colors hover:bg-primary-hover"
+        >
+          <span className="material-symbols-outlined text-lg">monitoring</span>
+          Chi tiết sử dụng AI
+        </button>
         <button
           onClick={() => navigate('/employees')}
-          className="flex items-center gap-2 rounded-lg border border-outline-variant/20 bg-surface-container/50 px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-white"
+          className="flex items-center gap-2 rounded-lg border border-outline-variant bg-white px-4 py-2 text-sm font-medium text-on-surface-variant transition-colors hover:border-primary hover:bg-primary-container hover:text-primary"
         >
           <span className="material-symbols-outlined text-lg">arrow_back</span>
           Quản lý nhân viên
         </button>
+        </div>
       </div>
 
       {/* Loading skeleton */}
@@ -423,7 +313,7 @@ export default function EmployeeDetail() {
 
                   {/* Họ và tên */}
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">
                       Họ và tên <span className="text-[#f87171]">*</span>
                     </label>
                     <input
@@ -438,7 +328,7 @@ export default function EmployeeDetail() {
 
                   {/* Biệt danh */}
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">
                       Biệt danh (username)
                     </label>
                     <input
@@ -452,7 +342,7 @@ export default function EmployeeDetail() {
 
                   {/* Số điện thoại */}
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">
+                    <label className="mb-1.5 block text-xs uppercase tracking-wider text-on-surface-variant">
                       Số điện thoại <span className="text-[#f87171]">*</span>
                     </label>
                     <input
@@ -476,7 +366,7 @@ export default function EmployeeDetail() {
                       saved
                         ? 'bg-[#4ade80]/20 text-[#4ade80] border border-[#4ade80]/30'
                         : dirty
-                        ? 'bg-primary hover:bg-primary/80 text-white'
+                        ? 'bg-primary hover:bg-primary-hover text-on-primary'
                         : 'bg-surface-container/50 text-outline border border-outline-variant/20 cursor-not-allowed'
                     }`}
                   >
@@ -516,7 +406,7 @@ export default function EmployeeDetail() {
                 </div>
 
                 <p className="text-[11px] text-slate-500 mt-3 leading-relaxed">
-                  Khóa tài khoản sẽ ngăn nhân viên đăng nhập. Reset mật khẩu sẽ đặt lại mật khẩu mặc định.
+                  Khóa tài khoản sẽ ngăn nhân viên đăng nhập. Reset mật khẩu sẽ tạo mật khẩu tạm mới.
                 </p>
               </div>
             </div>
@@ -527,6 +417,20 @@ export default function EmployeeDetail() {
       {/* Toast notification */}
       {toast && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+      )}
+
+      {temporaryPassword && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" role="dialog" aria-modal="true" aria-label="Mật khẩu tạm">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold">Mật khẩu tạm của nhân viên</h3>
+            <p className="mt-2 text-sm text-slate-600">Sao chép mật khẩu này ngay. Sau khi đóng, hệ thống sẽ không hiển thị lại.</p>
+            <code className="mt-4 block break-all rounded-lg bg-slate-100 p-3 text-sm">{temporaryPassword}</code>
+            <div className="mt-5 flex justify-end gap-3">
+              <button type="button" onClick={() => navigator.clipboard.writeText(temporaryPassword)} className="rounded-lg border px-4 py-2 text-sm">Sao chép</button>
+              <button type="button" onClick={() => setTemporaryPassword('')} className="rounded-lg bg-primary px-4 py-2 text-sm text-white">Đóng</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Confirm dialog */}

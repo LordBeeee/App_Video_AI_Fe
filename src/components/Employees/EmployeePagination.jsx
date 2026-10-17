@@ -8,7 +8,7 @@ export default function EmployeePagination({ page, totalPages, total, showing, o
 
   return (
     <div className="px-6 py-4 border-t border-outline-variant/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-surface-container-low/30">
-      <span className="text-sm text-slate-400">
+      <span className="text-sm text-on-surface-variant">
         Hiển thị {showing} trong tổng số {total} nhân viên
       </span>
 
