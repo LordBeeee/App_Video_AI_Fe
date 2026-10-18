@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getEmployeeAiUsageApi } from '../../services/user.service'
-import { Page, Card, Tile, Pills, Avatar, Skeleton, ErrorBox, Empty } from '../../components/Aurora/AuroraUI'
+import { Page, Card, Tile, Pills, Avatar, Skeleton, ErrorBox, Empty, InfoTip } from '../../components/Aurora/AuroraUI'
+import { INFO } from '../../components/Aurora/metricInfo'
 import AuroraCombo from '../../components/Aurora/AuroraCombo'
 import EfficiencySection from '../../components/Aurora/EfficiencySection'
 import EmployeeHistory from '../../components/Aurora/EmployeeHistory'
@@ -81,14 +82,14 @@ export default function EmployeeAiUsage() {
                       <span className="material-symbols-outlined">{emp.status === 'banned' ? 'lock' : 'check_circle'}</span>{emp.status === 'banned' ? 'Khóa' : 'Hoạt động'}
                     </span>
                     {topTask && <span className="au-tg" title="Chi nhiều nhất"><span className="material-symbols-outlined">star</span>{auTaskLabel(topTask.modality)}</span>}
-                    {!loading && <span className="au-tg ink" title="So với nhóm"><span className="material-symbols-outlined">balance</span>{idx === null || idx === undefined ? '—' : `${idx > 0 ? '+' : ''}${idx}%`}</span>}
+                    {!loading && <span className="au-tg ink"><span className="material-symbols-outlined">balance</span>{idx === null || idx === undefined ? '—' : `${idx > 0 ? '+' : ''}${idx}%`}<InfoTip info={INFO.empVsTeamTag} tone="dark" /></span>}
                   </div>
                 )}
               </div>
             </div>
             <div className="au-prof-r">
               <div>
-                <div className="au-lab"><span className="material-symbols-outlined">payments</span>{rangeLabel}</div>
+                <div className="au-lab"><span className="material-symbols-outlined">payments</span>{rangeLabel}<InfoTip info={INFO.empCost} tone="dark" /></div>
                 {loading ? <Skeleton h={40} w={170} /> : <div className="au-big au-fd" title={formatVND(cost)}>{money.v}<small>{money.u}</small></div>}
               </div>
               <div className="au-mixw">
@@ -104,10 +105,10 @@ export default function EmployeeAiUsage() {
           </Card>
 
           <div className="au-tiles sm">
-            <Tile loading={loading} icon="task_alt" label="Thành công" value={successRate === null || successRate === undefined ? '—' : `${Math.round(successRate * 100)}%`} hint={`${formatNum(k?.succeeded)} thành công · ${formatNum(k?.failed)} lỗi`} />
-            <Tile loading={loading} icon="sell" tone="orange" label="Giá TB" value={moneyShort(k?.avgCostPerSuccess)} title={formatVND(k?.avgCostPerSuccess)} hint={priceIndexText(idx)} />
-            <Tile loading={loading} icon="calendar_month" label="Ngày hoạt động" value={`${activeDays}/${trend.length}`} hint={activeDays ? `Chi TB ${moneyShort(cost / activeDays)} / ngày hoạt động` : 'Chưa có hoạt động'} />
-            <Tile loading={loading} icon="schedule" tone="dark" label="Gần nhất" value={k?.lastUsedAt ? timeAgo(k.lastUsedAt) : '—'} hint={k?.totalTokens != null ? `${formatNum(k.totalTokens)} token` : `${formatNum(k?.requests)} yêu cầu trong kỳ`} />
+            <Tile loading={loading} icon="task_alt" label="Thành công" info={INFO.empSuccess} value={successRate === null || successRate === undefined ? '—' : `${Math.round(successRate * 100)}%`} hint={`${formatNum(k?.succeeded)} thành công · ${formatNum(k?.failed)} lỗi`} />
+            <Tile loading={loading} icon="sell" tone="orange" label="Giá TB" info={INFO.empAvgPrice} value={moneyShort(k?.avgCostPerSuccess)} title={formatVND(k?.avgCostPerSuccess)} hint={priceIndexText(idx)} />
+            <Tile loading={loading} icon="calendar_month" label="Ngày hoạt động" info={INFO.empActiveDays} value={`${activeDays}/${trend.length}`} hint={activeDays ? `Chi TB ${moneyShort(cost / activeDays)} / ngày hoạt động` : 'Chưa có hoạt động'} />
+            <Tile loading={loading} icon="schedule" tone="dark" label="Gần nhất" info={INFO.empLast} value={k?.lastUsedAt ? timeAgo(k.lastUsedAt) : '—'} hint={k?.totalTokens != null ? `${formatNum(k.totalTokens)} token` : `${formatNum(k?.requests)} yêu cầu trong kỳ`} />
           </div>
 
           <div className="au-grid2">
@@ -115,13 +116,14 @@ export default function EmployeeAiUsage() {
               className="s7"
               icon="show_chart"
               title="Chi phí theo ngày"
+              info={INFO.empDaily}
               sub="Cột: số yêu cầu (đen là lỗi) · Đường: chi phí"
               action={<div className="au-lg"><span><i style={{ background: '#FFCBA0' }} />OK</span><span><i style={{ background: '#241C17' }} />Lỗi</span><span><u />Chi</span></div>}
             >
               <div className="au-plot">{loading ? <Skeleton h="100%" /> : <AuroraCombo data={trend} />}</div>
             </Card>
 
-            <Card className="s5" icon="balance" title="So với nhóm" sub="Giá TB mỗi yêu cầu thành công · giá thấp chưa chắc hiệu quả hơn vì dữ liệu không đo chất lượng">
+            <Card className="s5" icon="balance" title="So với nhóm" info={INFO.empVsTeam} sub="Giá TB mỗi yêu cầu thành công · giá thấp chưa chắc hiệu quả hơn vì dữ liệu không đo chất lượng">
               {loading ? <Skeleton h="100%" /> : byTask.length === 0 ? <Empty icon="balance" text="Chưa có gì để so sánh" hint="Khi có yêu cầu thành công, giá trung bình sẽ được đặt cạnh mức của cả nhóm." /> : (
                 <div className="au-scroll">
                   <ul className="au-cp">
@@ -143,7 +145,7 @@ export default function EmployeeAiUsage() {
               )}
             </Card>
 
-            <Card className="s5" icon="memory" title="Mô hình" sub="Chi phí và chênh lệch giá so với nhóm">
+            <Card className="s5" icon="memory" title="Mô hình" info={INFO.empModels} sub="Chi phí và chênh lệch giá so với nhóm">
               {loading ? <Skeleton h="100%" /> : byModel.length === 0 ? <Empty icon="memory" text="Chưa dùng mô hình nào" hint="Chi phí từng mô hình sẽ liệt kê tại đây." /> : (
                 <div className="au-scroll">
                   <table className="au-tb">

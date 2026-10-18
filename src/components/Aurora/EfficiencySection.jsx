@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Card, Skeleton, Empty } from './AuroraUI'
+import { Card, Skeleton, Empty, InfoTip } from './AuroraUI'
+import { INFO } from './metricInfo'
 import { useReveal, useCountUp } from './useReveal'
 import { Gauge, CostLine, Heatmap, ModelBars, Latency, Reasons, Scatter, ScoreRank } from './EfficiencyCharts'
 import { formatNum } from '../../utils/expense.utils'
@@ -22,11 +23,11 @@ function Rv({ className = '', delay = 0, children }) {
   )
 }
 
-function EffTile({ i, on, icon, tone = '', label, target, fmt, hint }) {
+function EffTile({ i, on, icon, tone = '', label, target, fmt, hint, info }) {
   const v = useCountUp(has(target) ? target : 0, on)
   return (
     <div className={`au-tile ${tone}`} style={{ '--i': i }}>
-      <div className="au-tl">{label}</div>
+      <div className="au-tl"><span>{label}</span>{info && <InfoTip info={info} tone={tone} />}</div>
       <div className="au-tv au-fd">{has(target) ? fmt(v) : '—'}</div>
       <span className="au-ti"><span className="material-symbols-outlined">{icon}</span></span>
       <div className="au-th">{hint}</div>
@@ -71,13 +72,13 @@ export default function EfficiencySection({ eff, loading, scope = 'team', employ
         <Rv className="c12">
           {(on) => (
             <div className="au-tiles">
-              <EffTile i={0} on={on && !loading} icon="task_alt" label="Tỷ lệ thành công" target={has(sum?.successRate) ? sum.successRate * 100 : null} fmt={(v) => `${Math.round(v)}%`}
+              <EffTile i={0} on={on && !loading} icon="task_alt" label="Tỷ lệ thành công" info={INFO.effSuccessRate} target={has(sum?.successRate) ? sum.successRate * 100 : null} fmt={(v) => `${Math.round(v)}%`}
                 hint={vs(`${formatNum(sum?.succeeded)}/${formatNum(sum?.total)} lượt`, team?.successRate, (x) => `${pct100(x)}%`)} />
-              <EffTile i={1} on={on && !loading} tone="orange" icon="replay" label="Prompt lặp lại" target={has(sum?.retryRate) ? sum.retryRate * 100 : null} fmt={(v) => `${Math.round(v)}%`}
+              <EffTile i={1} on={on && !loading} tone="orange" icon="replay" label="Prompt lặp lại" info={INFO.effRetryRate} target={has(sum?.retryRate) ? sum.retryRate * 100 : null} fmt={(v) => `${Math.round(v)}%`}
                 hint={vs('Càng thấp càng ít phải tạo lại', team?.retryRate, (x) => `${pct100(x)}%`)} />
-              <EffTile i={2} on={on && !loading} icon="sell" label="Chi phí / lượt thành công" target={sum?.succeeded ? sum.costPerSuccess : null} fmt={(v) => moneyShort(v)}
+              <EffTile i={2} on={on && !loading} icon="sell" label="Chi phí / lượt thành công" info={INFO.effCostPerSuccess} target={sum?.succeeded ? sum.costPerSuccess : null} fmt={(v) => moneyShort(v)}
                 hint={vs('Trung bình toàn kỳ', team?.costPerSuccess, moneyShort)} />
-              <EffTile i={3} on={on && !loading} tone="dark" icon="timer" label="Thời gian xử lý TB" target={avgSec} fmt={secText}
+              <EffTile i={3} on={on && !loading} tone="dark" icon="timer" label="Thời gian xử lý TB" info={INFO.effLatency} target={avgSec} fmt={secText}
                 hint={latN ? `${formatNum(latN)} lượt ảnh · video · giọng nói` : 'Chưa có lượt ảnh/video/giọng nói'} />
             </div>
           )}
@@ -85,7 +86,7 @@ export default function EfficiencySection({ eff, loading, scope = 'team', employ
 
         <Rv className="c4" delay={60}>
           {(on) => (
-            <Card tone="dark" icon="verified" title="Độ ổn định" sub="Vòng ngoài: thành công · vòng trong: không lặp prompt">
+            <Card tone="dark" icon="verified" title="Độ ổn định" info={INFO.stability} sub="Vòng ngoài: thành công · vòng trong: không lặp prompt">
               <div className="au-plot">
                 {loading ? <Skeleton h="100%" /> : !sum?.total ? <Empty tone="dark" icon="speed" text="Chưa đo được độ ổn định" hint="Cần ít nhất một yêu cầu hoàn tất (thành công hoặc lỗi) trong kỳ." /> : (
                   <div className="au-gwrap">
@@ -103,19 +104,19 @@ export default function EfficiencySection({ eff, loading, scope = 'team', employ
         </Rv>
 
         <Rv className="c8" delay={140}>
-          <Card icon="show_chart" title="Chi phí mỗi lượt thành công" sub="Đường: chi phí/lượt thành công · Cột đen: số lỗi trong ngày">
+          <Card icon="show_chart" title="Chi phí mỗi lượt thành công" info={INFO.costLine} sub="Đường: chi phí/lượt thành công · Cột đen: số lỗi trong ngày">
             <Plot loading={loading}><CostLine data={eff?.daily} base={scope === 'user' ? team?.costPerSuccess : undefined} /></Plot>
           </Card>
         </Rv>
 
         <Rv className="c7">
-          <Card icon="grid_view" title="Nhịp sử dụng" sub="Số lượt thành công theo thứ và giờ trong ngày">
+          <Card icon="grid_view" title="Nhịp sử dụng" info={INFO.heatmap} sub="Số lượt thành công theo thứ và giờ trong ngày">
             {loading ? <Plot loading /> : <Heatmap heat={eff?.heat} />}
           </Card>
         </Rv>
 
         <Rv className="c5" delay={120}>
-          <Card icon="memory" title="Độ tin cậy theo mô hình" sub="Tỷ lệ thành công của các mô hình dùng nhiều nhất">
+          <Card icon="memory" title="Độ tin cậy theo mô hình" info={INFO.modelReliability} sub="Tỷ lệ thành công của các mô hình dùng nhiều nhất">
             <Plot loading={loading}>{!eff?.models?.length ? <Empty icon="memory" text="Chưa có mô hình nào được dùng" hint="Tỷ lệ thành công từng mô hình sẽ xếp ở đây để bạn biết mô hình nào hay lỗi." /> : <div className="au-scroll"><ModelBars models={eff.models} /></div>}</Plot>
           </Card>
         </Rv>
@@ -123,22 +124,22 @@ export default function EfficiencySection({ eff, loading, scope = 'team', employ
         {scope === 'team' ? (
           <>
             <Rv className="c7">
-              <Card icon="bubble_chart" title="Chi phí/lượt × tỷ lệ thành công" sub={`Mỗi bong bóng là một nhân viên (từ ${MIN_SAMPLE} lượt), kích thước theo số lượt. Chi phí chỉ tính lượt thành công. Bấm để xem chi tiết`}>
+              <Card icon="bubble_chart" title="Chi phí/lượt × tỷ lệ thành công" info={INFO.scatter} sub={`Mỗi bong bóng là một nhân viên (từ ${MIN_SAMPLE} lượt), kích thước theo số lượt. Chi phí chỉ tính lượt thành công. Bấm để xem chi tiết`}>
                 <Plot loading={loading}>{people.length === 0 ? <Empty icon="bubble_chart" text="Chưa đủ mẫu để so sánh" hint={`Mỗi nhân viên cần ít nhất ${MIN_SAMPLE} yêu cầu để xuất hiện thành bong bóng.`} /> : <Scatter people={people} avg={sum?.successRate} avgCost={sum?.costPerSuccess} />}</Plot>
               </Card>
             </Rv>
             <Rv className="c5" delay={120}>
-              <Card icon="timer" title="Tốc độ xử lý" sub="Thời gian từ lúc gửi đến lúc hoàn tất · vạch đen là P90">
+              <Card icon="timer" title="Tốc độ xử lý" info={INFO.speed} sub="Thời gian từ lúc gửi đến lúc hoàn tất · vạch đen là P90">
                 <Plot loading={loading}>{lat.length === 0 ? <Empty icon="timer" text="Chưa có dữ liệu tốc độ" hint="Thời gian xử lý được đo cho tác vụ ảnh, video và giọng nói." /> : <div className="au-scroll"><Latency rows={eff.latency} /></div>}</Plot>
               </Card>
             </Rv>
             <Rv className="c5">
-              <Card icon="report" title="Lý do lỗi phổ biến" sub="Nhóm theo nội dung thông báo lỗi">
+              <Card icon="report" title="Lý do lỗi phổ biến" info={INFO.reasons} sub="Nhóm theo nội dung thông báo lỗi">
                 <Plot loading={loading}>{!eff?.reasons?.length ? <Empty tone="ok" icon="check_circle" text="Không có lỗi nào trong kỳ" hint="Mọi yêu cầu đều chạy trơn tru. Nguyên nhân lỗi sẽ được gom nhóm tại đây nếu có." /> : <div className="au-scroll"><Reasons rows={eff.reasons} /></div>}</Plot>
               </Card>
             </Rv>
             <Rv className="c7" delay={120}>
-              <Card icon="military_tech" title="Điểm hiệu quả" sub={`Xếp hạng nhân viên có từ ${MIN_SAMPLE} lượt trở lên`}>
+              <Card icon="military_tech" title="Điểm hiệu quả" info={INFO.score} sub={`Xếp hạng nhân viên có từ ${MIN_SAMPLE} lượt trở lên`}>
                 <Plot loading={loading}>{ranked.length === 0 ? <Empty icon="military_tech" text="Chưa đủ mẫu để xếp hạng" hint={`Điểm hiệu quả chỉ tính cho nhân viên có từ ${MIN_SAMPLE} yêu cầu.`} /> : <div className="au-scroll"><ScoreRank rows={ranked} /></div>}</Plot>
               </Card>
             </Rv>
@@ -146,12 +147,12 @@ export default function EfficiencySection({ eff, loading, scope = 'team', employ
         ) : (
           <>
             <Rv className="c5">
-              <Card icon="timer" title="Tốc độ xử lý" sub="Thời gian từ lúc gửi đến lúc hoàn tất · vạch đen là P90">
+              <Card icon="timer" title="Tốc độ xử lý" info={INFO.speed} sub="Thời gian từ lúc gửi đến lúc hoàn tất · vạch đen là P90">
                 <Plot loading={loading}>{lat.length === 0 ? <Empty icon="timer" text="Chưa có dữ liệu tốc độ" hint="Thời gian xử lý được đo cho tác vụ ảnh, video và giọng nói." /> : <div className="au-scroll"><Latency rows={eff.latency} /></div>}</Plot>
               </Card>
             </Rv>
             <Rv className="c7" delay={120}>
-              <Card icon="report" title="Lý do lỗi phổ biến" sub="Nhóm theo nội dung thông báo lỗi">
+              <Card icon="report" title="Lý do lỗi phổ biến" info={INFO.reasons} sub="Nhóm theo nội dung thông báo lỗi">
                 <Plot loading={loading}>{!eff?.reasons?.length ? <Empty tone="ok" icon="check_circle" text="Không có lỗi nào trong kỳ" hint="Mọi yêu cầu đều chạy trơn tru. Nguyên nhân lỗi sẽ được gom nhóm tại đây nếu có." /> : <div className="au-scroll"><Reasons rows={eff.reasons} /></div>}</Plot>
               </Card>
             </Rv>

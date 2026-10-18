@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getEmployeeAiHistoryApi } from '../../services/user.service'
 import { Card, Empty, Skeleton } from './AuroraUI'
+import { INFO } from './metricInfo'
 import { formatVND } from '../../utils/expense.utils'
 import { AU_TASK, auTaskLabel, moneyShort } from '../../utils/aurora.utils'
 
@@ -47,7 +48,7 @@ export default function EmployeeHistory({ userId, className = '' }) {
   )
 
   return (
-    <Card className={className} icon="history" title="Lịch sử" action={controls}>
+    <Card className={className} icon="history" title="Lịch sử" info={INFO.empHistory} action={controls}>
       {error ? (
         <div className="au-empty">
           <span>{error}</span>
