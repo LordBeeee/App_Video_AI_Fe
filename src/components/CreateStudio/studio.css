@@ -48,7 +48,7 @@
 .st-ref .del { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(36, 28, 23, 0.65); color: #fff; font-size: 12px; font-weight: 700; }
 .st-ref:hover .del { display: flex; }
 .st-ref .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 0; text-align: center; background: rgba(36, 28, 23, 0.8); color: var(--or); font-size: 10px; font-weight: 700; }
-.st-add { width: 88px; height: 88px; border-radius: 16px; border: 1.5px dashed var(--or); background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--deep); font-size: 12px; font-weight: 600; }
+.st-add { width: 88px; height: 88px; border-radius: 16px; border: 1.5px dashed var(--or); background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--deep); font-size: 12px; font-weight: 600; }
 .st-add label { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
 .st-add .material-symbols-outlined { font-size: 22px; }
 .st-add button { border: 0; border-radius: 999px; padding: 1px 10px; background: var(--pill); color: var(--ink); font: inherit; font-size: 11px; font-weight: 600; cursor: pointer; }
