@@ -19,63 +19,49 @@ export default function DetailOverlay({
   promptCopied,
   thumbRefs,
 }) {
+  const fileName = item.name || `${item.type}_${item.id}.${item.type === "video" ? "mp4" : item.type === "audio" ? "mp3" : "png"}`;
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-background text-on-background animate-in fade-in duration-150">
-      {/* Top bar */}
-      <div className="flex h-16 shrink-0 items-center justify-between border-b border-outline-variant bg-white px-6">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-primary-container hover:text-primary"
-          >
-            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+    <div className="au lb-ov">
+      <header className="au-head">
+        <div className="lb-ov-l">
+          <button type="button" onClick={onClose} className="au-back" aria-label="Quay lại" title="Quay lại">
+            <span className="material-symbols-outlined">arrow_back</span>
           </button>
-          <span className="text-sm font-medium text-on-surface">
-            {item.name || `${item.type}_${item.id}.${item.type === "video" ? "mp4" : item.type === "audio" ? "mp3" : "png"}`}
-          </span>
+          <h2 className="lb-ov-t au-fd au-ell" title={fileName}>{fileName}</h2>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="au-tools">
           <button
+            type="button"
             onClick={() => onToggleFavorite(item.id)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-primary-container hover:text-primary"
+            className={`au-btn icon lb-fv${item.favorite ? " on" : ""}`}
+            aria-label={item.favorite ? "Bỏ yêu thích" : "Yêu thích"}
+            title={item.favorite ? "Bỏ yêu thích" : "Yêu thích"}
           >
-            <span
-              className={`material-symbols-outlined text-[20px] ${
-                item.favorite ? "text-red-500" : "text-on-surface-variant"
-              }`}
-              style={item.favorite ? { fontVariationSettings: "'FILL' 1" } : undefined}
-            >
-              favorite
-            </span>
+            <span className="material-symbols-outlined" style={item.favorite ? { fontVariationSettings: "'FILL' 1" } : undefined}>favorite</span>
           </button>
-          <div className="relative">
-            <button
-              onClick={() => setOverlayMenuOpen((o) => !o)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-primary-container hover:text-primary"
-            >
-              <span className="material-symbols-outlined text-[20px]">more_horiz</span>
+          <div className="lb-mn">
+            <button type="button" onClick={() => setOverlayMenuOpen((o) => !o)} className="au-btn icon" aria-label="Tùy chọn" title="Tùy chọn">
+              <span className="material-symbols-outlined">more_horiz</span>
             </button>
 
             {overlayMenuOpen && (
               <>
-                <div className="fixed inset-0 z-30" onClick={() => setOverlayMenuOpen(false)} />
-                <div className="absolute right-0 z-40 mt-2 w-40 overflow-hidden rounded-lg border border-outline-variant bg-white shadow-xl">
-                  <button
-                    onClick={(e) => onDownload(item, e)}
-                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-on-surface transition-colors hover:bg-primary-container hover:text-primary"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">download</span>
-                    Download
+                <div className="lb-bk" onClick={() => setOverlayMenuOpen(false)} />
+                <div className="lb-menu dn">
+                  <button type="button" onClick={(e) => onDownload(item, e)} className="lb-mi">
+                    <span className="material-symbols-outlined">download</span>
+                    Tải xuống
                   </button>
-
                   {item.category === "reference" && onDelete && (
                     <button
+                      type="button"
                       onClick={(e) => onDelete(item, e)}
                       disabled={deleting || ["submitting", "submitted", "processing"].includes(item.deleteStatus)}
-                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-500 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="lb-mi bad"
                     >
-                      <span className="material-symbols-outlined text-[16px]">delete</span>
+                      <span className="material-symbols-outlined">delete</span>
                       Xóa
                     </button>
                   )}
@@ -84,22 +70,16 @@ export default function DetailOverlay({
             )}
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Body */}
-      <div className="flex-1 flex overflow-hidden min-h-0">
+      <div className="lb-ov-body">
         <PreviewPanel item={item} onPrev={onPrev} onNext={onNext} />
 
         {(item.category === "creative" || item.category === "reference") && (
           <InfoPanel item={item} onCopyPrompt={onCopyPrompt} promptCopied={promptCopied} />
         )}
 
-        <ThumbnailRail
-          items={items}
-          selectedId={item.id}
-          onSelect={onSelect}
-          thumbRefs={thumbRefs}
-        />
+        <ThumbnailRail items={items} selectedId={item.id} onSelect={onSelect} thumbRefs={thumbRefs} />
       </div>
     </div>
   );

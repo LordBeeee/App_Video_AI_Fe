@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import ModelPicker from "../../components/CreateStudio/ModelPicker";
 import GenerationControls from "../../components/CreateStudio/GenerationControls";
 import ReferenceInputs from "../../components/CreateStudio/ReferenceInputs";
@@ -9,6 +9,9 @@ import {
   DesktopGenerationResult,
 } from "../../components/CreateStudio/GenerationResult";
 import GenerationHistory from "../../components/CreateStudio/GenerationHistory";
+import StudioTabs from "../../components/CreateStudio/StudioTabs";
+import "../../components/Aurora/aurora.css";
+import "../../components/CreateStudio/studio.css";
 import { referenceLimitFor, values } from "../../utils/createStudio.utils";
 import { usePriceQuote } from "./usePriceQuote";
 import { uploadAssetApi } from "../../services/asset.service";
@@ -19,16 +22,14 @@ import {
   getGenerations,
 } from "../../services/aiPlatform.service";
 
-const MODALITIES = [
-  { id: "image", label: "Image", icon: "image" },
-  { id: "video", label: "Video", icon: "smart_display" },
-  { id: "audio", label: "Audio", icon: "graphic_eq" },
-  { id: "chat", label: "Chat", icon: "chat_bubble" },
-];
+const MODALITIES = {
+  image: { title: "Tạo ảnh", icon: "image" },
+  video: { title: "Tạo video", icon: "smart_display" },
+  audio: { title: "Tạo giọng nói", icon: "graphic_eq" },
+};
 
 export default function CreateStudio() {
   const { modality: routeModality = "image" } = useParams();
-  const navigate = useNavigate();
   const modality = ["image", "video", "audio"].includes(routeModality)
     ? routeModality
     : "image";
@@ -232,114 +233,87 @@ export default function CreateStudio() {
   };
 
   return (
-    <div className="flex h-screen min-w-0 overflow-hidden bg-background text-on-background">
-      <section className="relative z-20 flex w-full shrink-0 flex-col border-r border-outline-variant bg-white lg:w-[380px]">
-        <div className="grid grid-cols-4 gap-1 border-b border-outline-variant px-3 py-4">
-          {MODALITIES.map((item) =>
-            item.id === "chat" ? (
-              <button
-                key={item.id}
-                onClick={() => navigate("/chat")}
-                className="flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-sm text-on-surface-variant hover:bg-primary-container hover:text-primary"
-              >
-                <span className="material-symbols-outlined text-lg">
-                  {item.icon}
-                </span>
-                {item.label}
-              </button>
-            ) : (
-              <Link
-                key={item.id}
-                to={`/create/${item.id}`}
-                className={`flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-sm ${modality === item.id ? "bg-primary-container font-medium text-primary-hover" : "text-on-surface-variant hover:bg-primary-container hover:text-primary"}`}
-              >
-                <span className="material-symbols-outlined text-lg">
-                  {item.icon}
-                </span>
-                {item.label}
-              </Link>
-            ),
-          )}
+    <div className="au st">
+      <header className="au-head">
+        <h1 key={modality} className="au-title au-fd st-ttl">{MODALITIES[modality].title}</h1>
+        <div className="au-tools">
+          <StudioTabs active={modality} />
         </div>
+      </header>
 
-        <div className="custom-scrollbar flex-1 space-y-4 overflow-y-auto p-4">
-          <ModelPicker
-            modality={modality}
-            models={models}
-            value={selectedModel}
-            onChange={setSelectedModel}
-          />
+      <div className="st-grid">
+        <section className="au-card st-ctl">
+          <div key={modality} className="st-body">
+            <ModelPicker
+              modality={modality}
+              models={models}
+              value={selectedModel}
+              onChange={setSelectedModel}
+            />
+            <ReferenceInputs
+              modality={modality}
+              options={options}
+              referenceLimit={referenceLimit}
+              references={references}
+              setReferences={setReferences}
+              uploading={uploading}
+              uploadReference={uploadReference}
+              referencePickerOpen={referencePickerOpen}
+              setReferencePickerOpen={setReferencePickerOpen}
+            />
+            <PromptEditor
+              modality={modality}
+              capabilities={capabilities}
+              prompt={prompt}
+              setPrompt={setPrompt}
+            />
+            <MobileGenerationResult
+              result={result}
+              modality={modality}
+              onCopyPrompt={copyPrompt}
+              promptCopied={promptCopied}
+            />
+          </div>
 
-          <ReferenceInputs
+          <GenerationControls
             modality={modality}
+            selectedModel={selectedModel}
             options={options}
-            referenceLimit={referenceLimit}
-            references={references}
-            setReferences={setReferences}
-            uploading={uploading}
-            uploadReference={uploadReference}
-            referencePickerOpen={referencePickerOpen}
-            setReferencePickerOpen={setReferencePickerOpen}
-          />
-          <PromptEditor
-            modality={modality}
             capabilities={capabilities}
+            model={model}
+            setOptions={setOptions}
+            setReferences={setReferences}
+            quote={quote}
+            quoteError={quoteError}
+            generating={generating}
             prompt={prompt}
-            setPrompt={setPrompt}
+            references={references}
+            onGenerate={generate}
           />
-          <MobileGenerationResult
-            result={result}
-            modality={modality}
-            onCopyPrompt={copyPrompt}
-            promptCopied={promptCopied}
-          />
-        </div>
+        </section>
 
-        <GenerationControls
+        <DesktopGenerationResult
+          result={result}
           modality={modality}
-          selectedModel={selectedModel}
-          options={options}
-          capabilities={capabilities}
-          model={model}
-          setOptions={setOptions}
-          setReferences={setReferences}
-          quote={quote}
-          quoteError={quoteError}
-          generating={generating}
-          prompt={prompt}
-          references={references}
-          onGenerate={generate}
+          icon={MODALITIES[modality].icon}
+          onCopyPrompt={copyPrompt}
+          promptCopied={promptCopied}
         />
-      </section>
 
-      <DesktopGenerationResult
-        result={result}
-        modality={modality}
-        icon={MODALITIES.find((item) => item.id === modality)?.icon}
-        onCopyPrompt={copyPrompt}
-        promptCopied={promptCopied}
-      />
+        <GenerationHistory
+          history={history}
+          resultId={result?.id}
+          onRefresh={loadHistory}
+          onSelect={setResult}
+        />
+      </div>
 
-      <GenerationHistory
-        history={history}
-        resultId={result?.id}
-        onRefresh={loadHistory}
-        onSelect={setResult}
-      />
       {error && (
-        <div
-          role="alert"
-          className="fixed right-4 top-4 z-[100] flex w-[min(24rem,calc(100vw-2rem))] items-start gap-3 rounded-xl border border-red-200 bg-white px-4 py-3 text-sm text-red-700 shadow-xl"
-        >
-          <span className="material-symbols-outlined text-xl">error</span>
-          <span className="min-w-0 flex-1">{error}</span>
-          <button
-            type="button"
-            aria-label="Đóng thông báo lỗi"
-            onClick={() => setError("")}
-            className="rounded p-0.5 hover:bg-red-50"
-          >
-            <span className="material-symbols-outlined text-lg">close</span>
+        <div role="alert" className="st-toast">
+          <span className="material-symbols-outlined">error</span>
+          <span>{error}</span>
+          <button type="button" aria-label="Đóng thông báo lỗi" onClick={() => setError("")}>
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span>
           </button>
         </div>
       )}

@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import ConversationList from '../../components/Chat/ConversationList'
 import MessageList from '../../components/Chat/MessageList'
 import ChatComposer from '../../components/Chat/ChatComposer'
+import ModelSelect from '../../components/Chat/ModelSelect'
+import StudioTabs from '../../components/CreateStudio/StudioTabs'
+import '../../components/Aurora/aurora.css'
+import '../../components/CreateStudio/studio.css'
 import {
   createConversation,
   createPriceQuote,
@@ -101,45 +104,42 @@ export default function Chat() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-on-background">
-      <ConversationList
-        conversations={conversations}
-        activeId={active?.id}
-        onNew={newChat}
-        onSelect={setActive}
-      />
+    <div className="au st">
+      <header className="au-head">
+        <h1 className="au-title au-fd st-ttl">Chat AI</h1>
+        <div className="au-tools">
+          <ModelSelect models={models} value={modelSlug} disabled={!!active} onChange={setModelSlug} />
+          <StudioTabs active="chat" />
+        </div>
+      </header>
 
-      <main className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-outline-variant bg-white px-5 py-4">
-          <div className="flex gap-2">
-            <Link to="/create/image" className="rounded-xl px-4 py-2 text-on-surface-variant hover:bg-primary-container hover:text-primary">Image</Link>
-            <Link to="/create/video" className="rounded-xl px-4 py-2 text-on-surface-variant hover:bg-primary-container hover:text-primary">Video</Link>
-            <Link to="/create/audio" className="rounded-xl px-4 py-2 text-on-surface-variant hover:bg-primary-container hover:text-primary">Audio</Link>
-            <span className="rounded-xl bg-primary-container px-4 py-2 font-medium text-primary-hover">Chat</span>
-          </div>
-          <select value={modelSlug} disabled={!!active} onChange={(event) => setModelSlug(event.target.value)}
-            className="max-w-xs rounded-xl border border-outline-variant bg-white px-4 py-2 text-sm outline-none focus:border-primary disabled:opacity-60">
-            {models.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-          </select>
-        </header>
+      <div className="st-grid chat">
+        <ConversationList
+          conversations={conversations}
+          activeId={active?.id}
+          onNew={newChat}
+          onSelect={setActive}
+        />
 
-        <MessageList
-          messages={messages}
-          selectedModel={selectedModel}
-          sending={sending}
-          endRef={endRef}
-        />
-        <ChatComposer
-          draft={draft}
-          onDraftChange={setDraft}
-          maxOutputTokens={maxOutputTokens}
-          onMaxOutputTokensChange={setMaxOutputTokens}
-          quote={quote}
-          sending={sending}
-          error={error}
-          onSend={send}
-        />
-      </main>
+        <section className="au-card st-chat">
+          <MessageList
+            messages={messages}
+            selectedModel={selectedModel}
+            sending={sending}
+            endRef={endRef}
+          />
+          <ChatComposer
+            draft={draft}
+            onDraftChange={setDraft}
+            maxOutputTokens={maxOutputTokens}
+            onMaxOutputTokensChange={setMaxOutputTokens}
+            quote={quote}
+            sending={sending}
+            error={error}
+            onSend={send}
+          />
+        </section>
+      </div>
     </div>
   )
 }

@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { createElementApi, createVoiceApi, getReferencesApi, uploadAssetApi } from "../../services/asset.service";
 import AssetPicker from "./AssetPicker";
+import { Pills } from "../Aurora/AuroraUI";
+import "./library.css";
 
-const inputClass = "mt-2 w-full rounded-lg border border-outline-variant bg-surface-variant p-3 outline-primary";
-const selectedClass = "border-primary bg-primary-container text-primary-hover";
-const unselectedClass = "border-outline-variant bg-surface-variant";
+const KINDS = [
+  { value: "image", label: "Ảnh", icon: "image" },
+  { value: "video", label: "Video", icon: "smart_display" },
+  { value: "voice", label: "Voice", icon: "record_voice_over" },
+];
 
 export default function CreateReferenceModal({ onClose, onCreated }) {
   const [kind, setKind] = useState("image");
@@ -76,46 +80,138 @@ export default function CreateReferenceModal({ onClose, onCreated }) {
     if (picker === "additional") setAdditional((current) => [...current, ...assets.filter((asset) => !current.some((item) => String(item.id) === String(asset.id)))].slice(0, 3));
   };
 
-  const tile = (asset, target, label) => <div className="relative h-32 w-32 overflow-hidden rounded-xl border border-dashed border-outline-variant bg-surface-variant">
-    {asset ? <>
-      {target === "sample" && asset.assetType === "audio" ? <div className="flex h-full w-full flex-col items-center justify-center text-primary"><span className="material-symbols-outlined text-4xl">graphic_eq</span><span className="text-xs">Audio #{asset.id}</span></div> : target === "video" || target === "sample" ? <video src={asset.storedUrl} muted className="h-full w-full object-cover" /> : <img src={asset.storedUrl} alt={label} className="h-full w-full object-cover" />}
-      <button type="button" onClick={() => setPicker(target)} className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-md border border-outline-variant bg-surface px-2 py-1 text-xs">History</button>
-    </> : <div className="flex h-full flex-col items-center justify-center gap-2">
-      <button type="button" onClick={() => chooseFile(target)} aria-label={`Tải lên ${label}`} className="flex items-center justify-center text-on-surface-variant"><span className="material-symbols-outlined">{target === "sample" ? "record_voice_over" : target === "video" ? "video_call" : "add_photo_alternate"}</span></button>
-      <button type="button" onClick={() => setPicker(target)} className="rounded-md border border-outline-variant bg-surface px-2 py-1 text-xs">History</button>
-    </div>}
-  </div>;
+  const tile = (asset, target, label) => (
+    <div className="lb-up">
+      {asset ? (
+        <>
+          {target === "sample" && asset.assetType === "audio" ? (
+            <div className="vo"><span className="material-symbols-outlined">graphic_eq</span>Audio #{asset.id}</div>
+          ) : target === "video" || target === "sample" ? (
+            <video src={asset.storedUrl} muted />
+          ) : (
+            <img src={asset.storedUrl} alt={label} />
+          )}
+          <button type="button" onClick={() => setPicker(target)} className="au-ico hs" aria-label="Chọn từ lịch sử" title="Chọn từ lịch sử">
+            <span className="material-symbols-outlined">history</span>
+          </button>
+        </>
+      ) : (
+        <div className="btns">
+          <button type="button" onClick={() => chooseFile(target)} className="au-ico" aria-label={`Tải lên ${label}`} title={`Tải lên ${label}`}>
+            <span className="material-symbols-outlined">{target === "sample" ? "record_voice_over" : target === "video" ? "video_call" : "add_photo_alternate"}</span>
+          </button>
+          <button type="button" onClick={() => setPicker(target)} className="au-ico" aria-label="Chọn từ lịch sử" title="Chọn từ lịch sử">
+            <span className="material-symbols-outlined">history</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
 
   const canSave = kind === "voice" ? !!voiceName.trim() && !!sample : !!name.trim() && !!description.trim() && (kind === "image" ? !!main && !!additional.length : !!video);
-  return <>
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onMouseDown={onClose}>
-      <div className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-outline-variant bg-surface shadow-2xl" onMouseDown={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between border-b border-outline-variant px-6 py-4"><h2 className="text-lg font-semibold">Tạo Reference</h2><button type="button" onClick={onClose} aria-label="Đóng"><span className="material-symbols-outlined">close</span></button></div>
-        <div className="space-y-5 overflow-y-auto p-6">
-          <div><p className="mb-2 text-sm font-medium">Loại Reference</p><div className="grid grid-cols-3 gap-2">{[["image", "Ảnh"], ["video", "Video"], ["voice", "Voice"]].map(([value, label]) => <button key={value} type="button" aria-pressed={kind === value} onClick={() => { setKind(value); setError(""); }} className={`rounded-lg border p-2.5 ${kind === value ? selectedClass : unselectedClass}`}>{label}</button>)}</div></div>
-          <label className="block text-sm font-medium">Provider<select className={inputClass} value="Kling AI" disabled><option>Kling AI</option></select></label>
-          {kind === "voice" ? <>
-            <label className="block text-sm font-medium">Tên Reference <span className="float-right text-xs text-on-surface-variant">{voiceName.length}/20</span><input maxLength={20} value={voiceName} onChange={(e) => setVoiceName(e.target.value)} placeholder="Giọng MC" className={inputClass} /></label>
-            <div><p className="mb-2 text-sm font-medium">Mẫu giọng <span className="text-red-500">*</span></p>
-              {tile(sample, "sample", "Mẫu giọng")}
-              {sample && <div className="mt-3 max-w-sm">{sample.assetType === "video" ? <video controls src={sample.storedUrl} className="max-h-48 w-full rounded-lg" /> : <audio controls src={sample.storedUrl} className="w-full" />}<div className="mt-1 flex gap-3"><button type="button" onClick={() => chooseFile("sample")} className="text-sm text-primary">Thay file</button><button type="button" onClick={() => setSample(null)} className="text-sm text-on-surface-variant">Xóa</button></div></div>}
-              <p className="mt-2 text-xs text-on-surface-variant">MP3, WAV, MP4 hoặc MOV; một giọng người rõ, ít tạp âm, dài 5–30 giây.</p>
+  const req = <b className="lb-req">*</b>;
+
+  return (
+    <>
+      <div className="au-mo lb-mo" onMouseDown={onClose}>
+        <div className="lb-mb" onMouseDown={(e) => e.stopPropagation()}>
+          <div className="lb-mh">
+            <div className="au-chl">
+              <span className="au-hic"><span className="material-symbols-outlined">bookmark_add</span></span>
+              <h2 className="au-h3 au-fd">Tạo Reference</h2>
             </div>
-          </> : <>
-            <label className="block text-sm font-medium">Tên Reference <span className="float-right text-xs text-on-surface-variant">{name.length}/20</span><input maxLength={20} value={name} onChange={(e) => setName(e.target.value)} placeholder="Mèo MC" className={inputClass} /></label>
-            <label className="block text-sm font-medium">Mô tả <span className="float-right text-xs text-on-surface-variant">{description.length}/100</span><textarea maxLength={100} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Nhân vật mèo MC đại diện thương hiệu" rows={2} className={inputClass} /></label>
-            {kind === "image" ? <>
-              <div><p className="mb-2 text-sm font-medium">Ảnh chính diện <span className="text-red-500">*</span></p>{tile(main, "main", "Ảnh chính diện")}{main && <button type="button" onClick={() => setMain(null)} className="mt-1 block text-xs text-on-surface-variant">Xóa ảnh</button>}</div>
-              <div><p className="mb-2 text-sm font-medium">Ảnh tham chiếu bổ sung <span className="text-red-500">*</span> <span className="float-right text-xs text-on-surface-variant">{additional.length}/3</span></p><div className="flex flex-wrap gap-2">{additional.map((asset) => <div key={asset.id} className="relative">{tile(asset, "additional", "Ảnh bổ sung")}<button type="button" onClick={() => setAdditional((items) => items.filter((item) => item.id !== asset.id))} className="absolute right-1 top-1 rounded-full bg-surface px-1 text-xs">✕</button></div>)}{additional.length < 3 && tile(null, "additional", "Thêm ảnh")}</div></div>
-            </> : <div><p className="mb-2 text-sm font-medium">Video nhân vật <span className="text-red-500">*</span></p>{tile(video, "video", "Video nhân vật")}<p className="mt-2 text-xs text-on-surface-variant">MP4/MOV, 3–8 giây, 1080p, 16:9 hoặc 9:16, tối đa 200 MB.</p>{video && <button type="button" onClick={() => setVideo(null)} className="text-xs text-on-surface-variant">Xóa video</button>}</div>}
-            <label className="block text-sm font-medium">Giọng nói gắn kèm (tùy chọn)<input list="reference-voice-list" value={voiceId} onChange={(e) => setVoiceId(e.target.value)} placeholder="Chọn giọng đã tạo hoặc dán Voice ID" className={inputClass} /><datalist id="reference-voice-list">{availableVoices.map((item) => <option key={item.id} value={item.metadata.voiceId}>{item.metadata.name}</option>)}</datalist></label>
-          </>}
-          {error && <p role="alert" className="text-sm text-red-500">{Array.isArray(error) ? error.join(", ") : error}</p>}
-          <input ref={inputRef} type="file" className="hidden" onChange={upload} />
+            <button type="button" onClick={onClose} className="au-ico" aria-label="Đóng" title="Đóng"><span className="material-symbols-outlined">close</span></button>
+          </div>
+
+          <div className="lb-mbd au-scroll">
+            <div>
+              <p className="lb-lab">Loại Reference</p>
+              <Pills items={KINDS} value={kind} onChange={(value) => { setKind(value); setError(""); }} />
+            </div>
+
+            <label className="lb-fld">Provider
+              <select className="lb-in" value="Kling AI" disabled><option>Kling AI</option></select>
+            </label>
+
+            {kind === "voice" ? (
+              <>
+                <label className="lb-fld">Tên Reference <span className="lb-cnt">{voiceName.length}/20</span>
+                  <input maxLength={20} value={voiceName} onChange={(e) => setVoiceName(e.target.value)} placeholder="Giọng MC" className="lb-in" />
+                </label>
+                <div>
+                  <p className="lb-lab">Mẫu giọng {req}</p>
+                  {tile(sample, "sample", "Mẫu giọng")}
+                  {sample && (
+                    <div className="lb-prev">
+                      {sample.assetType === "video" ? <video controls src={sample.storedUrl} /> : <audio controls src={sample.storedUrl} />}
+                      <div className="lb-row" style={{ marginTop: 6 }}>
+                        <button type="button" onClick={() => chooseFile("sample")} className="lb-link">Thay file</button>
+                        <button type="button" onClick={() => setSample(null)} className="lb-link mute">Xóa</button>
+                      </div>
+                    </div>
+                  )}
+                  <p className="lb-hint">MP3, WAV, MP4 hoặc MOV; một giọng người rõ, ít tạp âm, dài 5–30 giây.</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <label className="lb-fld">Tên Reference <span className="lb-cnt">{name.length}/20</span>
+                  <input maxLength={20} value={name} onChange={(e) => setName(e.target.value)} placeholder="Mèo MC" className="lb-in" />
+                </label>
+                <label className="lb-fld">Mô tả <span className="lb-cnt">{description.length}/100</span>
+                  <textarea maxLength={100} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Nhân vật mèo MC đại diện thương hiệu" rows={2} className="lb-in" />
+                </label>
+                {kind === "image" ? (
+                  <>
+                    <div>
+                      <p className="lb-lab">Ảnh chính diện {req}</p>
+                      {tile(main, "main", "Ảnh chính diện")}
+                      {main && <button type="button" onClick={() => setMain(null)} className="lb-link mute" style={{ marginTop: 6 }}>Xóa ảnh</button>}
+                    </div>
+                    <div>
+                      <p className="lb-lab"><span style={{ color: "var(--ink)", fontSize: 13, fontWeight: 600 }}>Ảnh tham chiếu bổ sung {req}</span><span>{additional.length}/3</span></p>
+                      <div className="lb-row">
+                        {additional.map((asset) => (
+                          <div key={asset.id} style={{ position: "relative" }}>
+                            {tile(asset, "additional", "Ảnh bổ sung")}
+                            <button type="button" onClick={() => setAdditional((items) => items.filter((item) => item.id !== asset.id))} className="lb-x" aria-label="Xóa ảnh" title="Xóa ảnh">
+                              <span className="material-symbols-outlined">close</span>
+                            </button>
+                          </div>
+                        ))}
+                        {additional.length < 3 && tile(null, "additional", "Thêm ảnh")}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <p className="lb-lab">Video nhân vật {req}</p>
+                    {tile(video, "video", "Video nhân vật")}
+                    <p className="lb-hint">MP4/MOV, 3–8 giây, 1080p, 16:9 hoặc 9:16, tối đa 200 MB.</p>
+                    {video && <button type="button" onClick={() => setVideo(null)} className="lb-link mute" style={{ marginTop: 6 }}>Xóa video</button>}
+                  </div>
+                )}
+                <label className="lb-fld">Giọng nói gắn kèm (tùy chọn)
+                  <input list="reference-voice-list" value={voiceId} onChange={(e) => setVoiceId(e.target.value)} placeholder="Chọn giọng đã tạo hoặc dán Voice ID" className="lb-in" />
+                  <datalist id="reference-voice-list">{availableVoices.map((item) => <option key={item.id} value={item.metadata.voiceId}>{item.metadata.name}</option>)}</datalist>
+                </label>
+              </>
+            )}
+
+            {error && <p role="alert" className="lb-er">{Array.isArray(error) ? error.join(", ") : error}</p>}
+            <input ref={inputRef} type="file" className="hidden" onChange={upload} />
+          </div>
+
+          <div className="lb-mf">
+            <button type="button" onClick={onClose} className="au-btn">Hủy</button>
+            <button type="button" onClick={save} disabled={busy || !canSave} className="au-btn solid">
+              <span className="material-symbols-outlined">{busy ? "progress_activity" : "add"}</span>
+              {busy ? "Đang xử lý..." : "Tạo Reference"}
+            </button>
+          </div>
         </div>
-        <div className="flex justify-end gap-3 border-t border-outline-variant px-6 py-4"><button type="button" onClick={onClose} className="rounded-lg border border-outline-variant px-4 py-2">Hủy</button><button type="button" onClick={save} disabled={busy || !canSave} className="rounded-lg bg-primary px-5 py-2 font-medium text-on-primary disabled:opacity-40">{busy ? "Đang xử lý..." : "Tạo Reference"}</button></div>
       </div>
-    </div>
-    {picker && <AssetPicker type={picker === "sample" ? "voice-sample" : picker === "video" ? "video" : "image"} max={picker === "additional" ? 3 - additional.length : 1} onConfirm={selectFromHistory} onClose={() => setPicker(null)} />}
-  </>;
+      {picker && <AssetPicker type={picker === "sample" ? "voice-sample" : picker === "video" ? "video" : "image"} max={picker === "additional" ? 3 - additional.length : 1} onConfirm={selectFromHistory} onClose={() => setPicker(null)} />}
+    </>
+  );
 }

@@ -7,16 +7,17 @@ import {
   deleteReferenceApi,
 } from "../../services/asset.service";
 
-import FilterBar from "../../components/Library/FilterBar";
+import FilterBar, { TabBar } from "../../components/Library/FilterBar";
+import { Page, Card, ErrorBox } from "../../components/Aurora/AuroraUI";
 import MediaGrid from "../../components/Library/MediaGrid";
 import DetailOverlay from "../../components/Library/DetailOverlay";
 import CreateReferenceModal from "../../components/Library/CreateReferenceModal";
 import { mapAssetToItem } from "../../utils/library.utils";
+import "../../components/Library/library.css";
 
 export default function Library() {
   const [activeTab, setActiveTab] = useState("Creative");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [providerFilter, setProviderFilter] = useState("all");
   const [fetchError, setFetchError] = useState("");
@@ -171,51 +172,52 @@ export default function Library() {
   };
 
   return (
-    // FIX 1: khoá chiều cao = viewport để cả trang không bao giờ bị đẩy cuộn
-    <main className="h-screen flex-1 flex flex-col relative overflow-hidden bg-background">
-      {/* Header */}
-      <div className="items-center gap-4 px-4 pb-2 pt-6 sm:px-6 lg:px-8 lg:pt-8">
-        <h1 className="text-2xl font-semibold text-on-background">Thư Viện</h1>
-        <p className="mt-1 text-sm text-on-surface-variant">
-          Danh sách tài nguyên sẽ được hiển thị ở đây.
-        </p>
-      </div>
+    <Page>
+      <header className="au-head">
+        <h1 className="au-title au-fd">Thư viện</h1>
+        <div className="au-tools">
+          <TabBar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            uploading={uploading}
+            fileInputRef={fileInputRef}
+            onUploadFile={handleUploadFile}
+            onCreateReference={() => setCreatingReference(true)}
+          />
+        </div>
+      </header>
 
-      {/* Canvas / Content Scrollable Area */}
-      <div className="relative flex-1 overflow-y-auto px-4 pb-8 pt-0 scrollbar-hide sm:px-6 lg:px-8">
-        <FilterBar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          typeFilter={typeFilter}
-          setTypeFilter={setTypeFilter}
-          dropdownOpen={dropdownOpen}
-          setDropdownOpen={setDropdownOpen}
-          favoritesOnly={favoritesOnly}
-          setFavoritesOnly={setFavoritesOnly}
-          uploading={uploading}
-          fileInputRef={fileInputRef}
-          onUploadFile={handleUploadFile}
-          onCreateReference={() => setCreatingReference(true)}
-          providerFilter={providerFilter}
-          setProviderFilter={setProviderFilter}
-        />
+      <FilterBar
+        activeTab={activeTab}
+        typeFilter={typeFilter}
+        setTypeFilter={setTypeFilter}
+        favoritesOnly={favoritesOnly}
+        setFavoritesOnly={setFavoritesOnly}
+        providerFilter={providerFilter}
+        setProviderFilter={setProviderFilter}
+        count={filteredItems.length}
+      />
 
-        {fetchError && <p role="alert" className="mb-4 text-sm text-red-500">{fetchError}</p>}
-        <MediaGrid
-          items={filteredItems}
-          favoritesOnly={favoritesOnly}
-          onSelect={setSelectedId}
-          onToggleFavorite={toggleFavorite}
-          menuOpenId={menuOpenId}
-          setMenuOpenId={setMenuOpenId}
-          onDownload={handleDownload}
-          onDelete={activeTab === "Reference" ? handleDeleteReference : undefined}
-          deletingId={deletingReferenceId}
-          emptyMessage={activeTab === "Reference" && !loading && !fetchError ? "Chưa có Reference phù hợp." : undefined}
-        />
-      </div>
+      {fetchError ? (
+        <ErrorBox message={fetchError} onRetry={fetchItems} />
+      ) : (
+        <Card className="lb-card">
+          <MediaGrid
+            items={filteredItems}
+            loading={loading}
+            favoritesOnly={favoritesOnly}
+            onSelect={setSelectedId}
+            onToggleFavorite={toggleFavorite}
+            menuOpenId={menuOpenId}
+            setMenuOpenId={setMenuOpenId}
+            onDownload={handleDownload}
+            onDelete={activeTab === "Reference" ? handleDeleteReference : undefined}
+            deletingId={deletingReferenceId}
+            emptyMessage={activeTab === "Reference" && !loading ? "Chưa có Reference phù hợp" : undefined}
+          />
+        </Card>
+      )}
 
-      {/* Detail / Preview Overlay */}
       {selectedItem && (
         <DetailOverlay
           item={selectedItem}
@@ -236,6 +238,6 @@ export default function Library() {
         />
       )}
       {creatingReference && <CreateReferenceModal onClose={() => setCreatingReference(false)} onCreated={fetchItems} />}
-    </main>
+    </Page>
   );
 }

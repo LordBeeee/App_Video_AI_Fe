@@ -3,14 +3,14 @@ import { values } from "../../utils/createStudio.utils";
 
 export default function ImageOptions({ options, capabilities, setOption }) {
   return (
-        <div className="grid grid-cols-6 gap-2">
+        <div className="st-g g6">
           <FieldSelect
             label="Tỷ lệ"
             icon="aspect_ratio"
             value={options.aspectRatio || ""}
             onChange={(v) => setOption("aspectRatio", v)}
             options={values(capabilities, "aspect_ratio")}
-            className="col-span-2"
+            className="c2"
           />
           <FieldSelect
             label="Độ phân giải"
@@ -18,7 +18,7 @@ export default function ImageOptions({ options, capabilities, setOption }) {
             value={options.resolution || ""}
             onChange={(v) => setOption("resolution", v)}
             options={values(capabilities, "resolution")}
-            className="col-span-2"
+            className="c2"
           />
           <FieldSelect
             label="Chất lượng"
@@ -40,13 +40,13 @@ export default function ImageOptions({ options, capabilities, setOption }) {
             value={options.n || 1}
             onChange={(v) => setOption("n", Number(v))}
             options={values(capabilities, "n")}
-            className="col-span-2"
+            className="c2"
           />
           {Object.hasOwn(capabilities, "seed") && (
             <SeedField
               value={options.seed}
               onChange={(v) => setOption("seed", v)}
-              className="col-span-6"
+              className="c6"
             />
           )}
         </div>
