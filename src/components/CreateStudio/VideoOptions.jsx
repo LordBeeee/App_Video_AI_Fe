@@ -32,16 +32,6 @@ export default function VideoOptions({ options, capabilities, setOption, setOpti
               className="c6"
             />
           )}
-          {capabilities.multiShot && (
-            <label className="st-fs chk c6">
-              <input
-                type="checkbox"
-                checked={!!options.multiShot}
-                onChange={(event) => setOption("multiShot", event.target.checked)}
-              />
-              Nhiều cảnh
-            </label>
-          )}
           {capabilities.resolutions?.length > 0 && (
             <div className="c12">
               <p className="st-lb"><span className="g">Độ phân giải</span></p>

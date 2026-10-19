@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPriceQuote } from "../../services/aiPlatform.service";
 
-export function usePriceQuote({ modality, modelSlug, prompt, options }) {
+export function usePriceQuote({ modality, modelSlug, prompt, options, enabled = true }) {
   const [quote, setQuote] = useState(null);
   const [quoteError, setQuoteError] = useState("");
   const requestId = useRef(0);
@@ -17,7 +17,7 @@ export function usePriceQuote({ modality, modelSlug, prompt, options }) {
     setQuote(null);
     setQuoteError("");
 
-    if (!modelSlug || (modality !== "video" && !prompt.trim())) return;
+    if (!enabled || !modelSlug || (modality !== "video" && !prompt.trim())) return;
 
     const timer = setTimeout(async () => {
       try {
@@ -34,7 +34,7 @@ export function usePriceQuote({ modality, modelSlug, prompt, options }) {
       clearTimeout(timer);
       requestId.current += 1;
     };
-  }, [modality, modelSlug, prompt, options]);
+  }, [modality, modelSlug, prompt, options, enabled]);
 
   return { quote, quoteError, clearQuote };
 }

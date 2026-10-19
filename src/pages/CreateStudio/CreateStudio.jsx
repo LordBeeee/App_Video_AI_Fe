@@ -13,7 +13,7 @@ import StudioTabs from "../../components/CreateStudio/StudioTabs";
 import AssetPicker from "../../components/Library/AssetPicker";
 import "../../components/Aurora/aurora.css";
 import "../../components/CreateStudio/studio.css";
-import { referenceLimitFor, values } from "../../utils/createStudio.utils";
+import { formatVideoShots, referenceLimitFor, validVideoShots, values } from "../../utils/createStudio.utils";
 import { usePriceQuote } from "./usePriceQuote";
 import { uploadAssetApi } from "../../services/asset.service";
 import {
@@ -42,12 +42,6 @@ export default function CreateStudio() {
     speed: 1,
     maxOutputTokens: 1024,
   });
-  const { quote, quoteError, clearQuote } = usePriceQuote({
-    modality,
-    modelSlug: selectedModel,
-    prompt,
-    options,
-  });
   const [references, setReferences] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [referencePickerOpen, setReferencePickerOpen] = useState(false);
@@ -63,6 +57,18 @@ export default function CreateStudio() {
     [models, selectedModel],
   );
   const capabilities = useMemo(() => model?.capabilities || {}, [model]);
+  const customShots = modality === "video" && options.multiShot && options.customShots;
+  const shotsValid = !customShots || validVideoShots(options.shots, options.duration, capabilities.maxPromptCharacters);
+  const generationPrompt = customShots
+    ? shotsValid ? formatVideoShots(options.shots) : ""
+    : prompt;
+  const { quote, quoteError, clearQuote } = usePriceQuote({
+    modality,
+    modelSlug: selectedModel,
+    prompt: generationPrompt,
+    options,
+    enabled: shotsValid,
+  });
   const referenceLimit =
     modality === "video" && options.referenceMode !== "refer_image"
       ? Math.min(2, referenceLimitFor(modality, capabilities))
@@ -135,7 +141,7 @@ export default function CreateStudio() {
         ...(capabilities.referenceModes?.length
           ? { referenceMode: capabilities.referenceModes[0] }
           : {}),
-        ...(capabilities.multiShot ? { multiShot: false } : {}),
+        ...(capabilities.multiShot ? { multiShot: false, customShots: false, shots: [] } : {}),
         ...(capabilities.seed ? { seed: "" } : {}),
       });
     }
@@ -214,7 +220,8 @@ export default function CreateStudio() {
     if (
       !quote ||
       generating ||
-      !prompt.trim() ||
+      !generationPrompt.trim() ||
+      !shotsValid ||
       (modality === "video" && !references.length)
     ) return;
     const run = generationRun.current;
@@ -223,7 +230,7 @@ export default function CreateStudio() {
     try {
       let created = await createGeneration({
         quoteId: quote.quoteId,
-        prompt,
+        prompt: generationPrompt,
         referenceUrls: references.map((item) => item.url),
         referenceAssetIds: references.map((item) => item.id),
       });
@@ -282,6 +289,8 @@ export default function CreateStudio() {
               capabilities={capabilities}
               prompt={prompt}
               setPrompt={setPrompt}
+              options={options}
+              setOptions={setOptions}
             />
             <MobileGenerationResult
               result={result}
@@ -301,8 +310,9 @@ export default function CreateStudio() {
             quote={quote}
             quoteError={quoteError}
             generating={generating}
-            prompt={prompt}
+            prompt={generationPrompt}
             references={references}
+            ready={shotsValid}
             onGenerate={generate}
           />
         </section>
