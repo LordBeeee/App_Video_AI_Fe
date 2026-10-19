@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+
 const TYPE_META = {
   video: { icon: "movie", label: "Video" },
   audio: { icon: "graphic_eq", label: "Âm thanh" },
@@ -22,6 +24,23 @@ export default function MediaCard({
   const meta = TYPE_META[item.type] || TYPE_META.image;
   const caption = item.name || (item.type === "video" && !isReference ? item.duration : "");
   const open = menuOpenId === item.id;
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const closeOnOutsideClick = (event) => {
+      if (!menuRef.current?.contains(event.target)) setMenuOpenId(null);
+    };
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setMenuOpenId(null);
+    };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open, setMenuOpenId]);
 
   return (
     <div
@@ -74,7 +93,7 @@ export default function MediaCard({
           <span className="material-symbols-outlined">{meta.icon}</span>
           {caption && <span className="t">{caption}</span>}
         </span>
-        <div className="lb-mn">
+        <div className="lb-mn" ref={menuRef}>
           <button
             type="button"
             onClick={(e) => {
@@ -82,6 +101,7 @@ export default function MediaCard({
               setMenuOpenId((id) => (id === item.id ? null : item.id));
             }}
             aria-label="Mở menu tài nguyên"
+            aria-expanded={open}
             title="Tùy chọn"
             className={`au-ico${open ? " open" : ""}`}
           >
@@ -89,14 +109,6 @@ export default function MediaCard({
           </button>
 
           {open && (
-            <>
-              <div
-                className="lb-bk"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setMenuOpenId(null);
-                }}
-              />
               <div onClick={(e) => e.stopPropagation()} className="lb-menu">
                 <button type="button" onClick={(e) => onDownload(item, e)} className="lb-mi">
                   <span className="material-symbols-outlined">download</span>
@@ -109,7 +121,6 @@ export default function MediaCard({
                   </button>
                 )}
               </div>
-            </>
           )}
         </div>
       </div>

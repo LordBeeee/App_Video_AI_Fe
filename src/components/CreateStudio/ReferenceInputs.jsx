@@ -55,11 +55,13 @@ export default function ReferenceInputs({
             ))}
             {references.length < referenceLimit && (
               <div className="st-add">
-                <label>
-                  <span className="material-symbols-outlined">add_photo_alternate</span>
-                  {uploading ? "Đang tải" : "Tải ảnh"}
+                <label title={uploading ? "Đang tải ảnh" : "Tải ảnh"}>
+                  <span className={`material-symbols-outlined${uploading ? " au-spin" : ""}`} aria-hidden="true">
+                    {uploading ? "progress_activity" : "add_photo_alternate"}
+                  </span>
                   <input
                     type="file"
+                    aria-label="Tải ảnh"
                     accept={modality === "video" ? "image/jpeg,image/png" : "image/*"}
                     className="hidden"
                     style={{ display: "none" }}
