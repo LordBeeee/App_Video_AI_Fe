@@ -10,6 +10,7 @@ import {
 } from "../../components/CreateStudio/GenerationResult";
 import GenerationHistory from "../../components/CreateStudio/GenerationHistory";
 import StudioTabs from "../../components/CreateStudio/StudioTabs";
+import AssetPicker from "../../components/Library/AssetPicker";
 import "../../components/Aurora/aurora.css";
 import "../../components/CreateStudio/studio.css";
 import { referenceLimitFor, values } from "../../utils/createStudio.utils";
@@ -82,6 +83,7 @@ export default function CreateStudio() {
     setSelectedModel("");
     setResult(null);
     setReferences([]);
+    setReferencePickerOpen(false);
     setGenerating(false);
     getAiCatalog(modality)
       .then((items) => {
@@ -175,6 +177,21 @@ export default function CreateStudio() {
     }
   };
 
+  const addSelectedAssets = (assets) => {
+    setReferences((current) => {
+      const existingIds = new Set(current.map((item) => String(item.id)));
+      const selected = assets
+        .filter((asset) => !existingIds.has(String(asset.id)))
+        .map((asset) => ({
+          id: Number(asset.id),
+          url: asset.storedUrl,
+          type: asset.assetType,
+        }));
+      return [...current, ...selected].slice(0, referenceLimit);
+    });
+    setReferencePickerOpen(false);
+  };
+
   const copyPrompt = async (text) => {
     await navigator.clipboard.writeText(text);
     setPromptCopied(true);
@@ -258,7 +275,6 @@ export default function CreateStudio() {
               setReferences={setReferences}
               uploading={uploading}
               uploadReference={uploadReference}
-              referencePickerOpen={referencePickerOpen}
               setReferencePickerOpen={setReferencePickerOpen}
             />
             <PromptEditor
@@ -306,6 +322,15 @@ export default function CreateStudio() {
           onSelect={setResult}
         />
       </div>
+
+      {referencePickerOpen && referenceLimit > references.length && (
+        <AssetPicker
+          type="image"
+          max={referenceLimit - references.length}
+          onClose={() => setReferencePickerOpen(false)}
+          onConfirm={addSelectedAssets}
+        />
+      )}
 
       {error && (
         <div role="alert" className="st-toast">

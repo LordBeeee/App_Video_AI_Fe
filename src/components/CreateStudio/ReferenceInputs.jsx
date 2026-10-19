@@ -1,5 +1,3 @@
-import AssetPicker from "../Library/AssetPicker";
-
 export default function ReferenceInputs({
   modality,
   options,
@@ -8,24 +6,8 @@ export default function ReferenceInputs({
   setReferences,
   uploading,
   uploadReference,
-  referencePickerOpen,
   setReferencePickerOpen,
 }) {
-  const addSelectedAssets = (assets) => {
-    setReferences((current) => {
-      const existingIds = new Set(current.map((item) => String(item.id)));
-      const selected = assets
-        .filter((asset) => !existingIds.has(String(asset.id)))
-        .map((asset) => ({
-          id: Number(asset.id),
-          url: asset.storedUrl,
-          type: asset.assetType,
-        }));
-      return [...current, ...selected].slice(0, referenceLimit);
-    });
-    setReferencePickerOpen(false);
-  };
-
   const frameMode = modality === "video" && options.referenceMode !== "refer_image";
 
   return (
@@ -74,14 +56,6 @@ export default function ReferenceInputs({
             )}
           </div>
         </div>
-      )}
-      {referencePickerOpen && (
-        <AssetPicker
-          type="image"
-          max={referenceLimit - references.length}
-          onClose={() => setReferencePickerOpen(false)}
-          onConfirm={addSelectedAssets}
-        />
       )}
     </>
   );
