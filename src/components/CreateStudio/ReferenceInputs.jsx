@@ -68,14 +68,23 @@ export default function ReferenceInputs({
           <p className="st-lb">
             <span className="ic"><span className="material-symbols-outlined">bookmark</span></span>
             <span className="g">Ref · Element ({elements.length}/3)</span>
-            <InfoTip info="Chọn tối đa 3 Element. Nhấn @element để chèn vào prompt." label="Hướng dẫn Ref Element" tone="dark" />
+            <InfoTip info="Chọn tối đa 3 Element. Kéo ảnh Ref vào prompt hoặc nhấn @element để chèn." label="Hướng dẫn Ref Element" tone="dark" />
           </p>
           <div className="st-refs">
             {elements.map((element) => (
-              <div className="st-element" key={element.id} title={element.name || `Element ${element.id}`}>
-                <img src={element.url} alt={element.name || `Element ${element.id}`} />
+              <div className="st-ref st-element" key={element.id} title={`Kéo vào prompt hoặc nhấn @element_${element.id}`}>
+                <img
+                  src={element.url}
+                  alt={element.name || `Element ${element.id}`}
+                  draggable
+                  onDragStart={(event) => {
+                    event.dataTransfer.clearData();
+                    event.dataTransfer.setData("text/plain", `@element_${element.id}`);
+                    event.dataTransfer.effectAllowed = "copy";
+                  }}
+                />
                 <button type="button" className="st-element-remove" aria-label={`Gỡ ${element.name || `Element ${element.id}`}`} onClick={() => onRemoveElement(element)}>×</button>
-                <button type="button" className="st-element-mention" title="Chèn vào prompt" onClick={() => onInsertElementMention(element)}>@element_{element.id}</button>
+                <button type="button" className="cap st-element-mention" title="Chèn vào prompt" onClick={() => onInsertElementMention(element)}>@element_{element.id}</button>
               </div>
             ))}
             {elements.length < 3 && (

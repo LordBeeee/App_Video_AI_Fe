@@ -69,7 +69,7 @@ export default function PromptEditor({ modality, capabilities, prompt, setPrompt
               placeholder={`Mô tả hành động cho shot ${index + 1}...`}
               value={shot.prompt}
               onFocus={() => onFocusShot?.(index)}
-              onChange={(event) => updateShot(index, { prompt: event.target.value })}
+              onChange={(event) => updateShot(index, { prompt: event.target.value.slice(0, 512) })}
             />
             <small>{shot.prompt.length}/512 ký tự</small>
           </div>
