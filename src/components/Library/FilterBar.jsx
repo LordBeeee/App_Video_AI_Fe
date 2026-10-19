@@ -3,7 +3,8 @@ import { Pills } from "../Aurora/AuroraUI";
 export const FILTER_TABS = [
   { value: "Creative", label: "Sáng tạo", icon: "auto_awesome" },
   { value: "Upload", label: "Tải lên", icon: "cloud_upload" },
-  { value: "Reference", label: "Reference", icon: "bookmark" },
+  { value: "Element", label: "Element", icon: "bookmark" },
+  { value: "Voice", label: "Voice", icon: "record_voice_over" },
 ];
 
 export const TYPE_OPTIONS = [
@@ -17,13 +18,13 @@ export function TabBar({ activeTab, setActiveTab }) {
   return <Pills items={FILTER_TABS} value={activeTab} onChange={setActiveTab} />;
 }
 
-export function LibraryAction({ activeTab, uploading, fileInputRef, onUploadFile, onCreateReference }) {
+export function LibraryAction({ activeTab, uploading, fileInputRef, onUploadFile, onCreateCustomAsset }) {
   return (
     <>
-      {activeTab === "Reference" && (
-        <button type="button" onClick={onCreateReference} className="au-btn solid">
+      {["Element", "Voice"].includes(activeTab) && (
+        <button type="button" onClick={onCreateCustomAsset} className="au-btn solid">
           <span className="material-symbols-outlined">add</span>
-          Tạo Reference
+          Tạo {activeTab}
         </button>
       )}
       {activeTab === "Upload" && (
@@ -52,7 +53,7 @@ export default function FilterBar({
   return (
     <div className="lb-bar">
       <div className="lb-fls">
-        {TYPE_OPTIONS.map((opt) => (
+        {TYPE_OPTIONS.filter((opt) => activeTab === "Voice" ? opt.value === "all" : activeTab === "Element" ? ["all", "image", "video"].includes(opt.value) : true).map((opt) => (
           <button
             key={opt.value}
             type="button"
@@ -61,7 +62,7 @@ export default function FilterBar({
             className={`au-fl${typeFilter === opt.value ? " on" : ""}`}
           >
             <span className="material-symbols-outlined">{opt.icon}</span>
-            {activeTab === "Reference" && opt.value === "audio" ? "Voice" : opt.label}
+            {opt.label}
           </button>
         ))}
         <button
@@ -73,7 +74,7 @@ export default function FilterBar({
           <span className="material-symbols-outlined" style={favoritesOnly ? { fontVariationSettings: "'FILL' 1" } : undefined}>favorite</span>
           Yêu thích
         </button>
-        {activeTab === "Reference" && (
+        {["Element", "Voice"].includes(activeTab) && (
           <select aria-label="Provider" className="au-sel" value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)}>
             <option value="all">Mọi provider</option>
             <option value="Kling AI">Kling AI</option>

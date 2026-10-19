@@ -3,15 +3,17 @@ import {
   getLibraryAssetsApi,
   setAssetFavoriteApi,
   uploadAssetApi,
-  getReferencesApi,
-  deleteReferenceApi,
+  getElementsApi,
+  getVoicesApi,
+  deleteElementApi,
+  deleteVoiceApi,
 } from "../../services/asset.service";
 
 import FilterBar, { LibraryAction, TabBar } from "../../components/Library/FilterBar";
 import { Page, Card, ErrorBox } from "../../components/Aurora/AuroraUI";
 import MediaGrid from "../../components/Library/MediaGrid";
 import DetailOverlay from "../../components/Library/DetailOverlay";
-import CreateReferenceModal from "../../components/Library/CreateReferenceModal";
+import CreateCustomAssetModal from "../../components/Library/CreateCustomAssetModal";
 import { mapAssetToItem } from "../../utils/library.utils";
 import "../../components/Library/library.css";
 
@@ -26,8 +28,8 @@ export default function Library() {
   const [itemsByTab, setItemsByTab] = useState({});
   const [loadingTab, setLoadingTab] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [creatingReference, setCreatingReference] = useState(false);
-  const [deletingReferenceId, setDeletingReferenceId] = useState(null);
+  const [creatingAssetKind, setCreatingAssetKind] = useState(null);
+  const [deletingAssetId, setDeletingAssetId] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const [menuOpenId, setMenuOpenId] = useState(null);
   const [overlayMenuOpen, setOverlayMenuOpen] = useState(false);
@@ -50,7 +52,7 @@ export default function Library() {
       setFetchErrors((current) => ({ ...current, [tab]: "" }));
     }
     try {
-      const data = tab === "Reference" ? await getReferencesApi() : await getLibraryAssetsApi({
+      const data = tab === "Element" ? await getElementsApi() : tab === "Voice" ? await getVoicesApi() : await getLibraryAssetsApi({
         tab: tab.toLowerCase(),
       });
       if (requestIdsRef.current[tab] !== requestId) return;
@@ -75,7 +77,7 @@ export default function Library() {
   const filteredItems = useMemo(() => items
     .filter((item) => !favoritesOnly || item.favorite)
     .filter((item) => typeFilter === "all" || item.type === typeFilter)
-    .filter((item) => activeTab !== "Reference" || providerFilter === "all" || item.provider === providerFilter),
+    .filter((item) => !["Element", "Voice"].includes(activeTab) || providerFilter === "all" || item.provider === providerFilter),
   [items, favoritesOnly, typeFilter, activeTab, providerFilter]);
 
   useEffect(() => {
@@ -83,10 +85,10 @@ export default function Library() {
   }, [activeTab, typeFilter, favoritesOnly, providerFilter]);
 
   useEffect(() => {
-    if (activeTab !== "Reference" || !items.some((item) =>
+    if (!["Element", "Voice"].includes(activeTab) || !items.some((item) =>
       ["submitted", "processing"].includes(item.status) ||
       ["submitted", "processing"].includes(item.deleteStatus))) return;
-    const timer = setInterval(() => fetchItems("Reference"), 10000);
+    const timer = setInterval(() => fetchItems(activeTab), 10000);
     return () => clearInterval(timer);
   }, [activeTab, items, fetchItems]);
 
@@ -157,20 +159,21 @@ export default function Library() {
     }
   };
 
-  const handleDeleteReference = async (item) => {
+  const handleDeleteCustomAsset = async (item) => {
     setMenuOpenId(null);
     setOverlayMenuOpen(false);
-    if (!window.confirm(`Xóa Reference "${item.name || item.id}" khỏi Kling và thư viện?`)) return;
-    setDeletingReferenceId(item.id);
+    const kind = item.role === "voice" ? "Voice" : "Element";
+    if (!window.confirm(`Xóa ${kind} "${item.name || item.id}" khỏi Kling và thư viện?`)) return;
+    setDeletingAssetId(item.id);
     try {
-      await deleteReferenceApi(item.id);
+      await (item.role === "voice" ? deleteVoiceApi(item.id) : deleteElementApi(item.id));
       setSelectedId((current) => current === item.id ? null : current);
-      await fetchItems("Reference");
+      await fetchItems(kind);
     } catch (err) {
       alert(err.message);
-      await fetchItems("Reference");
+      await fetchItems(kind);
     } finally {
-      setDeletingReferenceId(null);
+      setDeletingAssetId(null);
     }
   };
 
@@ -202,9 +205,9 @@ export default function Library() {
             uploading={uploading}
             fileInputRef={fileInputRef}
             onUploadFile={handleUploadFile}
-            onCreateReference={() => setCreatingReference(true)}
+            onCreateCustomAsset={() => setCreatingAssetKind(activeTab.toLowerCase())}
           />
-          <TabBar activeTab={activeTab} setActiveTab={setActiveTab} />
+          <TabBar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); setTypeFilter("all"); }} />
         </div>
       </header>
 
@@ -232,9 +235,9 @@ export default function Library() {
             menuOpenId={menuOpenId}
             setMenuOpenId={setMenuOpenId}
             onDownload={handleDownload}
-            onDelete={activeTab === "Reference" ? handleDeleteReference : undefined}
-            deletingId={deletingReferenceId}
-            emptyMessage={activeTab === "Reference" && loadingTab !== activeTab ? "Chưa có Reference phù hợp" : undefined}
+            onDelete={["Element", "Voice"].includes(activeTab) ? handleDeleteCustomAsset : undefined}
+            deletingId={deletingAssetId}
+            emptyMessage={["Element", "Voice"].includes(activeTab) && loadingTab !== activeTab ? `Chưa có ${activeTab} phù hợp` : undefined}
           />
         </Card>
       )}
@@ -249,8 +252,8 @@ export default function Library() {
           onSelect={setSelectedId}
           onToggleFavorite={toggleFavorite}
           onDownload={handleDownload}
-          onDelete={activeTab === "Reference" ? handleDeleteReference : undefined}
-          deleting={deletingReferenceId === selectedItem.id}
+          onDelete={["Element", "Voice"].includes(activeTab) ? handleDeleteCustomAsset : undefined}
+          deleting={deletingAssetId === selectedItem.id}
           overlayMenuOpen={overlayMenuOpen}
           setOverlayMenuOpen={setOverlayMenuOpen}
           onCopyPrompt={handleCopyPrompt}
@@ -258,8 +261,8 @@ export default function Library() {
           thumbRefs={thumbRefs}
         />
       )}
-      {creatingReference && <CreateReferenceModal onClose={() => setCreatingReference(false)} onCreated={() => {
-        fetchItems("Reference");
+      {creatingAssetKind && <CreateCustomAssetModal assetKind={creatingAssetKind} onClose={() => setCreatingAssetKind(null)} onCreated={() => {
+        fetchItems(creatingAssetKind === "voice" ? "Voice" : "Element");
         fetchItems("Upload");
       }} />}
     </Page>

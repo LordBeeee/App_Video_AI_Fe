@@ -3,7 +3,7 @@ export function mapAssetToItem(asset) {
   return {
     id: asset.id,
     type: asset.assetType,
-    category: asset.sourceType === "reference" ? "reference" : asset.sourceType === "uploaded" ? "upload" : "creative",
+    category: asset.assetRole === "element" ? "element" : asset.assetRole === "voice" ? "voice" : asset.sourceType === "uploaded" ? "upload" : "creative",
     duration: asset.durationSeconds ? `${asset.durationSeconds}s` : undefined,
     favorite: !!asset.isFavorite,
     src: isVideo ? (asset.thumbnailUrl || asset.storedUrl) : asset.storedUrl,

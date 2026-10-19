@@ -1,6 +1,6 @@
 import { InfoTip } from "../Aurora/AuroraUI";
 
-export default function ReferenceInputs({
+export default function GenerationInputs({
   modality,
   options,
   referenceLimit,
@@ -35,7 +35,7 @@ export default function ReferenceInputs({
                 {reference.type === "video" ? (
                   <video src={reference.url} muted />
                 ) : (
-                  <img src={reference.url} alt="Reference" />
+                  <img src={reference.url} alt="Ảnh đầu vào" />
                 )}
                 <span className="del">Xóa</span>
                 {frameMode && <span className="cap">{index === 0 ? "Ảnh đầu" : "Ảnh cuối"}</span>}
@@ -67,22 +67,19 @@ export default function ReferenceInputs({
         <div className="st-box">
           <p className="st-lb">
             <span className="ic"><span className="material-symbols-outlined">bookmark</span></span>
-            <span className="g">Ref · Element ({elements.length}/3)</span>
-            <InfoTip info="Chọn tối đa 3 Element. Kéo ảnh Ref vào prompt hoặc nhấn @element để chèn." label="Hướng dẫn Ref Element" tone="dark" />
+            <span className="g">Element ({elements.length}/3)</span>
+            <InfoTip info="Chọn tối đa 3 Element. Kéo Element vào prompt hoặc nhấn @element để chèn." label="Hướng dẫn Element" tone="dark" />
           </p>
           <div className="st-refs">
             {elements.map((element) => (
               <div className="st-ref st-element" key={element.id} title={`Kéo vào prompt hoặc nhấn @element_${element.id}`}>
-                <img
-                  src={element.url}
-                  alt={element.name || `Element ${element.id}`}
-                  draggable
-                  onDragStart={(event) => {
-                    event.dataTransfer.clearData();
-                    event.dataTransfer.setData("text/plain", `@element_${element.id}`);
-                    event.dataTransfer.effectAllowed = "copy";
-                  }}
-                />
+                <div draggable onDragStart={(event) => {
+                  event.dataTransfer.clearData();
+                  event.dataTransfer.setData("text/plain", `@element_${element.id}`);
+                  event.dataTransfer.effectAllowed = "copy";
+                }}>
+                  {element.type === "video" ? <video src={element.url} muted playsInline /> : <img src={element.url} alt={element.name || `Element ${element.id}`} />}
+                </div>
                 <button type="button" className="st-element-remove" aria-label={`Gỡ ${element.name || `Element ${element.id}`}`} onClick={() => onRemoveElement(element)}>×</button>
                 <button type="button" className="cap st-element-mention" title="Chèn vào prompt" onClick={() => onInsertElementMention(element)}>@element_{element.id}</button>
               </div>
@@ -90,7 +87,7 @@ export default function ReferenceInputs({
             {elements.length < 3 && (
               <button type="button" className="st-add st-element-add" onClick={() => setElementPickerOpen(true)}>
                 <span className="material-symbols-outlined">add</span>
-                <span>Ref</span>
+                <span>Thêm Element</span>
               </button>
             )}
           </div>

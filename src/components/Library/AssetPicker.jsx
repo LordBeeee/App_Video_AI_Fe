@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getLibraryAssetsApi, getReferencesApi } from "../../services/asset.service";
+import { getLibraryAssetsApi, getElementsApi } from "../../services/asset.service";
 import { Pills, Empty } from "../Aurora/AuroraUI";
 import "./library.css";
 
@@ -8,7 +8,7 @@ const TABS = [
   { value: "upload", label: "Tải lên", icon: "cloud_upload" },
 ];
 
-export default function AssetPicker({ type = "image", max = 1, excludedIds = [], onConfirm, onClose }) {
+export default function AssetPicker({ type = "image", max = 1, excludedIds = [], allowVideoElements = false, onConfirm, onClose }) {
   const choosingElement = type === "element";
   const [tab, setTab] = useState("upload");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
@@ -22,13 +22,13 @@ export default function AssetPicker({ type = "image", max = 1, excludedIds = [],
   useEffect(() => {
     let active = true;
     const load = choosingElement
-      ? getReferencesApi()
+      ? getElementsApi()
       : getLibraryAssetsApi({ tab, type: type === "voice-sample" ? "all" : type, favorite: favoritesOnly });
     load
       .then((data) => { if (active) {
         setItems((data.items || []).filter((item) => choosingElement
           ? item.assetRole === "element" && item.metadata?.provider === "Kling AI" &&
-            item.metadata?.referenceType === "image" && item.metadata?.status === "succeed" &&
+            (item.metadata?.elementType === "image" || (allowVideoElements && item.metadata?.elementType === "video")) && item.metadata?.status === "succeed" &&
             item.metadata?.elementId && !["submitting", "submitted", "processing", "succeed"].includes(item.metadata?.deleteStatus) &&
             (!favoritesOnly || item.isFavorite)
           : type !== "voice-sample" || ["audio", "video"].includes(item.assetType)));
@@ -36,7 +36,7 @@ export default function AssetPicker({ type = "image", max = 1, excludedIds = [],
       } })
       .catch((err) => { if (active) setError(err.message); });
     return () => { active = false; };
-  }, [tab, type, favoritesOnly, choosingElement]);
+  }, [tab, type, favoritesOnly, choosingElement, allowVideoElements]);
 
   return (
     <div className="au-mo lb-mo top" onMouseDown={onClose}>
@@ -44,13 +44,13 @@ export default function AssetPicker({ type = "image", max = 1, excludedIds = [],
         <div className="lb-mh">
           <div className="au-chl">
             <span className="au-hic"><span className="material-symbols-outlined">{choosingElement ? "bookmark" : type === "voice-sample" ? "graphic_eq" : type === "video" ? "smart_display" : "image"}</span></span>
-            <h2 className="au-h3 au-fd">Chọn {choosingElement ? "Ref" : type === "voice-sample" ? "mẫu giọng" : type === "video" ? "video" : "ảnh"} ({selected.length}/{max})</h2>
+            <h2 className="au-h3 au-fd">Chọn {choosingElement ? "Element" : type === "voice-sample" ? "mẫu giọng" : type === "video" ? "video" : "ảnh"} ({selected.length}/{max})</h2>
           </div>
           <button type="button" onClick={onClose} className="au-ico" aria-label="Đóng" title="Đóng"><span className="material-symbols-outlined">close</span></button>
         </div>
 
         <div className="lb-pkbar">
-          {choosingElement ? <Pills items={[{ value: "reference", label: "Reference", icon: "bookmark" }]} value="reference" onChange={() => {}} /> : <Pills items={TABS} value={tab} onChange={(value) => { setTab(value); setSelected([]); }} />}
+          {choosingElement ? <Pills items={[{ value: "element", label: "Element", icon: "bookmark" }]} value="element" onChange={() => {}} /> : <Pills items={TABS} value={tab} onChange={(value) => { setTab(value); setSelected([]); }} />}
           <button type="button" onClick={() => setFavoritesOnly((v) => !v)} aria-pressed={favoritesOnly} className={`au-fl${favoritesOnly ? " on" : ""}`}>
             <span className="material-symbols-outlined" style={favoritesOnly ? { fontVariationSettings: "'FILL' 1" } : undefined}>favorite</span>
             Yêu thích

@@ -16,13 +16,13 @@ export default function MediaCard({
   onDelete,
   deleting,
 }) {
-  const isReference = item.category === "reference";
+  const isCustomAsset = ["element", "voice"].includes(item.category);
   const deletePending = deleting || ["submitting", "submitted", "processing"].includes(item.deleteStatus);
-  const refStatus = deletePending ? "Đang xóa" : item.deleteStatus === "failed" ? "Xóa thất bại" : item.status === "failed" ? "Lỗi" : item.status && item.status !== "succeed" ? "Đang xử lý" : null;
-  const badge = isReference ? refStatus : item.status && item.status !== "succeeded" ? (item.status === "failed" ? "Lỗi" : "Đang xử lý") : null;
+  const customStatus = deletePending ? "Đang xóa" : item.deleteStatus === "failed" ? "Xóa thất bại" : item.status === "failed" ? "Lỗi" : item.status && item.status !== "succeed" ? "Đang xử lý" : null;
+  const badge = isCustomAsset ? customStatus : item.status && item.status !== "succeeded" ? (item.status === "failed" ? "Lỗi" : "Đang xử lý") : null;
   const bad = badge === "Lỗi" || badge === "Xóa thất bại";
   const meta = TYPE_META[item.type] || TYPE_META.image;
-  const caption = item.name || (item.type === "video" && !isReference ? item.duration : "");
+  const caption = item.name || (item.type === "video" && !isCustomAsset ? item.duration : "");
   const open = menuOpenId === item.id;
   const menuRef = useRef(null);
 
@@ -45,7 +45,7 @@ export default function MediaCard({
   return (
     <div
       onClick={() => onSelect(item.id)}
-      title={isReference ? [item.name, item.provider, item.deleteError || item.error].filter(Boolean).join(" · ") : undefined}
+      title={isCustomAsset ? [item.name, item.provider, item.deleteError || item.error].filter(Boolean).join(" · ") : undefined}
       className="lb-it"
     >
       <div className="lb-m">
@@ -114,7 +114,7 @@ export default function MediaCard({
                   <span className="material-symbols-outlined">download</span>
                   Tải xuống
                 </button>
-                {isReference && onDelete && (
+                {isCustomAsset && onDelete && (
                   <button type="button" onClick={(e) => onDelete(item, e)} disabled={deletePending} className="lb-mi bad">
                     <span className="material-symbols-outlined">delete</span>
                     Xóa

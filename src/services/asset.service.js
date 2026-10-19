@@ -40,27 +40,42 @@ export async function setAssetFavoriteApi(assetId, isFavorite) {
   }
 }
 
-export async function getReferencesApi() {
-  const res = await api.get('/references')
+export async function getElementsApi() {
+  const res = await api.get('/elements')
+  return res.data
+}
+
+export async function getVoicesApi() {
+  const res = await api.get('/voices')
   return res.data
 }
 
 export async function createElementApi(payload) {
-  const res = await api.post('/references/elements', payload)
+  const res = await api.post('/elements', payload)
   return res.data
 }
 
 export async function createVoiceApi(payload) {
-  const res = await api.post('/references/voices', payload)
+  const res = await api.post('/voices', payload)
   return res.data
 }
 
-export async function deleteReferenceApi(assetId) {
+export async function deleteElementApi(assetId) {
   try {
-    const res = await api.delete(`/references/${assetId}`)
+    const res = await api.delete(`/elements/${assetId}`)
     return res.data
   } catch (error) {
     const msg = error.response?.data?.message
-    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Xóa Reference thất bại')
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Xóa Element thất bại')
+  }
+}
+
+export async function deleteVoiceApi(assetId) {
+  try {
+    const res = await api.delete(`/voices/${assetId}`)
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Xóa Voice thất bại')
   }
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { createElementApi, createVoiceApi, getReferencesApi, uploadAssetApi } from "../../services/asset.service";
+import { createElementApi, createVoiceApi, getVoicesApi, uploadAssetApi } from "../../services/asset.service";
 import AssetPicker from "./AssetPicker";
 import { Pills } from "../Aurora/AuroraUI";
 import "./library.css";
@@ -7,11 +7,11 @@ import "./library.css";
 const KINDS = [
   { value: "image", label: "Ảnh", icon: "image" },
   { value: "video", label: "Video", icon: "smart_display" },
-  { value: "voice", label: "Voice", icon: "record_voice_over" },
 ];
 
-export default function CreateReferenceModal({ onClose, onCreated }) {
+export default function CreateCustomAssetModal({ assetKind = "element", onClose, onCreated }) {
   const [kind, setKind] = useState("image");
+  const isVoice = assetKind === "voice";
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [voiceName, setVoiceName] = useState("");
@@ -28,7 +28,7 @@ export default function CreateReferenceModal({ onClose, onCreated }) {
   const targetRef = useRef(null);
 
   useEffect(() => {
-    getReferencesApi().then((data) => setAvailableVoices((data.items || []).filter(
+    getVoicesApi().then((data) => setAvailableVoices((data.items || []).filter(
       (item) => item.assetRole === "voice" && item.metadata?.status === "succeed" && item.metadata?.voiceId,
     ))).catch(() => {});
   }, []);
@@ -61,10 +61,10 @@ export default function CreateReferenceModal({ onClose, onCreated }) {
   const save = async () => {
     setBusy(true); setError("");
     try {
-      if (kind === "voice") {
+      if (isVoice) {
         await createVoiceApi({ name: voiceName.trim(), sampleAssetId: sample.id });
       } else {
-        await createElementApi({ name: name.trim(), description: description.trim(), referenceType: kind,
+        await createElementApi({ name: name.trim(), description: description.trim(), elementType: kind,
           mainAssetId: main?.id, additionalAssetIds: additional.map((item) => item.id), videoAssetId: video?.id,
           voiceId: voiceId.trim() });
       }
@@ -106,7 +106,7 @@ export default function CreateReferenceModal({ onClose, onCreated }) {
     </div>
   );
 
-  const canSave = kind === "voice" ? !!voiceName.trim() && !!sample : !!name.trim() && !!description.trim() && (kind === "image" ? !!main && !!additional.length : !!video);
+  const canSave = isVoice ? !!voiceName.trim() && !!sample : !!name.trim() && !!description.trim() && (kind === "image" ? !!main && !!additional.length : !!video);
   const req = <b className="lb-req">*</b>;
 
   return (
@@ -116,24 +116,24 @@ export default function CreateReferenceModal({ onClose, onCreated }) {
           <div className="lb-mh">
             <div className="au-chl">
               <span className="au-hic"><span className="material-symbols-outlined">bookmark_add</span></span>
-              <h2 className="au-h3 au-fd">Tạo Reference</h2>
+              <h2 className="au-h3 au-fd">Tạo {isVoice ? "Voice" : "Element"}</h2>
             </div>
             <button type="button" onClick={onClose} className="au-ico" aria-label="Đóng" title="Đóng"><span className="material-symbols-outlined">close</span></button>
           </div>
 
           <div className="lb-mbd au-scroll">
-            <div className="lb-kind-tabs">
-              <p className="lb-lab">Loại Reference</p>
+            {!isVoice && <div className="lb-kind-tabs">
+              <p className="lb-lab">Loại Element</p>
               <Pills items={KINDS} value={kind} onChange={(value) => { setKind(value); setError(""); }} />
-            </div>
+            </div>}
 
             <label className="lb-fld">Provider
               <select className="lb-in" value="Kling AI" disabled><option>Kling AI</option></select>
             </label>
 
-            {kind === "voice" ? (
+            {isVoice ? (
               <>
-                <label className="lb-fld">Tên Reference <span className="lb-cnt">{voiceName.length}/20</span>
+                <label className="lb-fld">Tên Voice <span className="lb-cnt">{voiceName.length}/20</span>
                   <input maxLength={20} value={voiceName} onChange={(e) => setVoiceName(e.target.value)} placeholder="Giọng MC" className="lb-in" />
                 </label>
                 <div>
@@ -153,7 +153,7 @@ export default function CreateReferenceModal({ onClose, onCreated }) {
               </>
             ) : (
               <>
-                <label className="lb-fld">Tên Reference <span className="lb-cnt">{name.length}/20</span>
+                <label className="lb-fld">Tên Element <span className="lb-cnt">{name.length}/20</span>
                   <input maxLength={20} value={name} onChange={(e) => setName(e.target.value)} placeholder="Mèo MC" className="lb-in" />
                 </label>
                 <label className="lb-fld">Mô tả <span className="lb-cnt">{description.length}/100</span>
@@ -190,8 +190,8 @@ export default function CreateReferenceModal({ onClose, onCreated }) {
                   </div>
                 )}
                 <label className="lb-fld">Giọng nói gắn kèm (tùy chọn)
-                  <input list="reference-voice-list" value={voiceId} onChange={(e) => setVoiceId(e.target.value)} placeholder="Chọn giọng đã tạo hoặc dán Voice ID" className="lb-in" />
-                  <datalist id="reference-voice-list">{availableVoices.map((item) => <option key={item.id} value={item.metadata.voiceId}>{item.metadata.name}</option>)}</datalist>
+                  <input list="element-voice-list" value={voiceId} onChange={(e) => setVoiceId(e.target.value)} placeholder="Chọn giọng đã tạo hoặc dán Voice ID" className="lb-in" />
+                  <datalist id="element-voice-list">{availableVoices.map((item) => <option key={item.id} value={item.metadata.voiceId}>{item.metadata.name}</option>)}</datalist>
                 </label>
               </>
             )}
@@ -204,7 +204,7 @@ export default function CreateReferenceModal({ onClose, onCreated }) {
             <button type="button" onClick={onClose} className="au-btn">Hủy</button>
             <button type="button" onClick={save} disabled={busy || !canSave} className="au-btn solid">
               <span className="material-symbols-outlined">{busy ? "progress_activity" : "add"}</span>
-              {busy ? "Đang xử lý..." : "Tạo Reference"}
+              {busy ? "Đang xử lý..." : `Tạo ${isVoice ? "Voice" : "Element"}`}
             </button>
           </div>
         </div>

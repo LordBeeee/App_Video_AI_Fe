@@ -54,7 +54,7 @@ export default function DetailOverlay({
                     <span className="material-symbols-outlined">download</span>
                     Tải xuống
                   </button>
-                  {item.category === "reference" && onDelete && (
+                  {["element", "voice"].includes(item.category) && onDelete && (
                     <button
                       type="button"
                       onClick={(e) => onDelete(item, e)}
@@ -75,7 +75,7 @@ export default function DetailOverlay({
       <div className="lb-ov-body">
         <PreviewPanel item={item} onPrev={onPrev} onNext={onNext} />
 
-        {(item.category === "creative" || item.category === "reference") && (
+        {(["creative", "element", "voice"].includes(item.category)) && (
           <InfoPanel item={item} onCopyPrompt={onCopyPrompt} promptCopied={promptCopied} />
         )}
 

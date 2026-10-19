@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import ModelPicker from "../../components/CreateStudio/ModelPicker";
 import GenerationControls from "../../components/CreateStudio/GenerationControls";
-import ReferenceInputs from "../../components/CreateStudio/ReferenceInputs";
+import GenerationInputs from "../../components/CreateStudio/GenerationInputs";
 import PromptEditor from "../../components/CreateStudio/PromptEditor";
 import {
   MobileGenerationResult,
@@ -65,9 +65,10 @@ export default function CreateStudio() {
   const generationPrompt = customShots
     ? shotsValid ? formatVideoShots(options.shots) : ""
     : prompt;
-  const quoteOptions = useMemo(() => selectedModel === "kling/kling-3.0"
+  const supportsElements = ["kling/kling-3.0", "kling/kling-3.0-omni"].includes(selectedModel);
+  const quoteOptions = useMemo(() => supportsElements
     ? { ...options, elementAssetIds: elements.map((element) => element.id) }
-    : options, [selectedModel, options, elements]);
+    : options, [supportsElements, options, elements]);
   const { quote, quoteError, clearQuote } = usePriceQuote({
     modality,
     modelSlug: selectedModel,
@@ -211,7 +212,7 @@ export default function CreateStudio() {
   const addSelectedElements = (assets) => {
     setElements((current) => [...current, ...assets
       .filter((asset) => !current.some((item) => item.id === Number(asset.id)))
-      .map((asset) => ({ id: Number(asset.id), name: asset.metadata?.name, url: asset.thumbnailUrl || asset.storedUrl }))].slice(0, 3));
+      .map((asset) => ({ id: Number(asset.id), name: asset.metadata?.name, url: asset.thumbnailUrl || asset.storedUrl, type: asset.assetType }))].slice(0, 3));
     setElementPickerOpen(false);
   };
 
@@ -313,7 +314,7 @@ export default function CreateStudio() {
               value={selectedModel}
               onChange={setSelectedModel}
             />
-            <ReferenceInputs
+            <GenerationInputs
               modality={modality}
               options={options}
               referenceLimit={referenceLimit}
@@ -322,7 +323,7 @@ export default function CreateStudio() {
               uploading={uploading}
               uploadReference={uploadReference}
               setReferencePickerOpen={setReferencePickerOpen}
-              elements={selectedModel === "kling/kling-3.0" ? elements : undefined}
+              elements={supportsElements ? elements : undefined}
               onRemoveElement={removeElement}
               setElementPickerOpen={setElementPickerOpen}
               onInsertElementMention={insertElementMention}
@@ -385,10 +386,11 @@ export default function CreateStudio() {
           onConfirm={addSelectedAssets}
         />
       )}
-      {elementPickerOpen && selectedModel === "kling/kling-3.0" && elements.length < 3 && (
+      {elementPickerOpen && supportsElements && elements.length < 3 && (
         <AssetPicker
           type="element"
           max={3 - elements.length}
+          allowVideoElements={selectedModel === "kling/kling-3.0-omni"}
           excludedIds={elements.map((element) => element.id)}
           onClose={() => setElementPickerOpen(false)}
           onConfirm={addSelectedElements}
