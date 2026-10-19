@@ -1,3 +1,5 @@
+import { InfoTip } from "../Aurora/AuroraUI";
+
 export default function ReferenceInputs({
   modality,
   options,
@@ -66,6 +68,7 @@ export default function ReferenceInputs({
           <p className="st-lb">
             <span className="ic"><span className="material-symbols-outlined">bookmark</span></span>
             <span className="g">Ref · Element ({elements.length}/3)</span>
+            <InfoTip info="Chọn tối đa 3 Element. Nhấn @element để chèn vào prompt." label="Hướng dẫn Ref Element" tone="dark" />
           </p>
           <div className="st-refs">
             {elements.map((element) => (
@@ -82,7 +85,6 @@ export default function ReferenceInputs({
               </button>
             )}
           </div>
-          <p className="st-element-help">Element cần xuất hiện trong ảnh đầu hoặc ảnh cuối. Nhấn @element để chèn vào prompt.</p>
         </div>
       )}
     </>

@@ -223,7 +223,7 @@ export default function CreateStudio() {
         ? { ...shot, prompt: `${shot.prompt}${shot.prompt && !shot.prompt.endsWith(" ") ? " " : ""}${mention} `.slice(0, 512) }
         : shot) }));
     } else {
-      setPrompt((current) => `${current}${current && !current.endsWith(" ") ? " " : ""}${mention} `.slice(0, capabilities.maxPromptCharacters || 3072));
+      setPrompt((current) => `${current}${current && !current.endsWith(" ") ? " " : ""}${mention} `.slice(0, capabilities.maxPromptCharacters || 2500));
     }
   };
 

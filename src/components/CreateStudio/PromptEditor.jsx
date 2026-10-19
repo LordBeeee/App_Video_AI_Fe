@@ -14,8 +14,12 @@ export default function PromptEditor({ modality, capabilities, prompt, setPrompt
   );
 
   useEffect(() => {
-    if (isMediaPrompt) setPrompt((current) => limitMediaPrompt(current));
-  }, [isMediaPrompt, setPrompt]);
+    if (modality === "video" && capabilities.maxPromptCharacters) {
+      setPrompt((current) => current.slice(0, capabilities.maxPromptCharacters));
+    } else if (isMediaPrompt) {
+      setPrompt((current) => limitMediaPrompt(current));
+    }
+  }, [modality, capabilities.maxPromptCharacters, isMediaPrompt, setPrompt]);
 
   const handleChange = (event) => {
     const value = event.target.value;
