@@ -151,10 +151,15 @@ export const INFO = {
     what: 'Thời điểm nhân viên gửi yêu cầu AI gần đây nhất.',
     read: 'Dòng nhỏ cho biết tổng số token đã dùng, hoặc số yêu cầu trong kỳ nếu chưa có token.',
   },
-  empDaily: {
+  empDailyCost: {
     title: 'Chi phí theo ngày',
     what: 'Mỗi ngày một cột và một điểm trên đường.',
     read: 'Cột là số yêu cầu: màu nhạt là thành công, màu đen là lỗi. Đường là số tiền chi trong ngày. Ngày có cột cao nhưng đường thấp là nhiều việc rẻ, như chat.',
+  },
+  empDaily: {
+    title: 'Hoạt động trong ngày',
+    what: 'Mỗi chấm là một lần nhân viên gửi yêu cầu AI, đặt đúng giờ trong ngày, xếp theo loại tác vụ.',
+    read: 'Chấm đỏ là yêu cầu lỗi. Thanh dài hơn là yêu cầu chạy lâu hơn. Rê chuột vào chấm để xem giờ, mô hình, trạng thái và chi phí. Cuộn chuột để phóng to khoảng giờ, kéo để di chuyển.',
   },
   empVsTeam: {
     title: 'So với nhóm theo loại tác vụ',

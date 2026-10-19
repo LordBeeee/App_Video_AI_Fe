@@ -127,7 +127,7 @@ export default function SpendingChart({
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded-full bg-primary shadow-[0_0_8px_rgba(243,136,32,0.45)]" />
+            <span className="h-3 w-3 rounded-full bg-primary shadow-[0_0_8px_rgba(212, 98, 26,0.45)]" />
             <span className="font-mono text-xs text-on-surface-variant">Tiền</span>
           </div>
         </div>
@@ -182,8 +182,8 @@ export default function SpendingChart({
                 >
                   <defs>
                     <linearGradient id="amberGradient" x1="0" x2="0" y1="0" y2="1">
-                      <stop offset="0%"   stopColor="#f38820" stopOpacity="0.4" />
-                      <stop offset="100%" stopColor="#f38820" stopOpacity="0"    />
+                      <stop offset="0%"   stopColor="var(--t-primary, #d4621a)" stopOpacity="0.4" />
+                      <stop offset="100%" stopColor="var(--t-primary, #d4621a)" stopOpacity="0"    />
                     </linearGradient>
                   </defs>
 
@@ -208,7 +208,7 @@ export default function SpendingChart({
                     <path
                       d={linePath}
                       fill="none"
-                      stroke="#f38820"
+                      stroke="var(--t-primary, #d4621a)"
                       strokeWidth="6"
                       strokeLinecap="round"
                       opacity="0.2"
@@ -220,7 +220,7 @@ export default function SpendingChart({
                     <path
                       d={linePath}
                       fill="none"
-                      stroke="#d96f0a"
+                      stroke="#d4621a"
                       strokeWidth="3"
                       strokeLinecap="round"
                     />

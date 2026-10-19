@@ -39,14 +39,14 @@ export default function TrendChart({ data = [], valueKey = 'cost', format = form
           <svg className="absolute inset-0 h-full w-full" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
             <defs>
               <linearGradient id="expTrend" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stopColor="#f38820" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="#f38820" stopOpacity="0" />
+                <stop offset="0%" stopColor="var(--t-primary, #d4621a)" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="var(--t-primary, #d4621a)" stopOpacity="0" />
               </linearGradient>
             </defs>
             {area && <path d={area} fill="url(#expTrend)" />}
-            <path d={line} fill="none" stroke="#d96f0a" strokeWidth="3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+            <path d={line} fill="none" stroke="#d4621a" strokeWidth="3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
             {hover !== null && (
-              <line x1={x(hover)} x2={x(hover)} y1="0" y2={H} stroke="#d96f0a" strokeOpacity="0.4" strokeDasharray="4 3" vectorEffect="non-scaling-stroke" />
+              <line x1={x(hover)} x2={x(hover)} y1="0" y2={H} stroke="#d4621a" strokeOpacity="0.4" strokeDasharray="4 3" vectorEffect="non-scaling-stroke" />
             )}
           </svg>
           {h && (

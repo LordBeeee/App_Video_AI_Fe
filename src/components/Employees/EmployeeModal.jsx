@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 const inputCls =
-  'w-full bg-white/5 border border-[#ff7a1a]/30 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#ff7a1a] transition-colors'
+  'w-full bg-white/5 border border-brand/30 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-brand transition-colors'
 
 const inputErrCls =
   'w-full bg-white/5 border border-[#f87171]/60 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 outline-none focus:border-[#f87171] transition-colors'
@@ -10,7 +10,7 @@ const inputErrCls =
 function Field({ label, required, error, children }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs text-[#ffb070]">
+      <label className="mb-1.5 block text-xs text-brand-soft">
         {label} {required && <span className="text-[#f87171]">*</span>}
       </label>
       {children}
@@ -153,14 +153,14 @@ export default function EmployeeModal({ show, onClose, onSubmit, submitting, err
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ boxShadow: 'inset 0 0 0 1.5px #ff7a1a' }}>
-              <span className="material-symbols-outlined" style={{ color: '#ff7a1a' }}>person_add</span>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ boxShadow: 'inset 0 0 0 1.5px var(--t-primary, #d4621a)' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--t-primary, #d4621a)' }}>person_add</span>
             </div>
             <div>
               <h3 className="text-lg font-bold text-white">Tạo nhân viên</h3>
             </div>
           </div>
-          <button onClick={onClose} disabled={submitting} className="rounded-full p-1.5 text-white/60 transition-colors hover:bg-white/10 hover:text-[#ff7a1a]">
+          <button onClick={onClose} disabled={submitting} className="rounded-full p-1.5 text-white/60 transition-colors hover:bg-white/10 hover:text-brand">
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
         </div>
@@ -217,7 +217,7 @@ export default function EmployeeModal({ show, onClose, onSubmit, submitting, err
                 className={`${touched.password && !isPasswordValid(form.password) && form.password ? inputErrCls : inputCls} pr-10`}
               />
               <button type="button" onClick={() => setShowPassword(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-[#ff7a1a] transition-colors" tabIndex={-1}>
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-brand transition-colors" tabIndex={-1}>
                 <span className="material-symbols-outlined text-[18px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
               </button>
             </div>
@@ -235,11 +235,11 @@ export default function EmployeeModal({ show, onClose, onSubmit, submitting, err
           {/* Buttons */}
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} disabled={submitting}
-              className="flex-1 rounded-full border border-white/20 px-4 py-2.5 text-sm text-white/80 transition-colors hover:border-[#ff7a1a] disabled:opacity-50">
+              className="flex-1 rounded-full border border-white/20 px-4 py-2.5 text-sm text-white/80 transition-colors hover:border-brand disabled:opacity-50">
               Hủy
             </button>
             <button type="submit" disabled={submitting || !canSubmit}
-              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#ff7a1a] px-4 py-2.5 text-sm font-semibold text-[#241c17] transition-colors hover:bg-[#ffb070] disabled:cursor-not-allowed disabled:opacity-50">
+              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-brand px-4 py-2.5 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-soft disabled:cursor-not-allowed disabled:opacity-50">
               {submitting
                 ? <><span className="material-symbols-outlined text-sm animate-spin">progress_activity</span> Đang tạo...</>
                 : <><span className="material-symbols-outlined text-sm">check</span> Tạo nhân viên</>

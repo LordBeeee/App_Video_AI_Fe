@@ -15,7 +15,7 @@ function DeleteConfirm({ user, deleting, onConfirm, onCancel }) {
           </span>
           <div className="min-w-0">
             <h3 className="au-fd text-base">Xóa nhân viên</h3>
-            <div className="au-ell text-sm" style={{ color: '#ffb070' }}>{user.fullName || user.email}</div>
+            <div className="au-ell text-sm" style={{ color: 'var(--t-soft, #f4ae52)' }}>{user.fullName || user.email}</div>
           </div>
         </div>
         <p className="mt-4 text-xs leading-relaxed" style={{ color: '#f87171' }}>

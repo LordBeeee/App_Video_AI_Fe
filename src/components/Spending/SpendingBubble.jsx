@@ -169,11 +169,11 @@ export default function SpendingBubble() {
           {data.byTask.some((t) => t.cost > 0) && (
             <div className="sp-mix">
               <div className="sp-mixbar">
-                {data.byTask.filter((t) => t.cost > 0).map((t) => <i key={t.modality} style={{ flexGrow: t.cost, background: AU_TASK_DARK[t.modality] || '#FFB070' }} title={`${auTaskLabel(t.modality)} · ${formatVND(t.cost)}`} />)}
+                {data.byTask.filter((t) => t.cost > 0).map((t) => <i key={t.modality} style={{ flexGrow: t.cost, background: AU_TASK_DARK[t.modality] || 'var(--t-soft, #f4ae52)' }} title={`${auTaskLabel(t.modality)} · ${formatVND(t.cost)}`} />)}
               </div>
               <div className="sp-mixl">
                 {data.byTask.filter((t) => t.cost > 0).slice(0, 3).map((t) => (
-                  <span key={t.modality}><i style={{ background: AU_TASK_DARK[t.modality] || '#FFB070' }} />{auTaskLabel(t.modality)} <b>{pctOf(t.cost, month)}%</b></span>
+                  <span key={t.modality}><i style={{ background: AU_TASK_DARK[t.modality] || 'var(--t-soft, #f4ae52)' }} />{auTaskLabel(t.modality)} <b>{pctOf(t.cost, month)}%</b></span>
                 ))}
               </div>
             </div>

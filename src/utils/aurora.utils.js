@@ -1,4 +1,5 @@
 export const AU_RANGES = [
+  { d: 1, l: 'Hôm nay' },
   { d: 7, l: '7 ngày' },
   { d: 30, l: '30 ngày' },
   { d: 90, l: '90 ngày' },
@@ -6,10 +7,10 @@ export const AU_RANGES = [
 ]
 
 export const AU_TASK = {
-  chat: { label: 'Chat AI', color: '#2E241D' },
-  image: { label: 'Tạo ảnh', color: '#FFCBA0' },
-  video: { label: 'Tạo video', color: '#FF7A1A' },
-  audio: { label: 'Giọng nói', color: '#C2410C' },
+  chat: { label: 'Chat AI', color: 'color-mix(in srgb, var(--t-ink, #2a1a0e), white 4%)' },
+  image: { label: 'Tạo ảnh', color: 'color-mix(in srgb, var(--t-soft, #f4ae52) 70%, white)' },
+  video: { label: 'Tạo video', color: 'var(--t-primary, #d4621a)' },
+  audio: { label: 'Giọng nói', color: 'var(--t-secondary, #a84a0f)' },
 }
 
 export const auTaskLabel = (m) => AU_TASK[m]?.label || m
@@ -54,9 +55,9 @@ export function niceScale(max, n = 3) {
 
 export const AU_TASK_DARK = {
   chat: '#FFFFFF',
-  image: '#FFCBA0',
-  video: '#FF7A1A',
-  audio: '#C2410C',
+  image: 'color-mix(in srgb, var(--t-soft, #f4ae52) 70%, white)',
+  video: 'var(--t-primary, #d4621a)',
+  audio: 'var(--t-secondary, #a84a0f)',
 }
 
 export const MIN_SAMPLE = 5
@@ -99,4 +100,19 @@ export function secText(s) {
   if (s < 1) return '<1s'
   if (s < 60) return `${Math.round(s)}s`
   return `${Math.floor(s / 60)}p${String(Math.round(s % 60)).padStart(2, '0')}s`
+}
+
+export const todayStr = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' })
+export const shiftDay = (day, n) => {
+  const d = new Date(`${day}T00:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + n)
+  return d.toISOString().slice(0, 10)
+}
+export const isCustomRange = (r) => !!(r.from && r.to)
+export const rangeParams = (r) => (isCustomRange(r) ? { from: r.from, to: r.to } : { days: r.days })
+export const isOneDay = (r) => (isCustomRange(r) ? r.from === r.to : r.days === 1)
+export const rangeText = (r) => {
+  if (!isCustomRange(r)) return AU_RANGES.find((x) => x.d === r.days)?.l
+  const f = (d) => `${d.slice(8, 10)}/${d.slice(5, 7)}`
+  return r.from === r.to ? f(r.from) : `${f(r.from)} – ${f(r.to)}`
 }

@@ -5,7 +5,7 @@ import { axisMoney, dayLabel, moneyShort, niceScale } from '../../utils/aurora.u
 const W = 1000
 const H = 300
 
-export default function AuroraTrend({ data = [], valueKey = 'cost', format = moneyShort, detail, tone = 'dark' }) {
+export default function AuroraTrend({ data = [], valueKey = 'cost', format = moneyShort, detail, tone = 'dark', label = dayLabel }) {
   const gid = useId()
   const [hover, setHover] = useState(null)
   const max = useMemo(() => Math.max(0, ...data.map((d) => d[valueKey])), [data, valueKey])
@@ -20,8 +20,8 @@ export default function AuroraTrend({ data = [], valueKey = 'cost', format = mon
   const y = (v) => H - (v / top) * H
   const line = data.map((d, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(d[valueKey]).toFixed(1)}`).join(' ')
   const area = n > 1 ? `${line} L${W},${H} L0,${H} Z` : ''
-  const stroke = tone === 'dark' ? '#FF7A1A' : '#C2410C'
-  const fill = '#FF7A1A'
+  const stroke = tone === 'dark' ? 'var(--t-primary, #d4621a)' : 'var(--t-secondary, #a84a0f)'
+  const fill = 'var(--t-primary, #d4621a)'
   const labelStep = Math.max(1, Math.ceil(n / 7))
   const h = hover !== null ? data[hover] : null
 
@@ -62,7 +62,7 @@ export default function AuroraTrend({ data = [], valueKey = 'cost', format = mon
               className="au-tr-tip"
               style={px(hover) > 0.65 ? { right: `calc(${(1 - px(hover)) * 100}% + 14px)` } : { left: `calc(${px(hover) * 100}% + 14px)` }}
             >
-              <i>{dayLabel(h.day)}</i>
+              <i>{label(h.day)}</i>
               <b>{format(h[valueKey])}</b>
               {detail && <i>{detail(h)}</i>}
             </div>
@@ -73,7 +73,7 @@ export default function AuroraTrend({ data = [], valueKey = 'cost', format = mon
         {data.map((d, i) =>
           i % labelStep === 0 ? (
             <span key={d.day} style={{ left: `${px(i) * 100}%`, transform: `translateX(-${i === 0 ? 0 : 50}%)` }}>
-              {dayLabel(d.day)}
+              {label(d.day)}
             </span>
           ) : null,
         )}

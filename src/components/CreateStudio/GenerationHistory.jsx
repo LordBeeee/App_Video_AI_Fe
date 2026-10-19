@@ -3,7 +3,7 @@ const money = (value) =>
 
 export default function GenerationHistory({ history, resultId, onRefresh, onSelect }) {
   return (
-    <aside className="au-card st-hist">
+    <aside className="au-card dark st-hist">
       <header className="au-ch">
         <div className="au-chl">
           <span className="au-hic"><span className="material-symbols-outlined">history</span></span>

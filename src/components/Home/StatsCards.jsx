@@ -39,7 +39,7 @@ export default function StatsCards({ stats, loading, formatCost }) {
       {statCards.map((card) => (
         <div
           key={card.label}
-          className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-outline-variant bg-white p-6 shadow-[0_10px_30px_rgba(92,55,24,0.06)] transition-shadow hover:shadow-[0_14px_36px_rgba(243,136,32,0.12)]"
+          className="group relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-outline-variant bg-white p-6 shadow-[0_10px_30px_rgba(92,55,24,0.06)] transition-shadow hover:shadow-[0_14px_36px_rgba(212, 98, 26,0.12)]"
         >
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <span className={`material-symbols-outlined text-4xl ${card.shadow}`}>

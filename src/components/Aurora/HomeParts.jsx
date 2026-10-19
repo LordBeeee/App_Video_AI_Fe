@@ -4,7 +4,7 @@ import { HEALTH, TASK_STATUS, timeAgo } from '../../utils/operations.utils'
 import { auTaskLabel } from '../../utils/aurora.utils'
 
 const ICON = { chat: 'chat_bubble', image: 'image', video: 'smart_display', audio: 'graphic_eq' }
-const DOT = { ok: '#22A559', degraded: '#FF7A1A', down: '#DC2626', idle: '#BBA796' }
+const DOT = { ok: '#22A559', degraded: 'var(--t-primary, #d4621a)', down: '#DC2626', idle: '#BBA796' }
 const HEALTH_ICON = { ok: ['ok', 'check_circle'], degraded: ['warn', 'warning'], down: ['bad', 'error'], idle: ['', 'hourglass_empty'] }
 const RUNNING = ['pending', 'queued', 'processing', 'running']
 

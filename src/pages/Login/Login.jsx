@@ -118,7 +118,7 @@ export default function LoginCard() {
             )}
 
             <button
-              className="w-full rounded-xl bg-primary py-4 text-sm font-bold tracking-[0.16em] text-on-primary shadow-[0_10px_24px_rgba(243,136,32,0.25)] transition-all hover:bg-primary-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 font-label-caps"
+              className="w-full rounded-xl bg-primary py-4 text-sm font-bold tracking-[0.16em] text-on-primary shadow-[0_10px_24px_rgba(212, 98, 26,0.25)] transition-all hover:bg-primary-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 font-label-caps"
               type="submit"
               disabled={loading}
             >

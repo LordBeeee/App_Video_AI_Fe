@@ -1,10 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Bricolage+Grotesque:wght@600;800&display=swap');
 
 .sb {
-  --or: #ff7a1a;
-  --soft: #ffb070;
-  --gold: #ffc44d;
-  --ink: #241c17;
+  --or: var(--t-primary, #d4621a);
+  --soft: var(--t-soft, #f4ae52);
+  --gold: var(--t-accent, #f4ae52);
+  --ink: var(--t-ink, #2a1a0e);
   position: fixed;
   inset: 0 auto 0 0;
   z-index: 50;
@@ -14,13 +14,13 @@
   padding: 18px 0;
   overflow: hidden;
   color: #fff;
-  background: linear-gradient(165deg, #2e241d 0%, #1f1814 100%);
+  background: linear-gradient(165deg, color-mix(in srgb, var(--t-ink, #2a1a0e), white 4%) 0%, color-mix(in srgb, var(--t-ink, #2a1a0e), black 14%) 100%);
   border-right: 2px solid var(--or);
   font-family: 'Be Vietnam Pro', system-ui, sans-serif;
   transition: width 0.28s cubic-bezier(0.3, 0.7, 0.2, 1), box-shadow 0.28s;
 }
 @media (min-width: 1024px) {
-  .sb.open { width: 256px; box-shadow: 18px 0 44px -18px rgba(36, 28, 23, 0.55); }
+  .sb.open { width: 256px; box-shadow: 18px 0 44px -18px color-mix(in srgb, var(--t-ink, #2a1a0e) 55%, transparent); }
 }
 
 .sb .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 350, 'GRAD' 0, 'opsz' 24; }
@@ -41,7 +41,7 @@
 .sb-lock {
   width: 32px; height: 32px; border-radius: 11px; border: 0; flex: none; cursor: pointer; display: none;
   align-items: center; justify-content: center; background: transparent; color: var(--soft);
-  box-shadow: inset 0 0 0 1.5px rgba(255, 176, 112, 0.45); transition: background 0.15s, color 0.15s;
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--t-soft, #f4ae52) 45%, transparent); transition: background 0.15s, color 0.15s;
 }
 @media (min-width: 1024px) { .sb-lock { display: flex; } }
 .sb-lock:hover { box-shadow: inset 0 0 0 1.5px var(--or); color: #fff; }
@@ -64,7 +64,7 @@
 .sb-bd { margin-right: 12px; padding: 2px 6px; border-radius: 6px; background: var(--gold); color: var(--ink); font-size: 9px; font-weight: 800; flex: none; }
 .sb-it.on .sb-bd { background: var(--ink); color: var(--gold); }
 
-.sb-foot { margin: 14px 12px 0; padding-top: 14px; border-top: 1px solid rgba(255, 176, 112, 0.25); }
+.sb-foot { margin: 14px 12px 0; padding-top: 14px; border-top: 1px solid color-mix(in srgb, var(--t-soft, #f4ae52) 25%, transparent); }
 .sb-user { display: flex; align-items: center; gap: 12px; padding: 0 0 0 10px; height: 48px; border-radius: 16px; position: relative; }
 .sb-av {
   width: 40px; height: 40px; padding: 3px; border-radius: 50%; flex: none;
@@ -93,7 +93,7 @@
   width: 100%; display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 0; border-radius: 11px; background: none;
   font: inherit; font-size: 13px; font-weight: 600; color: inherit; cursor: pointer; text-align: left;
 }
-.sb-menu button:hover { background: #fff1e3; color: #c2410c; }
+.sb-menu button:hover { background: #fff1e3; color: var(--t-secondary, #a84a0f); }
 .sb-menu button.out { color: #b91c1c; }
 .sb-menu button.out:hover { background: #fee2e2; color: #b91c1c; }
 .sb-menu .material-symbols-outlined { font-size: 18px; }

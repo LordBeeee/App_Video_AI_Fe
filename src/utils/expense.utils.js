@@ -1,7 +1,7 @@
 export const TASK_META = {
-  chat:  { label: 'Chat AI',  icon: 'chat_bubble',    color: '#f38820' },
-  image: { label: 'Tạo ảnh',  icon: 'image',          color: '#ffad5c' },
-  video: { label: 'Tạo video', icon: 'smart_display', color: '#bd5706' },
+  chat:  { label: 'Chat AI',  icon: 'chat_bubble',    color: 'var(--t-primary, #d4621a)' },
+  image: { label: 'Tạo ảnh',  icon: 'image',          color: 'color-mix(in srgb, var(--t-primary, #d4621a), white 30%)' },
+  video: { label: 'Tạo video', icon: 'smart_display', color: 'color-mix(in srgb, var(--t-primary, #d4621a), black 22%)' },
   audio: { label: 'Giọng nói', icon: 'graphic_eq',    color: '#8a7c71' },
 }
 
