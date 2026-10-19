@@ -7,7 +7,7 @@ import {
   validVideoShots,
 } from "../../utils/createStudio.utils";
 
-export default function PromptEditor({ modality, capabilities, prompt, setPrompt, options, setOptions, onFocusShot }) {
+export default function PromptEditor({ modality, modelId, capabilities, prompt, setPrompt, options, setOptions, onFocusShot }) {
   const isMediaPrompt = modality === "image" || modality === "video";
   const promptTokenCount = useMemo(
     () => (isMediaPrompt ? countTokens(prompt) : 0),
@@ -31,6 +31,32 @@ export default function PromptEditor({ modality, capabilities, prompt, setPrompt
     } else {
       setPrompt(limitMediaPrompt(value));
     }
+  };
+
+  const handleMentionDragOver = (event) => {
+    if (!event.dataTransfer.types.includes("application/x-kling-mention")) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+  };
+
+  const handleMentionDrop = (event, shotIndex) => {
+    const mention = event.dataTransfer.getData("application/x-kling-mention");
+    if (!/^@(image|video|element)_\d+$/.test(mention)) return;
+    event.preventDefault();
+    const field = event.currentTarget;
+    const value = field.value;
+    const start = document.activeElement === field ? field.selectionStart : value.length;
+    const end = document.activeElement === field ? field.selectionEnd : value.length;
+    const before = value.slice(0, start);
+    const after = value.slice(end);
+    const next = `${before}${before && !/\s$/.test(before) ? " " : ""}${mention}${after && !/^\s/.test(after) ? " " : ""}${after}`;
+    const limit = shotIndex == null ? capabilities.maxPromptCharacters || 2500 : 512;
+    if (next.length > limit) return;
+    if (shotIndex == null) setPrompt(next);
+    else setOptions((current) => ({
+      ...current,
+      shots: current.shots.map((shot, index) => index === shotIndex ? { ...shot, prompt: next } : shot),
+    }));
   };
 
   const countLabel = modality === "video" && capabilities.maxPromptCharacters
@@ -71,6 +97,8 @@ export default function PromptEditor({ modality, capabilities, prompt, setPrompt
               value={shot.prompt}
               onFocus={() => onFocusShot?.(index)}
               onChange={(event) => updateShot(index, { prompt: event.target.value.slice(0, 512) })}
+              onDragOver={handleMentionDragOver}
+              onDrop={(event) => handleMentionDrop(event, index)}
             />
             <small>{shot.prompt.length}/512 ký tự</small>
           </div>
@@ -99,6 +127,13 @@ export default function PromptEditor({ modality, capabilities, prompt, setPrompt
             tone="dark"
           />
         )}
+        {modality === "video" && modelId === "kling/kling-3.0-turbo" && (
+          <InfoTip
+            info="Có thể mô tả nội dung mong muốn và những điều cần tránh. Tối đa 2.500 ký tự."
+            label="Hướng dẫn prompt Kling 3.0 Turbo"
+            tone="dark"
+          />
+        )}
         <em>{countLabel}</em>
       </p>
       <textarea
@@ -106,6 +141,8 @@ export default function PromptEditor({ modality, capabilities, prompt, setPrompt
         maxLength={modality === "video" ? capabilities.maxPromptCharacters : undefined}
         onFocus={() => onFocusShot?.(null)}
         onChange={handleChange}
+        onDragOver={handleMentionDragOver}
+        onDrop={(event) => handleMentionDrop(event, null)}
         rows={8}
         placeholder={
           modality === "audio"

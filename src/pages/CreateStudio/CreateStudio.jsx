@@ -57,6 +57,8 @@ export default function CreateStudio() {
   const [promptCopied, setPromptCopied] = useState(false);
   const generationRun = useRef(0);
   const historyRequest = useRef(0);
+  const studioBody = useRef(null);
+  const dragScroll = useRef({ frame: 0, direction: 0 });
   const model = useMemo(
     () => models.find((item) => item.id === selectedModel),
     [models, selectedModel],
@@ -259,24 +261,35 @@ export default function CreateStudio() {
     } catch (err) { setError(err.message || "Upload video thất bại"); }
     finally { setUploading(false); event.target.value = ""; }
   };
-  const removeReference = (id) => setReferences((current) => {
-    const removed = current.find((item) => item.id === id);
-    const remaining = current.filter((item) => item.id !== id);
-    return removed?.role === "first_frame"
-      ? remaining.map((item) => item.role === "last_frame" ? { ...item, role: "first_frame" } : item)
-      : remaining;
-  });
+  const removeMention = (mention) => {
+    const pattern = new RegExp(`${mention}(?=\\s|$)`, "g");
+    setPrompt((current) => current.replace(pattern, ""));
+    setOptions((current) => !Array.isArray(current.shots) ? current : ({
+      ...current,
+      shots: current.shots.map((shot) => ({ ...shot, prompt: shot.prompt.replace(pattern, "") })),
+    }));
+  };
+  const removeReference = (id) => {
+    if (isOmni) removeMention(`@image_${id}`);
+    setReferences((current) => {
+      const removed = current.find((item) => item.id === id);
+      const remaining = current.filter((item) => item.id !== id);
+      return removed?.role === "first_frame"
+        ? remaining.map((item) => item.role === "last_frame" ? { ...item, role: "first_frame" } : item)
+        : remaining;
+    });
+  };
   const setVideoRole = (role) => {
     setVideoReference((current) => current && ({ ...current, role }));
     setOptions((current) => ({ ...current, multiShot: role === "feature_video", customShots: false, shots: [], audioMode: "off", generateAudio: false }));
   };
   const removeVideoReference = () => {
+    if (videoReference) removeMention(`@video_${videoReference.id}`);
     setVideoReference(null);
     setOptions((current) => ({ ...current, audioMode: "off", generateAudio: false }));
   };
 
-  const insertElementMention = (element) => {
-    const mention = `@element_${element.id}`;
+  const insertMention = (mention) => {
     if (customShots) {
       const index = activeShot != null && activeShot < options.shots.length ? activeShot : 0;
       setOptions((current) => ({ ...current, shots: current.shots.map((shot, i) => i === index
@@ -287,14 +300,46 @@ export default function CreateStudio() {
     }
   };
 
+  const insertElementMention = (element) => insertMention(`@element_${element.id}`);
+
+  const stopDragScroll = () => {
+    dragScroll.current.direction = 0;
+    if (dragScroll.current.frame) cancelAnimationFrame(dragScroll.current.frame);
+    dragScroll.current.frame = 0;
+  };
+
+  const scrollWhileDragging = () => {
+    const body = studioBody.current;
+    const direction = dragScroll.current.direction;
+    if (!body || !direction) {
+      dragScroll.current.frame = 0;
+      return;
+    }
+    body.scrollTop += direction * 9;
+    dragScroll.current.frame = requestAnimationFrame(scrollWhileDragging);
+  };
+
+  const handleStudioDragOver = (event) => {
+    if (!event.dataTransfer.types.includes("application/x-kling-mention")) return;
+    event.preventDefault();
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const edge = 90;
+    dragScroll.current.direction = event.clientY < bounds.top + edge ? -1
+      : event.clientY > bounds.bottom - edge ? 1 : 0;
+    if (dragScroll.current.direction && !dragScroll.current.frame) {
+      dragScroll.current.frame = requestAnimationFrame(scrollWhileDragging);
+    }
+  };
+
+  const handleStudioDragLeave = (event) => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    if (event.clientX < bounds.left || event.clientX > bounds.right ||
+      event.clientY < bounds.top || event.clientY > bounds.bottom) stopDragScroll();
+  };
+
   const removeElement = (element) => {
-    const mention = new RegExp(`@element_${element.id}(?=\\s|$)`, "g");
     setElements((current) => current.filter((item) => item.id !== element.id));
-    setPrompt((current) => current.replace(mention, ""));
-    setOptions((current) => !Array.isArray(current.shots) ? current : ({
-      ...current,
-      shots: current.shots.map((shot) => ({ ...shot, prompt: shot.prompt.replace(mention, "") })),
-    }));
+    removeMention(`@element_${element.id}`);
   };
 
   const copyPrompt = async (text) => {
@@ -367,7 +412,11 @@ export default function CreateStudio() {
 
       <div className="st-grid">
         <section className="au-card st-ctl">
-          <div key={modality} className="st-body">
+          <div key={modality} className="st-body" ref={studioBody}
+            onDragOver={handleStudioDragOver}
+            onDragLeave={handleStudioDragLeave}
+            onDragEndCapture={stopDragScroll}
+            onDropCapture={stopDragScroll}>
             <ModelPicker
               modality={modality}
               models={models}
@@ -395,9 +444,11 @@ export default function CreateStudio() {
               onRemoveElement={removeElement}
               setElementPickerOpen={setElementPickerOpen}
               onInsertElementMention={insertElementMention}
+              onInsertMention={insertMention}
             />
             <PromptEditor
               modality={modality}
+              modelId={selectedModel}
               capabilities={capabilities}
               prompt={prompt}
               setPrompt={setPrompt}

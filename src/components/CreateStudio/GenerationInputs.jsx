@@ -21,10 +21,17 @@ export default function GenerationInputs({
   onRemoveElement,
   setElementPickerOpen,
   onInsertElementMention,
+  onInsertMention,
 }) {
   const frameMode = modality === "video" && !isOmni && options.referenceMode !== "refer_image";
   const frames = references.filter((reference) => ["first_frame", "last_frame"].includes(reference.role));
   const referenceImages = references.filter((reference) => reference.role === "refer_image");
+  const dragMention = (event, mention) => {
+    event.dataTransfer.clearData();
+    event.dataTransfer.setData("application/x-kling-mention", mention);
+    event.dataTransfer.setData("text/plain", mention);
+    event.dataTransfer.effectAllowed = "copy";
+  };
   const addImage = (target) => (
     <div className="st-add">
       <label title={uploading ? "Đang tải ảnh" : "Tải ảnh"}>
@@ -40,11 +47,14 @@ export default function GenerationInputs({
     </div>
   );
   const imageCard = (reference, label) => (
-    <div className="st-ref" key={reference.id}>
-      <img src={reference.url} alt={label} />
+    <div className={`st-ref${isOmni ? " st-mention-ref" : ""}`} key={reference.id}>
+      <img src={reference.url} alt={label} draggable={isOmni}
+        onDragStart={isOmni ? (event) => dragMention(event, `@image_${reference.id}`) : undefined} />
       <button type="button" className="del" aria-label={`Xóa ${label}`}
         onClick={() => onRemoveReference(reference.id)}>Xóa</button>
-      <span className="cap">{label}</span>
+      {isOmni ? <button type="button" className="cap st-element-mention" title="Chèn vào prompt"
+        onClick={() => onInsertMention(`@image_${reference.id}`)}>{label} · @image_{reference.id}</button>
+        : <span className="cap">{label}</span>}
     </div>
   );
 
@@ -109,7 +119,8 @@ export default function GenerationInputs({
       )}
       {isOmni && <div className="st-box">
         <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">smart_display</span></span><span className="g">Video tham chiếu</span><InfoTip info="Dùng tối đa một video MP4/MOV để tham chiếu đặc điểm hình ảnh hoặc làm video gốc cần chỉnh sửa. Khả năng tạo âm thanh và nhiều cảnh phụ thuộc cách dùng video." label="Hướng dẫn video tham chiếu" tone="dark" /></p>
-        {videoReference ? <div className="st-refs"><div className="st-ref st-element"><video src={videoReference.url} muted playsInline /><button type="button" className="st-element-remove" onClick={onRemoveVideoReference}>×</button></div>
+        {videoReference ? <div className="st-refs"><div className="st-ref st-element"><div draggable
+          onDragStart={(event) => dragMention(event, `@video_${videoReference.id}`)}><video src={videoReference.url} muted playsInline /></div><button type="button" className="st-element-remove" onClick={onRemoveVideoReference}>×</button><button type="button" className="cap st-element-mention" title="Chèn vào prompt" onClick={() => onInsertMention(`@video_${videoReference.id}`)}>@video_{videoReference.id}</button></div>
           <select className="st-ref-role" aria-label="Cách dùng video" value={videoReference.role} onChange={(event) => onVideoRoleChange(event.target.value)}>
             <option value="feature_video">Tham chiếu đặc điểm</option><option value="base_video">Chỉnh sửa video</option>
           </select></div> : <div className="st-add"><label title="Tải video"><span className="material-symbols-outlined">upload</span><input type="file" accept="video/mp4,video/quicktime" style={{ display: "none" }} disabled={uploading} onChange={uploadVideoReference} /></label><button type="button" onClick={() => setVideoPickerOpen(true)}>Lịch sử</button></div>}
@@ -124,11 +135,7 @@ export default function GenerationInputs({
           <div className="st-refs">
             {elements.map((element) => (
               <div className="st-ref st-element" key={element.id} title={`Kéo vào prompt hoặc nhấn @element_${element.id}`}>
-                <div draggable onDragStart={(event) => {
-                  event.dataTransfer.clearData();
-                  event.dataTransfer.setData("text/plain", `@element_${element.id}`);
-                  event.dataTransfer.effectAllowed = "copy";
-                }}>
+                <div draggable onDragStart={(event) => dragMention(event, `@element_${element.id}`)}>
                   {element.type === "video" ? <video src={element.url} muted playsInline /> : <img src={element.url} alt={element.name || `Element ${element.id}`} />}
                 </div>
                 <button type="button" className="st-element-remove" aria-label={`Gỡ ${element.name || `Element ${element.id}`}`} onClick={() => onRemoveElement(element)}>×</button>
