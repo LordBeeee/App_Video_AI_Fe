@@ -79,6 +79,10 @@ export default function Library() {
   [items, favoritesOnly, typeFilter, activeTab, providerFilter]);
 
   useEffect(() => {
+    setMenuOpenId(null);
+  }, [activeTab, typeFilter, favoritesOnly, providerFilter]);
+
+  useEffect(() => {
     if (activeTab !== "Reference" || !items.some((item) =>
       ["submitted", "processing"].includes(item.status) ||
       ["submitted", "processing"].includes(item.deleteStatus))) return;
