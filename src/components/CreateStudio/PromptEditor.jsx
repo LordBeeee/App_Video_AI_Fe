@@ -6,7 +6,7 @@ import {
   validVideoShots,
 } from "../../utils/createStudio.utils";
 
-export default function PromptEditor({ modality, capabilities, prompt, setPrompt, options, setOptions }) {
+export default function PromptEditor({ modality, capabilities, prompt, setPrompt, options, setOptions, onFocusShot }) {
   const isMediaPrompt = modality === "image" || modality === "video";
   const promptTokenCount = useMemo(
     () => (isMediaPrompt ? countTokens(prompt) : 0),
@@ -64,6 +64,7 @@ export default function PromptEditor({ modality, capabilities, prompt, setPrompt
               aria-label={`Mô tả shot ${index + 1}`}
               placeholder={`Mô tả hành động cho shot ${index + 1}...`}
               value={shot.prompt}
+              onFocus={() => onFocusShot?.(index)}
               onChange={(event) => updateShot(index, { prompt: event.target.value })}
             />
             <small>{shot.prompt.length}/512 ký tự</small>
@@ -90,6 +91,7 @@ export default function PromptEditor({ modality, capabilities, prompt, setPrompt
       </p>
       <textarea
         value={prompt}
+        onFocus={() => onFocusShot?.(null)}
         onChange={handleChange}
         rows={8}
         placeholder={

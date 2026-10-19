@@ -7,6 +7,10 @@ export default function ReferenceInputs({
   uploading,
   uploadReference,
   setReferencePickerOpen,
+  elements,
+  onRemoveElement,
+  setElementPickerOpen,
+  onInsertElementMention,
 }) {
   const frameMode = modality === "video" && options.referenceMode !== "refer_image";
 
@@ -55,6 +59,30 @@ export default function ReferenceInputs({
               </div>
             )}
           </div>
+        </div>
+      )}
+      {elements && (
+        <div className="st-box">
+          <p className="st-lb">
+            <span className="ic"><span className="material-symbols-outlined">bookmark</span></span>
+            <span className="g">Ref · Element ({elements.length}/3)</span>
+          </p>
+          <div className="st-refs">
+            {elements.map((element) => (
+              <div className="st-element" key={element.id} title={element.name || `Element ${element.id}`}>
+                <img src={element.url} alt={element.name || `Element ${element.id}`} />
+                <button type="button" className="st-element-remove" aria-label={`Gỡ ${element.name || `Element ${element.id}`}`} onClick={() => onRemoveElement(element)}>×</button>
+                <button type="button" className="st-element-mention" title="Chèn vào prompt" onClick={() => onInsertElementMention(element)}>@element_{element.id}</button>
+              </div>
+            ))}
+            {elements.length < 3 && (
+              <button type="button" className="st-add st-element-add" onClick={() => setElementPickerOpen(true)}>
+                <span className="material-symbols-outlined">add</span>
+                <span>Ref</span>
+              </button>
+            )}
+          </div>
+          <p className="st-element-help">Element cần xuất hiện trong ảnh đầu hoặc ảnh cuối. Nhấn @element để chèn vào prompt.</p>
         </div>
       )}
     </>

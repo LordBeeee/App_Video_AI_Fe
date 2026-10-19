@@ -43,8 +43,11 @@ export default function CreateStudio() {
     maxOutputTokens: 1024,
   });
   const [references, setReferences] = useState([]);
+  const [elements, setElements] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [referencePickerOpen, setReferencePickerOpen] = useState(false);
+  const [elementPickerOpen, setElementPickerOpen] = useState(false);
+  const [activeShot, setActiveShot] = useState(null);
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
@@ -62,11 +65,14 @@ export default function CreateStudio() {
   const generationPrompt = customShots
     ? shotsValid ? formatVideoShots(options.shots) : ""
     : prompt;
+  const quoteOptions = useMemo(() => selectedModel === "kling/kling-3.0"
+    ? { ...options, elementAssetIds: elements.map((element) => element.id) }
+    : options, [selectedModel, options, elements]);
   const { quote, quoteError, clearQuote } = usePriceQuote({
     modality,
     modelSlug: selectedModel,
     prompt: generationPrompt,
-    options,
+    options: quoteOptions,
     enabled: shotsValid,
   });
   const referenceLimit =
@@ -89,7 +95,9 @@ export default function CreateStudio() {
     setSelectedModel("");
     setResult(null);
     setReferences([]);
+    setElements([]);
     setReferencePickerOpen(false);
+    setElementPickerOpen(false);
     setGenerating(false);
     getAiCatalog(modality)
       .then((items) => {
@@ -126,6 +134,8 @@ export default function CreateStudio() {
       });
     }
     if (modality === "video") {
+      setElements([]);
+      setElementPickerOpen(false);
       setOptions({
         ...(capabilities.resolutions?.length
           ? { resolution: capabilities.resolutions[0] }
@@ -196,6 +206,35 @@ export default function CreateStudio() {
       return [...current, ...selected].slice(0, referenceLimit);
     });
     setReferencePickerOpen(false);
+  };
+
+  const addSelectedElements = (assets) => {
+    setElements((current) => [...current, ...assets
+      .filter((asset) => !current.some((item) => item.id === Number(asset.id)))
+      .map((asset) => ({ id: Number(asset.id), name: asset.metadata?.name, url: asset.thumbnailUrl || asset.storedUrl }))].slice(0, 3));
+    setElementPickerOpen(false);
+  };
+
+  const insertElementMention = (element) => {
+    const mention = `@element_${element.id}`;
+    if (customShots) {
+      const index = activeShot != null && activeShot < options.shots.length ? activeShot : 0;
+      setOptions((current) => ({ ...current, shots: current.shots.map((shot, i) => i === index
+        ? { ...shot, prompt: `${shot.prompt}${shot.prompt && !shot.prompt.endsWith(" ") ? " " : ""}${mention} `.slice(0, 512) }
+        : shot) }));
+    } else {
+      setPrompt((current) => `${current}${current && !current.endsWith(" ") ? " " : ""}${mention} `.slice(0, capabilities.maxPromptCharacters || 3072));
+    }
+  };
+
+  const removeElement = (element) => {
+    const mention = new RegExp(`@element_${element.id}(?=\\s|$)`, "g");
+    setElements((current) => current.filter((item) => item.id !== element.id));
+    setPrompt((current) => current.replace(mention, ""));
+    setOptions((current) => !Array.isArray(current.shots) ? current : ({
+      ...current,
+      shots: current.shots.map((shot) => ({ ...shot, prompt: shot.prompt.replace(mention, "") })),
+    }));
   };
 
   const copyPrompt = async (text) => {
@@ -283,6 +322,10 @@ export default function CreateStudio() {
               uploading={uploading}
               uploadReference={uploadReference}
               setReferencePickerOpen={setReferencePickerOpen}
+              elements={selectedModel === "kling/kling-3.0" ? elements : undefined}
+              onRemoveElement={removeElement}
+              setElementPickerOpen={setElementPickerOpen}
+              onInsertElementMention={insertElementMention}
             />
             <PromptEditor
               modality={modality}
@@ -291,6 +334,7 @@ export default function CreateStudio() {
               setPrompt={setPrompt}
               options={options}
               setOptions={setOptions}
+              onFocusShot={setActiveShot}
             />
             <MobileGenerationResult
               result={result}
@@ -339,6 +383,15 @@ export default function CreateStudio() {
           max={referenceLimit - references.length}
           onClose={() => setReferencePickerOpen(false)}
           onConfirm={addSelectedAssets}
+        />
+      )}
+      {elementPickerOpen && selectedModel === "kling/kling-3.0" && elements.length < 3 && (
+        <AssetPicker
+          type="element"
+          max={3 - elements.length}
+          excludedIds={elements.map((element) => element.id)}
+          onClose={() => setElementPickerOpen(false)}
+          onConfirm={addSelectedElements}
         />
       )}
 

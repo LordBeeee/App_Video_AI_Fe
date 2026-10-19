@@ -208,6 +208,7 @@
 .lb-pk .ck .material-symbols-outlined { font-size: 16px; }
 .lb-pks { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
 .lb-pks audio { margin-top: 4px; width: 100%; height: 32px; }
+.lb-ref-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px; font-size: 11px; font-weight: 600; }
 .lb-pkbar { flex: none; display: flex; align-items: center; gap: 10px; padding: 12px 20px; border-bottom: 1px solid var(--line); }
 .lb-pkbar .au-fl { margin-left: auto; }
 .lb-spin { animation: au-spin 1.2s linear infinite; }

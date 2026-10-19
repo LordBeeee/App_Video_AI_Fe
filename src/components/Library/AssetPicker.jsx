@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getLibraryAssetsApi } from "../../services/asset.service";
+import { getLibraryAssetsApi, getReferencesApi } from "../../services/asset.service";
 import { Pills, Empty } from "../Aurora/AuroraUI";
 import "./library.css";
 
@@ -8,34 +8,49 @@ const TABS = [
   { value: "upload", label: "Tải lên", icon: "cloud_upload" },
 ];
 
-export default function AssetPicker({ type = "image", max = 1, onConfirm, onClose }) {
+export default function AssetPicker({ type = "image", max = 1, excludedIds = [], onConfirm, onClose }) {
+  const choosingElement = type === "element";
   const [tab, setTab] = useState("upload");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [items, setItems] = useState([]);
   const [selected, setSelected] = useState([]);
   const [error, setError] = useState("");
+  const visibleItems = choosingElement
+    ? items.filter((item) => !excludedIds.some((id) => String(id) === String(item.id)))
+    : items;
 
   useEffect(() => {
     let active = true;
-    getLibraryAssetsApi({ tab, type: type === "voice-sample" ? "all" : type, favorite: favoritesOnly })
-      .then((data) => { if (active) { setItems((data.items || []).filter((item) => type !== "voice-sample" || ["audio", "video"].includes(item.assetType))); setError(""); } })
+    const load = choosingElement
+      ? getReferencesApi()
+      : getLibraryAssetsApi({ tab, type: type === "voice-sample" ? "all" : type, favorite: favoritesOnly });
+    load
+      .then((data) => { if (active) {
+        setItems((data.items || []).filter((item) => choosingElement
+          ? item.assetRole === "element" && item.metadata?.provider === "Kling AI" &&
+            item.metadata?.referenceType === "image" && item.metadata?.status === "succeed" &&
+            item.metadata?.elementId && !["submitting", "submitted", "processing", "succeed"].includes(item.metadata?.deleteStatus) &&
+            (!favoritesOnly || item.isFavorite)
+          : type !== "voice-sample" || ["audio", "video"].includes(item.assetType)));
+        setError("");
+      } })
       .catch((err) => { if (active) setError(err.message); });
     return () => { active = false; };
-  }, [tab, type, favoritesOnly]);
+  }, [tab, type, favoritesOnly, choosingElement]);
 
   return (
     <div className="au-mo lb-mo top" onMouseDown={onClose}>
       <div className="lb-mb lg" onMouseDown={(e) => e.stopPropagation()}>
         <div className="lb-mh">
           <div className="au-chl">
-            <span className="au-hic"><span className="material-symbols-outlined">{type === "voice-sample" ? "graphic_eq" : type === "video" ? "smart_display" : "image"}</span></span>
-            <h2 className="au-h3 au-fd">Chọn {type === "voice-sample" ? "mẫu giọng" : type === "video" ? "video" : "ảnh"} ({selected.length}/{max})</h2>
+            <span className="au-hic"><span className="material-symbols-outlined">{choosingElement ? "bookmark" : type === "voice-sample" ? "graphic_eq" : type === "video" ? "smart_display" : "image"}</span></span>
+            <h2 className="au-h3 au-fd">Chọn {choosingElement ? "Ref" : type === "voice-sample" ? "mẫu giọng" : type === "video" ? "video" : "ảnh"} ({selected.length}/{max})</h2>
           </div>
           <button type="button" onClick={onClose} className="au-ico" aria-label="Đóng" title="Đóng"><span className="material-symbols-outlined">close</span></button>
         </div>
 
         <div className="lb-pkbar">
-          <Pills items={TABS} value={tab} onChange={(value) => { setTab(value); setSelected([]); }} />
+          {choosingElement ? <Pills items={[{ value: "reference", label: "Reference", icon: "bookmark" }]} value="reference" onChange={() => {}} /> : <Pills items={TABS} value={tab} onChange={(value) => { setTab(value); setSelected([]); }} />}
           <button type="button" onClick={() => setFavoritesOnly((v) => !v)} aria-pressed={favoritesOnly} className={`au-fl${favoritesOnly ? " on" : ""}`}>
             <span className="material-symbols-outlined" style={favoritesOnly ? { fontVariationSettings: "'FILL' 1" } : undefined}>favorite</span>
             Yêu thích
@@ -44,9 +59,9 @@ export default function AssetPicker({ type = "image", max = 1, onConfirm, onClos
 
         <div className="lb-mbd au-scroll">
           {error && <p role="alert" className="lb-er">{error}</p>}
-          {!error && items.length === 0 && <Empty icon="perm_media" text="Chưa có tài nguyên phù hợp" />}
+          {!error && visibleItems.length === 0 && <Empty icon="perm_media" text="Chưa có tài nguyên phù hợp" />}
           <div className="lb-pks">
-            {items.map((item) => {
+            {visibleItems.map((item) => {
               const chosen = selected.some((id) => String(id) === String(item.id));
               return (
                 <div key={item.id} style={{ minWidth: 0 }}>
@@ -65,6 +80,7 @@ export default function AssetPicker({ type = "image", max = 1, onConfirm, onClos
                     )}
                     {chosen && <span className="ck"><span className="material-symbols-outlined">check</span></span>}
                   </button>
+                  {choosingElement && <span className="lb-ref-name">{item.metadata?.name || `Element #${item.id}`}</span>}
                   {type === "voice-sample" && item.assetType === "audio" && <audio controls src={item.storedUrl} />}
                 </div>
               );
