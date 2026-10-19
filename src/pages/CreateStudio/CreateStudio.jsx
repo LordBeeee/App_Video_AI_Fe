@@ -277,7 +277,6 @@ export default function CreateStudio() {
 
           <GenerationControls
             modality={modality}
-            selectedModel={selectedModel}
             options={options}
             capabilities={capabilities}
             model={model}
