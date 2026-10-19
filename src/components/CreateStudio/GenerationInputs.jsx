@@ -10,6 +10,7 @@ export default function GenerationInputs({
   uploadReference,
   setReferencePickerOpen,
   isOmni,
+  requiresFrame,
   onRemoveReference,
   videoReference,
   onRemoveVideoReference,
@@ -58,7 +59,7 @@ export default function GenerationInputs({
           </div>
         </div>
         <div className="st-box">
-          <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">add_photo_alternate</span></span><span className="g">Ảnh tham chiếu</span></p>
+          <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">add_photo_alternate</span></span><span className="g">Ảnh tham chiếu</span><InfoTip info="Ảnh tham chiếu giúp giữ nhân vật, vật thể, bối cảnh hoặc phong cách. Ảnh này không được dùng làm ảnh đầu hay ảnh cuối." label="Hướng dẫn ảnh tham chiếu" tone="dark" /></p>
           <div className="st-refs">
             {referenceImages.map((reference) => imageCard(reference, "Ảnh tham chiếu"))}
             {references.length < referenceLimit && addImage("reference")}
@@ -69,7 +70,7 @@ export default function GenerationInputs({
         <div className="st-box">
           <p className="st-lb">
             <span className="ic"><span className="material-symbols-outlined">add_photo_alternate</span></span>
-            <span className="g">{frameMode ? "Ảnh khung hình" : "Ảnh tham chiếu"}</span>
+            <span className="g">{frameMode ? "Ảnh khung hình" : "Ảnh tham chiếu"}{frameMode && requiresFrame && <span className="st-required" title="Ảnh đầu bắt buộc; ảnh cuối tùy chọn" aria-label="Ảnh đầu bắt buộc">*</span>}</span>
           </p>
           <div className="st-refs">
             {references.map((reference, index) => (
@@ -107,17 +108,17 @@ export default function GenerationInputs({
         </div>
       )}
       {isOmni && <div className="st-box">
-        <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">smart_display</span></span><span className="g">Video tham chiếu</span></p>
+        <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">smart_display</span></span><span className="g">Video tham chiếu</span><InfoTip info="Dùng tối đa một video MP4/MOV để tham chiếu đặc điểm hình ảnh hoặc làm video gốc cần chỉnh sửa. Khả năng tạo âm thanh và nhiều cảnh phụ thuộc cách dùng video." label="Hướng dẫn video tham chiếu" tone="dark" /></p>
         {videoReference ? <div className="st-refs"><div className="st-ref st-element"><video src={videoReference.url} muted playsInline /><button type="button" className="st-element-remove" onClick={onRemoveVideoReference}>×</button></div>
           <select className="st-ref-role" aria-label="Cách dùng video" value={videoReference.role} onChange={(event) => onVideoRoleChange(event.target.value)}>
-            <option value="feature_video">Tham chiếu chuyển động</option><option value="base_video">Chỉnh sửa video</option>
+            <option value="feature_video">Tham chiếu đặc điểm</option><option value="base_video">Chỉnh sửa video</option>
           </select></div> : <div className="st-add"><label title="Tải video"><span className="material-symbols-outlined">upload</span><input type="file" accept="video/mp4,video/quicktime" style={{ display: "none" }} disabled={uploading} onChange={uploadVideoReference} /></label><button type="button" onClick={() => setVideoPickerOpen(true)}>Lịch sử</button></div>}
       </div>}
       {elements && (
         <div className="st-box">
           <p className="st-lb">
             <span className="ic"><span className="material-symbols-outlined">bookmark</span></span>
-            <span className="g">Element ({elements.length}/3)</span>
+            <span className="g">Element</span>
             <InfoTip info="Chọn tối đa 3 Element. Kéo Element vào prompt hoặc nhấn @element để chèn." label="Hướng dẫn Element" tone="dark" />
           </p>
           <div className="st-refs">

@@ -28,6 +28,7 @@
 .st-lb .ic { width: 26px; height: 26px; border-radius: 9px; background: var(--ink); color: var(--or); display: flex; align-items: center; justify-content: center; flex: none; }
 .st-lb .ic .material-symbols-outlined { font-size: 16px; }
 .st-lb .g { flex: 1; min-width: 0; }
+.st-required { color: #ef4444; margin-left: 3px; font-weight: 800; }
 .st-lb em { color: var(--mute); }
 .st-lb em { font-style: normal; font-weight: 500; }
 

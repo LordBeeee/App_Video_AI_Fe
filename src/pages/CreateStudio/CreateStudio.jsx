@@ -384,6 +384,7 @@ export default function CreateStudio() {
               uploadReference={uploadReference}
               setReferencePickerOpen={setReferencePickerOpen}
               isOmni={isOmni}
+              requiresFrame={["kling/kling-3.0-turbo", "kling/kling-3.0"].includes(selectedModel)}
               onRemoveReference={removeReference}
               videoReference={videoReference}
               onRemoveVideoReference={removeVideoReference}

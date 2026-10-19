@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { countTokens } from "gpt-tokenizer";
+import { InfoTip } from "../Aurora/AuroraUI";
 import {
   limitMediaPrompt,
   MEDIA_PROMPT_TOKEN_LIMIT,
@@ -51,7 +52,7 @@ export default function PromptEditor({ modality, capabilities, prompt, setPrompt
         {shots.map((shot, index) => (
           <div className="st-shot st-box" key={index}>
             <div className="st-shot-head">
-              <b>Shot {index + 1}</b>
+              <b>Shot {index + 1}<span className="st-required" title="Mô tả shot bắt buộc" aria-label="Mô tả shot bắt buộc">*</span></b>
               <div className="st-shot-actions">
                 <button type="button" aria-label={`Giảm thời lượng shot ${index + 1}`} disabled={shot.duration <= 1} onClick={() => updateShot(index, { duration: Number(shot.duration) - 1 })}>−</button>
                 <span>{shot.duration}s</span>
@@ -90,11 +91,19 @@ export default function PromptEditor({ modality, capabilities, prompt, setPrompt
     <div className="st-box">
       <p className="st-lb">
         <span className="ic"><span className="material-symbols-outlined">edit_note</span></span>
-        <span className="g">{modality === "audio" ? "Kịch bản" : "Prompt"}</span>
+        <span className="g">{modality === "audio" ? "Kịch bản" : "Prompt"}{modality === "video" && <span className="st-required" title="Prompt bắt buộc" aria-label="Prompt bắt buộc">*</span>}</span>
+        {modality === "video" && capabilities.maxPromptCharacters === 3072 && (
+          <InfoTip
+            info="Giới hạn tối đa 3.072 ký tự; Kling khuyến nghị không quá 2.500 ký tự."
+            label="Giới hạn prompt Kling 3.0"
+            tone="dark"
+          />
+        )}
         <em>{countLabel}</em>
       </p>
       <textarea
         value={prompt}
+        maxLength={modality === "video" ? capabilities.maxPromptCharacters : undefined}
         onFocus={() => onFocusShot?.(null)}
         onChange={handleChange}
         rows={8}
