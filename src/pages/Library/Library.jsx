@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   getLibraryAssetsApi,
   setAssetFavoriteApi,
@@ -15,14 +15,16 @@ import CreateReferenceModal from "../../components/Library/CreateReferenceModal"
 import { mapAssetToItem } from "../../utils/library.utils";
 import "../../components/Library/library.css";
 
+const EMPTY_ITEMS = [];
+
 export default function Library() {
   const [activeTab, setActiveTab] = useState("Creative");
   const [typeFilter, setTypeFilter] = useState("all");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [providerFilter, setProviderFilter] = useState("all");
-  const [fetchError, setFetchError] = useState("");
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [fetchErrors, setFetchErrors] = useState({});
+  const [itemsByTab, setItemsByTab] = useState({});
+  const [loadingTab, setLoadingTab] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [creatingReference, setCreatingReference] = useState(false);
   const [deletingReferenceId, setDeletingReferenceId] = useState(null);
@@ -32,39 +34,55 @@ export default function Library() {
   const [promptCopied, setPromptCopied] = useState(false);
   const thumbRefs = useRef({});
   const fileInputRef = useRef(null);
+  const itemsByTabRef = useRef({});
+  const requestIdsRef = useRef({});
 
-  const fetchItems = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = activeTab === "Reference" ? await getReferencesApi() : await getLibraryAssetsApi({
-        tab: activeTab.toLowerCase(),
-        type: typeFilter,
-        favorite: favoritesOnly,
-      });
-      setItems((data.items || [])
-        .map(mapAssetToItem)
-        .filter((item) => !favoritesOnly || item.favorite)
-        .filter((item) => typeFilter === "all" || item.type === typeFilter)
-        .filter((item) => activeTab !== "Reference" || providerFilter === "all" || item.provider === providerFilter));
-      setFetchError("");
-    } catch (err) {
-      console.error("Fetch library failed:", err);
-      setFetchError(err.message || "Không tải được thư viện");
-      setItems([]);
-    } finally {
-      setLoading(false);
+  const updateTabItems = useCallback((tab, nextItems) => {
+    itemsByTabRef.current = { ...itemsByTabRef.current, [tab]: nextItems };
+    setItemsByTab(itemsByTabRef.current);
+  }, []);
+
+  const fetchItems = useCallback(async (tab) => {
+    const requestId = (requestIdsRef.current[tab] || 0) + 1;
+    requestIdsRef.current[tab] = requestId;
+    if (!itemsByTabRef.current[tab]) {
+      setLoadingTab(tab);
+      setFetchErrors((current) => ({ ...current, [tab]: "" }));
     }
-  }, [activeTab, typeFilter, favoritesOnly, providerFilter]);
+    try {
+      const data = tab === "Reference" ? await getReferencesApi() : await getLibraryAssetsApi({
+        tab: tab.toLowerCase(),
+      });
+      if (requestIdsRef.current[tab] !== requestId) return;
+      updateTabItems(tab, (data.items || []).map(mapAssetToItem));
+      setFetchErrors((current) => ({ ...current, [tab]: "" }));
+    } catch (err) {
+      if (requestIdsRef.current[tab] !== requestId) return;
+      console.error("Fetch library failed:", err);
+      setFetchErrors((current) => ({ ...current, [tab]: err.message || "Không tải được thư viện" }));
+    } finally {
+      if (requestIdsRef.current[tab] === requestId) {
+        setLoadingTab((current) => current === tab ? null : current);
+      }
+    }
+  }, [updateTabItems]);
 
   useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
+    fetchItems(activeTab);
+  }, [activeTab, fetchItems]);
+
+  const items = itemsByTab[activeTab] || EMPTY_ITEMS;
+  const filteredItems = useMemo(() => items
+    .filter((item) => !favoritesOnly || item.favorite)
+    .filter((item) => typeFilter === "all" || item.type === typeFilter)
+    .filter((item) => activeTab !== "Reference" || providerFilter === "all" || item.provider === providerFilter),
+  [items, favoritesOnly, typeFilter, activeTab, providerFilter]);
 
   useEffect(() => {
     if (activeTab !== "Reference" || !items.some((item) =>
       ["submitted", "processing"].includes(item.status) ||
       ["submitted", "processing"].includes(item.deleteStatus))) return;
-    const timer = setInterval(fetchItems, 10000);
+    const timer = setInterval(() => fetchItems("Reference"), 10000);
     return () => clearInterval(timer);
   }, [activeTab, items, fetchItems]);
 
@@ -77,7 +95,7 @@ export default function Library() {
       for (const file of files) {
         await uploadAssetApi(file);
       }
-      await fetchItems();
+      await fetchItems("Upload");
     } catch (err) {
       alert(err.message);
     } finally {
@@ -125,11 +143,12 @@ export default function Library() {
     const target = items.find((i) => i.id === id);
     if (!target) return;
     const next = !target.favorite;
-    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, favorite: next } : item)));
+    updateTabItems(activeTab, items.map((item) => (item.id === id ? { ...item, favorite: next } : item)));
     try {
       await setAssetFavoriteApi(id, next);
     } catch (err) {
-      setItems((prev) => prev.map((item) => (item.id === id ? { ...item, favorite: !next } : item)));
+      updateTabItems(activeTab, (itemsByTabRef.current[activeTab] || []).map((item) =>
+        item.id === id ? { ...item, favorite: !next } : item));
       alert(err.message);
     }
   };
@@ -142,16 +161,14 @@ export default function Library() {
     try {
       await deleteReferenceApi(item.id);
       setSelectedId((current) => current === item.id ? null : current);
-      await fetchItems();
+      await fetchItems("Reference");
     } catch (err) {
       alert(err.message);
-      await fetchItems();
+      await fetchItems("Reference");
     } finally {
       setDeletingReferenceId(null);
     }
   };
-
-  const filteredItems = items;
 
   const selectedItem = filteredItems.find((i) => i.id === selectedId) || null;
   const selectedIndex = filteredItems.findIndex((i) => i.id === selectedId);
@@ -173,7 +190,7 @@ export default function Library() {
 
   return (
     <Page>
-      <header className="au-head">
+      <header className="au-head lb-head">
         <h1 className="au-title au-fd">Thư viện</h1>
         <div className="au-tools">
           <LibraryAction
@@ -198,13 +215,13 @@ export default function Library() {
         count={filteredItems.length}
       />
 
-      {fetchError ? (
-        <ErrorBox message={fetchError} onRetry={fetchItems} />
+      {fetchErrors[activeTab] && !itemsByTab[activeTab] ? (
+        <ErrorBox message={fetchErrors[activeTab]} onRetry={() => fetchItems(activeTab)} />
       ) : (
         <Card className="lb-card">
           <MediaGrid
             items={filteredItems}
-            loading={loading}
+            loading={loadingTab === activeTab || !itemsByTab[activeTab]}
             favoritesOnly={favoritesOnly}
             onSelect={setSelectedId}
             onToggleFavorite={toggleFavorite}
@@ -213,7 +230,7 @@ export default function Library() {
             onDownload={handleDownload}
             onDelete={activeTab === "Reference" ? handleDeleteReference : undefined}
             deletingId={deletingReferenceId}
-            emptyMessage={activeTab === "Reference" && !loading ? "Chưa có Reference phù hợp" : undefined}
+            emptyMessage={activeTab === "Reference" && loadingTab !== activeTab ? "Chưa có Reference phù hợp" : undefined}
           />
         </Card>
       )}
@@ -237,7 +254,10 @@ export default function Library() {
           thumbRefs={thumbRefs}
         />
       )}
-      {creatingReference && <CreateReferenceModal onClose={() => setCreatingReference(false)} onCreated={fetchItems} />}
+      {creatingReference && <CreateReferenceModal onClose={() => setCreatingReference(false)} onCreated={() => {
+        fetchItems("Reference");
+        fetchItems("Upload");
+      }} />}
     </Page>
   );
 }

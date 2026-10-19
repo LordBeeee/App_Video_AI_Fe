@@ -1,3 +1,6 @@
+.lb-head { min-height: 48px; }
+.au-card.lb-card:hover { transform: none; }
+
 .lb-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; flex: none; }
 .lb-fls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .lb-fls .au-fl { padding: 8px 14px; font-size: 13px; }
