@@ -9,16 +9,63 @@ export default function GenerationInputs({
   uploading,
   uploadReference,
   setReferencePickerOpen,
+  isOmni,
+  onRemoveReference,
+  videoReference,
+  onRemoveVideoReference,
+  onVideoRoleChange,
+  setVideoPickerOpen,
+  uploadVideoReference,
   elements,
   onRemoveElement,
   setElementPickerOpen,
   onInsertElementMention,
 }) {
-  const frameMode = modality === "video" && options.referenceMode !== "refer_image";
+  const frameMode = modality === "video" && !isOmni && options.referenceMode !== "refer_image";
+  const frames = references.filter((reference) => ["first_frame", "last_frame"].includes(reference.role));
+  const referenceImages = references.filter((reference) => reference.role === "refer_image");
+  const addImage = (target) => (
+    <div className="st-add">
+      <label title={uploading ? "Đang tải ảnh" : "Tải ảnh"}>
+        <span className={`material-symbols-outlined${uploading ? " au-spin" : ""}`} aria-hidden="true">
+          {uploading ? "progress_activity" : "add_photo_alternate"}
+        </span>
+        <input type="file" aria-label={target === "frame" ? "Tải ảnh khung hình" : "Tải ảnh tham chiếu"}
+          accept={modality === "video" ? "image/jpeg,image/png" : "image/*"}
+          style={{ display: "none" }} disabled={uploading}
+          onChange={(event) => uploadReference(event, target)} />
+      </label>
+      <button type="button" onClick={() => setReferencePickerOpen(target)}>Lịch sử</button>
+    </div>
+  );
+  const imageCard = (reference, label) => (
+    <div className="st-ref" key={reference.id}>
+      <img src={reference.url} alt={label} />
+      <button type="button" className="del" aria-label={`Xóa ${label}`}
+        onClick={() => onRemoveReference(reference.id)}>Xóa</button>
+      <span className="cap">{label}</span>
+    </div>
+  );
 
   return (
     <>
-      {referenceLimit > 0 && (
+      {isOmni && referenceLimit > 0 && <>
+        <div className="st-box">
+          <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">add_photo_alternate</span></span><span className="g">Ảnh khung hình</span></p>
+          <div className="st-refs">
+            {frames.map((reference) => imageCard(reference, reference.role === "first_frame" ? "Ảnh đầu" : "Ảnh cuối"))}
+            {frames.length < 2 && references.length < referenceLimit && addImage("frame")}
+          </div>
+        </div>
+        <div className="st-box">
+          <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">add_photo_alternate</span></span><span className="g">Ảnh tham chiếu</span></p>
+          <div className="st-refs">
+            {referenceImages.map((reference) => imageCard(reference, "Ảnh tham chiếu"))}
+            {references.length < referenceLimit && addImage("reference")}
+          </div>
+        </div>
+      </>}
+      {!isOmni && referenceLimit > 0 && (
         <div className="st-box">
           <p className="st-lb">
             <span className="ic"><span className="material-symbols-outlined">add_photo_alternate</span></span>
@@ -26,20 +73,16 @@ export default function GenerationInputs({
           </p>
           <div className="st-refs">
             {references.map((reference, index) => (
-              <button
-                key={reference.id}
-                type="button"
-                onClick={() => setReferences((items) => items.filter((_, i) => i !== index))}
-                className="st-ref"
+              <div key={reference.id} className="st-ref"
               >
                 {reference.type === "video" ? (
                   <video src={reference.url} muted />
                 ) : (
                   <img src={reference.url} alt="Ảnh đầu vào" />
                 )}
-                <span className="del">Xóa</span>
+                <button type="button" className="del" onClick={() => setReferences((items) => items.filter((_, i) => i !== index))}>Xóa</button>
                 {frameMode && <span className="cap">{index === 0 ? "Ảnh đầu" : "Ảnh cuối"}</span>}
-              </button>
+              </div>
             ))}
             {references.length < referenceLimit && (
               <div className="st-add">
@@ -54,15 +97,22 @@ export default function GenerationInputs({
                     className="hidden"
                     style={{ display: "none" }}
                     disabled={uploading}
-                    onChange={uploadReference}
+                    onChange={(event) => uploadReference(event, "reference")}
                   />
                 </label>
-                <button type="button" onClick={() => setReferencePickerOpen(true)}>Lịch sử</button>
+                <button type="button" onClick={() => setReferencePickerOpen("reference")}>Lịch sử</button>
               </div>
             )}
           </div>
         </div>
       )}
+      {isOmni && <div className="st-box">
+        <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">smart_display</span></span><span className="g">Video tham chiếu</span></p>
+        {videoReference ? <div className="st-refs"><div className="st-ref st-element"><video src={videoReference.url} muted playsInline /><button type="button" className="st-element-remove" onClick={onRemoveVideoReference}>×</button></div>
+          <select className="st-ref-role" aria-label="Cách dùng video" value={videoReference.role} onChange={(event) => onVideoRoleChange(event.target.value)}>
+            <option value="feature_video">Tham chiếu chuyển động</option><option value="base_video">Chỉnh sửa video</option>
+          </select></div> : <div className="st-add"><label title="Tải video"><span className="material-symbols-outlined">upload</span><input type="file" accept="video/mp4,video/quicktime" style={{ display: "none" }} disabled={uploading} onChange={uploadVideoReference} /></label><button type="button" onClick={() => setVideoPickerOpen(true)}>Lịch sử</button></div>}
+      </div>}
       {elements && (
         <div className="st-box">
           <p className="st-lb">

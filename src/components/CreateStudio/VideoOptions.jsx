@@ -1,9 +1,9 @@
 import { FieldSelect, SeedField } from "./OptionFields";
 
-export default function VideoOptions({ options, capabilities, setOption, setOptions, setReferences }) {
+export default function VideoOptions({ options, capabilities, setOption, setOptions, setReferences, videoReference }) {
   return (
         <div className="st-g g12">
-          {(!capabilities.referenceModes || options.referenceMode === "refer_image") && (
+          {(!capabilities.referenceModes || capabilities.referenceVideos || options.referenceMode === "refer_image") && (
             <FieldSelect
               label="Tỷ lệ"
               icon="aspect_ratio"
@@ -19,7 +19,7 @@ export default function VideoOptions({ options, capabilities, setOption, setOpti
               className="c4"
             />
           )}
-          {capabilities.referenceModes?.length > 0 && (
+          {!capabilities.referenceVideos && capabilities.referenceModes?.length > 0 && (
             <FieldSelect
               label="Cách dùng ảnh"
               icon="photo_library"
@@ -119,7 +119,13 @@ export default function VideoOptions({ options, capabilities, setOption, setOpti
               capabilities.generateAudio ? "c10" : "c12"
             }
           />
-          {capabilities.generateAudio && (
+          {capabilities.referenceVideos && <FieldSelect
+            label="Âm thanh" icon="volume_up" value={options.audioMode || "off"}
+            onChange={(value) => setOptions((current) => ({ ...current, audioMode: value, generateAudio: value === "native" }))}
+            options={videoReference?.role === "base_video" ? ["off", "original"] : videoReference ? ["off"] : ["off", "native"]}
+            className="c10"
+          />}
+          {capabilities.generateAudio && !capabilities.referenceVideos && (
             <button
               type="button"
               aria-label={

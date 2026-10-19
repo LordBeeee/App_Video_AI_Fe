@@ -43,6 +43,8 @@ export default function CreateStudio() {
     maxOutputTokens: 1024,
   });
   const [references, setReferences] = useState([]);
+  const [videoReference, setVideoReference] = useState(null);
+  const [videoPickerOpen, setVideoPickerOpen] = useState(false);
   const [elements, setElements] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [referencePickerOpen, setReferencePickerOpen] = useState(false);
@@ -66,9 +68,22 @@ export default function CreateStudio() {
     ? shotsValid ? formatVideoShots(options.shots) : ""
     : prompt;
   const supportsElements = ["kling/kling-3.0", "kling/kling-3.0-omni"].includes(selectedModel);
-  const quoteOptions = useMemo(() => supportsElements
-    ? { ...options, elementAssetIds: elements.map((element) => element.id) }
-    : options, [supportsElements, options, elements]);
+  const isOmni = selectedModel === "kling/kling-3.0-omni";
+  const orderedImageReferences = useMemo(() => isOmni
+    ? [
+        ...references.filter((item) => item.role === "first_frame"),
+        ...references.filter((item) => item.role === "last_frame"),
+        ...references.filter((item) => item.role === "refer_image"),
+      ]
+    : references, [isOmni, references]);
+  const quoteOptions = useMemo(() => ({
+    ...options,
+    ...(supportsElements ? { elementAssetIds: elements.map((element) => element.id) } : {}),
+    ...(isOmni ? { referenceInputs: [
+      ...orderedImageReferences.map((reference) => ({ assetId: reference.id, type: reference.role || "refer_image" })),
+      ...(videoReference ? [{ assetId: videoReference.id, type: videoReference.role }] : []),
+    ] } : {}),
+  }), [supportsElements, isOmni, options, elements, orderedImageReferences, videoReference]);
   const { quote, quoteError, clearQuote } = usePriceQuote({
     modality,
     modelSlug: selectedModel,
@@ -77,7 +92,7 @@ export default function CreateStudio() {
     enabled: shotsValid,
   });
   const referenceLimit =
-    modality === "video" && options.referenceMode !== "refer_image"
+    modality === "video" && !isOmni && options.referenceMode !== "refer_image"
       ? Math.min(2, referenceLimitFor(modality, capabilities))
       : referenceLimitFor(modality, capabilities);
   const loadHistory = useCallback(async () => {
@@ -96,6 +111,7 @@ export default function CreateStudio() {
     setSelectedModel("");
     setResult(null);
     setReferences([]);
+    setVideoReference(null);
     setElements([]);
     setReferencePickerOpen(false);
     setElementPickerOpen(false);
@@ -136,6 +152,8 @@ export default function CreateStudio() {
     }
     if (modality === "video") {
       setElements([]);
+      setReferences([]);
+      setVideoReference(null);
       setElementPickerOpen(false);
       setOptions({
         ...(capabilities.resolutions?.length
@@ -149,10 +167,11 @@ export default function CreateStudio() {
           : {}),
         ...(capabilities.sizes?.length ? { size: "" } : {}),
         ...(capabilities.generateAudio ? { generateAudio: false } : {}),
-        ...(capabilities.referenceModes?.length
+        ...(!capabilities.referenceVideos && capabilities.referenceModes?.length
           ? { referenceMode: capabilities.referenceModes[0] }
           : {}),
         ...(capabilities.multiShot ? { multiShot: false, customShots: false, shots: [] } : {}),
+        ...(capabilities.referenceVideos ? { audioMode: "off" } : {}),
         ...(capabilities.seed ? { seed: "" } : {}),
       });
     }
@@ -173,19 +192,21 @@ export default function CreateStudio() {
     return () => clearTimeout(timer);
   }, [error]);
 
-  const uploadReference = async (event) => {
+  const uploadReference = async (event, target = "reference") => {
     const file = event.target.files?.[0];
     if (!file) return;
     setUploading(true);
     setError("");
     try {
       const asset = await uploadAssetApi(file);
-      setReferences((current) =>
-        [
-          ...current,
-          { id: Number(asset.id), url: asset.storedUrl, type: asset.assetType },
-        ].slice(-referenceLimit),
-      );
+      setReferences((current) => {
+        const frameCount = current.filter((item) => ["first_frame", "last_frame"].includes(item.role)).length;
+        if (current.length >= referenceLimit || (isOmni && target === "frame" && frameCount >= 2)) return current;
+        const role = isOmni ? target === "frame"
+          ? (frameCount === 0 ? "first_frame" : "last_frame")
+          : "refer_image" : undefined;
+        return [...current, { id: Number(asset.id), url: asset.storedUrl, type: asset.assetType, role }];
+      });
     } catch (err) {
       setError(err.message || "Upload thất bại");
     } finally {
@@ -194,17 +215,21 @@ export default function CreateStudio() {
     }
   };
 
-  const addSelectedAssets = (assets) => {
+  const addSelectedAssets = (assets, target = "reference") => {
     setReferences((current) => {
       const existingIds = new Set(current.map((item) => String(item.id)));
-      const selected = assets
-        .filter((asset) => !existingIds.has(String(asset.id)))
-        .map((asset) => ({
-          id: Number(asset.id),
-          url: asset.storedUrl,
-          type: asset.assetType,
-        }));
-      return [...current, ...selected].slice(0, referenceLimit);
+      const selected = [];
+      let frameCount = current.filter((item) => ["first_frame", "last_frame"].includes(item.role)).length;
+      for (const asset of assets) {
+        if (existingIds.has(String(asset.id)) || current.length + selected.length >= referenceLimit) continue;
+        if (isOmni && target === "frame" && frameCount >= 2) break;
+        selected.push({ id: Number(asset.id), url: asset.storedUrl, type: asset.assetType,
+          role: isOmni ? target === "frame"
+            ? (frameCount++ === 0 ? "first_frame" : "last_frame")
+            : "refer_image" : undefined });
+        existingIds.add(String(asset.id));
+      }
+      return [...current, ...selected];
     });
     setReferencePickerOpen(false);
   };
@@ -214,6 +239,40 @@ export default function CreateStudio() {
       .filter((asset) => !current.some((item) => item.id === Number(asset.id)))
       .map((asset) => ({ id: Number(asset.id), name: asset.metadata?.name, url: asset.thumbnailUrl || asset.storedUrl, type: asset.assetType }))].slice(0, 3));
     setElementPickerOpen(false);
+  };
+  const addSelectedVideo = (assets) => {
+    const asset = assets[0];
+    if (asset) {
+      setVideoReference({ id: Number(asset.id), url: asset.storedUrl, role: "feature_video" });
+      setOptions((current) => ({ ...current, multiShot: true, audioMode: "off", generateAudio: false }));
+    }
+    setVideoPickerOpen(false);
+  };
+  const uploadVideoReference = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const asset = await uploadAssetApi(file);
+      setVideoReference({ id: Number(asset.id), url: asset.storedUrl, role: "feature_video" });
+      setOptions((current) => ({ ...current, multiShot: true, audioMode: "off", generateAudio: false }));
+    } catch (err) { setError(err.message || "Upload video thất bại"); }
+    finally { setUploading(false); event.target.value = ""; }
+  };
+  const removeReference = (id) => setReferences((current) => {
+    const removed = current.find((item) => item.id === id);
+    const remaining = current.filter((item) => item.id !== id);
+    return removed?.role === "first_frame"
+      ? remaining.map((item) => item.role === "last_frame" ? { ...item, role: "first_frame" } : item)
+      : remaining;
+  });
+  const setVideoRole = (role) => {
+    setVideoReference((current) => current && ({ ...current, role }));
+    setOptions((current) => ({ ...current, multiShot: role === "feature_video", customShots: false, shots: [], audioMode: "off", generateAudio: false }));
+  };
+  const removeVideoReference = () => {
+    setVideoReference(null);
+    setOptions((current) => ({ ...current, audioMode: "off", generateAudio: false }));
   };
 
   const insertElementMention = (element) => {
@@ -262,7 +321,7 @@ export default function CreateStudio() {
       generating ||
       !generationPrompt.trim() ||
       !shotsValid ||
-      (modality === "video" && !references.length)
+      (modality === "video" && !isOmni && !references.length)
     ) return;
     const run = generationRun.current;
     setGenerating(true);
@@ -271,8 +330,9 @@ export default function CreateStudio() {
       let created = await createGeneration({
         quoteId: quote.quoteId,
         prompt: generationPrompt,
-        referenceUrls: references.map((item) => item.url),
-        referenceAssetIds: references.map((item) => item.id),
+        referenceUrls: orderedImageReferences.map((item) => item.url),
+        referenceAssetIds: [...orderedImageReferences.map((item) => item.id), ...(videoReference ? [videoReference.id] : [])],
+        ...(isOmni ? { elementAssetIds: elements.map((item) => item.id) } : {}),
       });
       if (run !== generationRun.current) return;
       setResult(created);
@@ -323,6 +383,13 @@ export default function CreateStudio() {
               uploading={uploading}
               uploadReference={uploadReference}
               setReferencePickerOpen={setReferencePickerOpen}
+              isOmni={isOmni}
+              onRemoveReference={removeReference}
+              videoReference={videoReference}
+              onRemoveVideoReference={removeVideoReference}
+              onVideoRoleChange={setVideoRole}
+              setVideoPickerOpen={setVideoPickerOpen}
+              uploadVideoReference={uploadVideoReference}
               elements={supportsElements ? elements : undefined}
               onRemoveElement={removeElement}
               setElementPickerOpen={setElementPickerOpen}
@@ -352,12 +419,14 @@ export default function CreateStudio() {
             model={model}
             setOptions={setOptions}
             setReferences={setReferences}
+            videoReference={videoReference}
             quote={quote}
             quoteError={quoteError}
             generating={generating}
             prompt={generationPrompt}
             references={references}
-            ready={shotsValid}
+            ready={shotsValid && (!isOmni || (!videoReference || !options.generateAudio) && (!videoReference || videoReference.role !== "base_video" || !options.multiShot))}
+            requiresReference={!isOmni}
             onGenerate={generate}
           />
         </section>
@@ -381,9 +450,11 @@ export default function CreateStudio() {
       {referencePickerOpen && referenceLimit > references.length && (
         <AssetPicker
           type="image"
-          max={referenceLimit - references.length}
+          max={isOmni && referencePickerOpen === "frame"
+            ? Math.min(2 - references.filter((item) => ["first_frame", "last_frame"].includes(item.role)).length, referenceLimit - references.length)
+            : referenceLimit - references.length}
           onClose={() => setReferencePickerOpen(false)}
-          onConfirm={addSelectedAssets}
+          onConfirm={(assets) => addSelectedAssets(assets, referencePickerOpen)}
         />
       )}
       {elementPickerOpen && supportsElements && elements.length < 3 && (
@@ -395,6 +466,9 @@ export default function CreateStudio() {
           onClose={() => setElementPickerOpen(false)}
           onConfirm={addSelectedElements}
         />
+      )}
+      {videoPickerOpen && isOmni && (
+        <AssetPicker type="video" max={1} onClose={() => setVideoPickerOpen(false)} onConfirm={addSelectedVideo} />
       )}
 
       {error && (

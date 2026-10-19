@@ -48,6 +48,7 @@
 .st-ref .del { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: color-mix(in srgb, var(--t-ink, #2a1a0e) 65%, transparent); color: #fff; font-size: 12px; font-weight: 700; }
 .st-ref:hover .del { display: flex; }
 .st-ref .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 0; text-align: center; background: color-mix(in srgb, var(--t-ink, #2a1a0e) 80%, transparent); color: var(--or); font-size: 10px; font-weight: 700; }
+.st-ref-role { min-width: 145px; height: 30px; border: 1px solid var(--line); border-radius: 8px; background: var(--pill); color: var(--ink); font-size: 11px; }
 .st-element > div { width: 100%; height: 100%; cursor: grab; }
 .st-element > div:active { cursor: grabbing; }
 .st-element-remove { position: absolute; top: 3px; right: 3px; border: 0; border-radius: 50%; background: var(--ink); color: #fff; cursor: pointer; }

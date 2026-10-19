@@ -3,7 +3,7 @@ import GenerationOptions from "./GenerationOptions";
 const money = (value) =>
   `${new Intl.NumberFormat("vi-VN").format(Number(value || 0))} ₫`;
 
-export default function GenerationControls({ modality, options, capabilities, model, setOptions, setReferences, quote, quoteError, generating, prompt, references, ready, onGenerate }) {
+export default function GenerationControls({ modality, options, capabilities, model, setOptions, setReferences, videoReference, quote, quoteError, generating, prompt, references, requiresReference = true, ready, onGenerate }) {
   const label = modality === "image" ? "ảnh" : modality === "video" ? "video" : "audio";
 
   return (
@@ -42,7 +42,7 @@ export default function GenerationControls({ modality, options, capabilities, mo
           <span className="material-symbols-outlined">expand_more</span>
           </summary>
           <div className="st-det-in">
-            <GenerationOptions modality={modality} options={options} capabilities={capabilities} model={model} setOptions={setOptions} setReferences={setReferences} />
+            <GenerationOptions modality={modality} options={options} capabilities={capabilities} model={model} setOptions={setOptions} setReferences={setReferences} videoReference={videoReference} />
           </div>
         </details>
         {modality === "video" && capabilities.multiShot && (
@@ -51,6 +51,8 @@ export default function GenerationControls({ modality, options, capabilities, mo
               type="button"
               className={`st-multi-toggle${options.multiShot ? " on" : ""}`}
               aria-pressed={!!options.multiShot}
+              disabled={!!videoReference}
+              title={videoReference ? "Chế độ nhiều cảnh được cố định theo loại video tham chiếu" : undefined}
               onClick={() => setOptions((current) => ({ ...current, multiShot: !current.multiShot, customShots: false, shots: [] }))}
             >
               <span className="st-multi-switch" /> Nhiều cảnh
@@ -88,7 +90,7 @@ export default function GenerationControls({ modality, options, capabilities, mo
         <button
           type="button"
           className="au-btn solid st-go"
-          disabled={!quote || generating || !prompt.trim() || !ready || (modality === "video" && !references.length)}
+          disabled={!quote || generating || !prompt.trim() || !ready || (modality === "video" && requiresReference && !references.length)}
           onClick={onGenerate}
         >
           <span className="material-symbols-outlined">bolt</span>
