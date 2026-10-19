@@ -7,7 +7,7 @@ import {
   deleteReferenceApi,
 } from "../../services/asset.service";
 
-import FilterBar, { TabBar } from "../../components/Library/FilterBar";
+import FilterBar, { LibraryAction, TabBar } from "../../components/Library/FilterBar";
 import { Page, Card, ErrorBox } from "../../components/Aurora/AuroraUI";
 import MediaGrid from "../../components/Library/MediaGrid";
 import DetailOverlay from "../../components/Library/DetailOverlay";
@@ -176,14 +176,14 @@ export default function Library() {
       <header className="au-head">
         <h1 className="au-title au-fd">Thư viện</h1>
         <div className="au-tools">
-          <TabBar
+          <LibraryAction
             activeTab={activeTab}
-            setActiveTab={setActiveTab}
             uploading={uploading}
             fileInputRef={fileInputRef}
             onUploadFile={handleUploadFile}
             onCreateReference={() => setCreatingReference(true)}
           />
+          <TabBar activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>
       </header>
 

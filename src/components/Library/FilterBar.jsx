@@ -13,10 +13,13 @@ export const TYPE_OPTIONS = [
   { value: "audio", label: "Âm thanh", icon: "graphic_eq" },
 ];
 
-export function TabBar({ activeTab, setActiveTab, uploading, fileInputRef, onUploadFile, onCreateReference }) {
+export function TabBar({ activeTab, setActiveTab }) {
+  return <Pills items={FILTER_TABS} value={activeTab} onChange={setActiveTab} />;
+}
+
+export function LibraryAction({ activeTab, uploading, fileInputRef, onUploadFile, onCreateReference }) {
   return (
     <>
-      <Pills items={FILTER_TABS} value={activeTab} onChange={setActiveTab} />
       {activeTab === "Reference" && (
         <button type="button" onClick={onCreateReference} className="au-btn solid">
           <span className="material-symbols-outlined">add</span>
