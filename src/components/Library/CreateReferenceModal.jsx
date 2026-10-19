@@ -100,9 +100,7 @@ export default function CreateReferenceModal({ onClose, onCreated }) {
           <button type="button" onClick={() => chooseFile(target)} className="au-ico" aria-label={`Tải lên ${label}`} title={`Tải lên ${label}`}>
             <span className="material-symbols-outlined">{target === "sample" ? "record_voice_over" : target === "video" ? "video_call" : "add_photo_alternate"}</span>
           </button>
-          <button type="button" onClick={() => setPicker(target)} className="au-ico" aria-label="Chọn từ lịch sử" title="Chọn từ lịch sử">
-            <span className="material-symbols-outlined">history</span>
-          </button>
+          <button type="button" onClick={() => setPicker(target)} className="au-fl lb-history" title="Chọn từ lịch sử">Lịch sử</button>
         </div>
       )}
     </div>
@@ -124,7 +122,7 @@ export default function CreateReferenceModal({ onClose, onCreated }) {
           </div>
 
           <div className="lb-mbd au-scroll">
-            <div>
+            <div className="lb-kind-tabs">
               <p className="lb-lab">Loại Reference</p>
               <Pills items={KINDS} value={kind} onChange={(value) => { setKind(value); setError(""); }} />
             </div>
