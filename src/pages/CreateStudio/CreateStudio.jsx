@@ -78,6 +78,20 @@ export default function CreateStudio() {
         ...references.filter((item) => item.role === "refer_image"),
       ]
     : references, [isOmni, references]);
+  const mentionAssets = useMemo(() => [
+    ...(isOmni ? references.map((reference) => ({
+      mention: `@image_${reference.id}`,
+      url: reference.url,
+      kind: "image",
+      label: reference.role === "first_frame" ? "Ảnh đầu" : reference.role === "last_frame" ? "Ảnh cuối" : "Ảnh tham chiếu",
+    })) : []),
+    ...(isOmni && videoReference ? [{
+      mention: `@video_${videoReference.id}`, url: videoReference.url, kind: "video", label: "Video tham chiếu",
+    }] : []),
+    ...(supportsElements ? elements.map((element) => ({
+      mention: `@element_${element.id}`, url: element.url, kind: element.type, label: element.name || "Element",
+    })) : []),
+  ], [isOmni, references, videoReference, supportsElements, elements]);
   const quoteOptions = useMemo(() => ({
     ...options,
     ...(supportsElements ? { elementAssetIds: elements.map((element) => element.id) } : {}),
@@ -263,10 +277,14 @@ export default function CreateStudio() {
   };
   const removeMention = (mention) => {
     const pattern = new RegExp(`${mention}(?=\\s|$)`, "g");
-    setPrompt((current) => current.replace(pattern, ""));
+    const withoutMention = (text) => {
+      const next = text.replace(pattern, "");
+      return next.trim() ? next : "";
+    };
+    setPrompt(withoutMention);
     setOptions((current) => !Array.isArray(current.shots) ? current : ({
       ...current,
-      shots: current.shots.map((shot) => ({ ...shot, prompt: shot.prompt.replace(pattern, "") })),
+      shots: current.shots.map((shot) => ({ ...shot, prompt: withoutMention(shot.prompt) })),
     }));
   };
   const removeReference = (id) => {
@@ -449,6 +467,7 @@ export default function CreateStudio() {
             <PromptEditor
               modality={modality}
               modelId={selectedModel}
+              mentionAssets={mentionAssets}
               capabilities={capabilities}
               prompt={prompt}
               setPrompt={setPrompt}

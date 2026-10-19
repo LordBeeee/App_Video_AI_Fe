@@ -42,6 +42,11 @@
 
 .st-ta { width: 100%; resize: none; border: 0; outline: 0; background: transparent; font: inherit; font-size: 14px; line-height: 1.55; color: var(--ink); }
 .st-ta::placeholder { color: #a09389; }
+.st-rich-prompt { white-space: pre-wrap; overflow-wrap: anywhere; cursor: text; }
+.st-rich-prompt:empty::before { content: attr(data-placeholder); color: #a09389; pointer-events: none; }
+.st-prompt-mention { display: inline-flex; align-items: center; gap: 4px; vertical-align: middle; max-width: 100%; padding: 2px 7px 2px 2px; border-radius: 6px; background: color-mix(in srgb, var(--or) 18%, transparent); color: var(--or); font-size: 12px; font-weight: 700; white-space: nowrap; user-select: all; }
+.st-prompt-mention img, .st-prompt-mention video { width: 23px; height: 23px; flex: none; object-fit: cover; border-radius: 4px; }
+.st-prompt-mention > span { overflow: hidden; text-overflow: ellipsis; }
 
 .st-refs { display: flex; flex-wrap: wrap; gap: 10px; }
 .st-ref { position: relative; width: 88px; height: 88px; padding: 0; border-radius: 16px; overflow: hidden; border: 1.5px solid var(--line); background: #fff; cursor: pointer; }
@@ -352,6 +357,7 @@
   .st-ctl .st-fs > .material-symbols-outlined { background: var(--or); color: var(--ink); }
   .st-ctl .st-ta, .st-ctl .st-fs input[type='number'] { color: #fff; }
   .st-ctl .st-ta::placeholder, .st-ctl .st-fs input::placeholder { color: color-mix(in srgb, var(--soft) 60%, transparent); }
+.st-ctl .st-rich-prompt:empty::before { color: color-mix(in srgb, var(--soft) 60%, transparent); }
   .st-ctl .st-add button { background: var(--or); color: var(--ink); }
   .st-ctl .st-add button:hover { background: var(--gold); }
   .st-ctl .st-sw.on { background: var(--or); border-color: var(--or); color: var(--ink); }

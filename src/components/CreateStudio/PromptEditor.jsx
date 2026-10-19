@@ -1,14 +1,16 @@
 import { useEffect, useMemo } from "react";
 import { countTokens } from "gpt-tokenizer";
 import { InfoTip } from "../Aurora/AuroraUI";
+import MentionPrompt from "./MentionPrompt";
 import {
   limitMediaPrompt,
   MEDIA_PROMPT_TOKEN_LIMIT,
   validVideoShots,
 } from "../../utils/createStudio.utils";
 
-export default function PromptEditor({ modality, modelId, capabilities, prompt, setPrompt, options, setOptions, onFocusShot }) {
+export default function PromptEditor({ modality, modelId, mentionAssets = [], capabilities, prompt, setPrompt, options, setOptions, onFocusShot }) {
   const isMediaPrompt = modality === "image" || modality === "video";
+  const richPrompt = ["kling/kling-3.0", "kling/kling-3.0-omni"].includes(modelId);
   const promptTokenCount = useMemo(
     () => (isMediaPrompt ? countTokens(prompt) : 0),
     [isMediaPrompt, prompt],
@@ -88,7 +90,16 @@ export default function PromptEditor({ modality, modelId, capabilities, prompt, 
                 </button>
               </div>
             </div>
-            <textarea
+            {richPrompt ? <MentionPrompt
+              value={shot.prompt}
+              onChange={(value) => updateShot(index, { prompt: value })}
+              assets={mentionAssets}
+              maxLength={512}
+              ariaLabel={`Mô tả shot ${index + 1}`}
+              placeholder={`Mô tả hành động cho shot ${index + 1}...`}
+              rows={3}
+              onFocus={() => onFocusShot?.(index)}
+            /> : <textarea
               className="st-ta"
               rows={3}
               maxLength={512}
@@ -99,7 +110,7 @@ export default function PromptEditor({ modality, modelId, capabilities, prompt, 
               onChange={(event) => updateShot(index, { prompt: event.target.value.slice(0, 512) })}
               onDragOver={handleMentionDragOver}
               onDrop={(event) => handleMentionDrop(event, index)}
-            />
+            />}
             <small>{shot.prompt.length}/512 ký tự</small>
           </div>
         ))}
@@ -136,7 +147,15 @@ export default function PromptEditor({ modality, modelId, capabilities, prompt, 
         )}
         <em>{countLabel}</em>
       </p>
-      <textarea
+      {richPrompt ? <MentionPrompt
+        value={prompt}
+        onChange={setPrompt}
+        assets={mentionAssets}
+        maxLength={capabilities.maxPromptCharacters || 2500}
+        ariaLabel="Prompt"
+        placeholder="Mô tả nội dung bạn muốn tạo..."
+        onFocus={() => onFocusShot?.(null)}
+      /> : <textarea
         value={prompt}
         maxLength={modality === "video" ? capabilities.maxPromptCharacters : undefined}
         onFocus={() => onFocusShot?.(null)}
@@ -150,7 +169,7 @@ export default function PromptEditor({ modality, modelId, capabilities, prompt, 
             : "Mô tả nội dung bạn muốn tạo..."
         }
         className="st-ta"
-      />
+      />}
     </div>
   );
 }
