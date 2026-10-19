@@ -54,13 +54,13 @@ export default function AuroraCombo({ data = [] }) {
           })}
         </div>
         <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
-          <path d={line} fill="none" stroke="#FF7A1A" strokeWidth="3.5" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+          <path d={line} fill="none" stroke="var(--t-primary, #d4621a)" strokeWidth="3.5" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
         </svg>
         {h && (
           <>
-            <span className="au-tr-vl" style={{ left: `${px(hover) * 100}%`, borderColor: '#C2410C' }} />
+            <span className="au-tr-vl" style={{ left: `${px(hover) * 100}%`, borderColor: 'var(--t-secondary, #a84a0f)' }} />
             <span className="au-tr-dot" style={{ left: `${px(hover) * 100}%`, top: `${(1 - h.cost / cs.top) * 100}%` }} />
-            <div className="au-tr-tip" style={px(hover) > 0.62 ? { right: `calc(${(1 - px(hover)) * 100}% + 14px)` } : { left: `calc(${px(hover) * 100}% + 14px)` }}>
+            <div className="au-tr-tip top" style={px(hover) > 0.62 ? { right: `calc(${(1 - px(hover)) * 100}% + 14px)` } : { left: `calc(${px(hover) * 100}% + 14px)` }}>
               <i>{dayLabel(h.day)}</i>
               <b>{moneyShort(h.cost)}</b>
               <i>{formatNum(h.requests)} yêu cầu · {formatNum(h.failed)} lỗi</i>

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from '../components/Sidebar/Sidebar'
 import SpendingBubble from '../components/Spending/SpendingBubble'
+import ThemePicker from '../components/Theme/ThemePicker'
 import { useSidebarStore } from '../store/sidebar.store'
 
 export default function MainLayout({ children }) {
@@ -25,6 +26,7 @@ export default function MainLayout({ children }) {
         {children ?? <Outlet />}
       </main>
       <SpendingBubble />
+      <ThemePicker />
     </>
   )
 }

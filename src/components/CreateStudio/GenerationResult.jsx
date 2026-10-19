@@ -33,10 +33,10 @@ export function MobileGenerationResult({ result, modality, onCopyPrompt, promptC
 
 export function DesktopGenerationResult({ result, modality, icon, onCopyPrompt, promptCopied }) {
   return (
-    <section className="au-card dark st-res">
+    <section className="au-card st-res">
       <div className="st-res-in">
         {!result && (
-          <Empty tone="dark" icon={icon} text="Sẵn sàng sáng tạo" hint="Chọn model, nhập prompt và xem giá trước khi tạo." />
+          <Empty icon={icon} text="Sẵn sàng sáng tạo" hint="Chọn model, nhập prompt và xem giá trước khi tạo." />
         )}
         {result && !result.outputUrls?.length && (
           <div className="st-wait">

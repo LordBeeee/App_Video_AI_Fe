@@ -120,7 +120,7 @@ function Header() {
 
         <button
           type="button"
-          className="rounded bg-primary px-5 py-1.5 text-sm font-bold text-on-primary shadow-[0_8px_18px_rgba(243,136,32,0.22)] transition-all hover:bg-primary-hover"
+          className="rounded bg-primary px-5 py-1.5 text-sm font-bold text-on-primary shadow-[0_8px_18px_rgba(212, 98, 26,0.22)] transition-all hover:bg-primary-hover"
         >
           Generate
         </button>

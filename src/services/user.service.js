@@ -152,9 +152,9 @@ export async function getSystemDailyStatsApi({ month, year }) {
 }
 
 /** Admin: tổng quan chi phí AI của nhân viên theo số ngày gần nhất */
-export async function getExpenseOverviewApi({ days = 30 } = {}) {
+export async function getExpenseOverviewApi(params = { days: 30 }) {
   try {
-    const res = await api.get('/users/expense-overview', { params: { days } })
+    const res = await api.get('/users/expense-overview', { params })
     return res.data
   } catch (error) {
     const msg = error.response?.data?.message
@@ -163,9 +163,9 @@ export async function getExpenseOverviewApi({ days = 30 } = {}) {
 }
 
 /** Admin: thống kê sử dụng AI của 1 nhân viên */
-export async function getEmployeeAiUsageApi(id, { days = 30 } = {}) {
+export async function getEmployeeAiUsageApi(id, params = { days: 30 }) {
   try {
-    const res = await api.get(`/users/${id}/ai-usage`, { params: { days } })
+    const res = await api.get(`/users/${id}/ai-usage`, { params })
     return res.data
   } catch (error) {
     const msg = error.response?.data?.message
@@ -191,5 +191,16 @@ export async function getMySpendingApi() {
   } catch (error) {
     const msg = error.response?.data?.message
     throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Lấy chi tiêu của bạn thất bại')
+  }
+}
+
+/** Admin: các lượt dùng AI của 1 nhân viên theo thời điểm trong ngày */
+export async function getEmployeeAiTimelineApi(id, params = { days: 30 }) {
+  try {
+    const res = await api.get(`/users/${id}/ai-usage/timeline`, { params })
+    return res.data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Lấy hoạt động của nhân viên thất bại')
   }
 }

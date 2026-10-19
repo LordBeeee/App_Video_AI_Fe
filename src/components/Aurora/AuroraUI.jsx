@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { getInitials } from '../../utils/employee.utils'
+import { AU_RANGES, todayStr, shiftDay, isCustomRange } from '../../utils/aurora.utils'
 import './aurora.css'
 
 export function Page({ children, after, hint = 'Hiệu quả sử dụng AI' }) {
@@ -45,6 +46,34 @@ export function Pills({ items, value, onChange }) {
           {it.label}
         </button>
       ))}
+    </div>
+  )
+}
+
+const RANGE_ITEMS = [
+  ...AU_RANGES.map((r) => ({ value: r.d, label: r.l })),
+  { value: 'custom', label: 'Tùy chọn', icon: 'date_range' },
+]
+
+export function RangePicker({ range, onChange }) {
+  const custom = isCustomRange(range)
+  const today = todayStr()
+  const pick = (v) => {
+    if (v !== 'custom') return onChange({ days: v })
+    if (!custom) onChange({ from: shiftDay(today, -6), to: today })
+  }
+  const setFrom = (v) => v && onChange({ from: v, to: range.to < v ? v : range.to })
+  const setTo = (v) => v && onChange({ from: range.from > v ? v : range.from, to: v })
+  return (
+    <div className="au-rp">
+      <Pills items={RANGE_ITEMS} value={custom ? 'custom' : range.days} onChange={pick} />
+      {custom && (
+        <div className="au-dr">
+          <input type="date" value={range.from} max={today} onChange={(e) => setFrom(e.target.value)} aria-label="Từ ngày" />
+          <span>→</span>
+          <input type="date" value={range.to} max={today} onChange={(e) => setTo(e.target.value)} aria-label="Đến ngày" />
+        </div>
+      )}
     </div>
   )
 }

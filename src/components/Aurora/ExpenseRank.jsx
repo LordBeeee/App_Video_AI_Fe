@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Avatar, Empty } from './AuroraUI'
 import { formatVND, formatNum } from '../../utils/expense.utils'
 import { timeAgo } from '../../utils/operations.utils'
-import { AU_TASK, moneyShort, pctOf } from '../../utils/aurora.utils'
+import { AU_TASK, auTaskLabel, moneyShort, pctOf } from '../../utils/aurora.utils'
 
 const SORTS = [
   { k: 'cost', l: 'Chi phí' },
@@ -80,6 +80,13 @@ export default function ExpenseRank({ employees = [], totalCost = 0 }) {
                         <span title="Yêu cầu"><span className="material-symbols-outlined">bolt</span>{formatNum(e.requests)}</span>
                         <span title="Lỗi"><span className="material-symbols-outlined">error</span>{formatNum(e.failed)}</span>
                         <span title="Dùng gần nhất"><span className="material-symbols-outlined">schedule</span>{e.lastUsedAt ? timeAgo(e.lastUsedAt) : '—'}</span>
+                      </div>
+                      <div className="au-rk-tk">
+                        {Object.keys(AU_TASK).filter((k) => (task === 'all' || task === k) && (e.requestsByTask?.[k] > 0 || e.costByTask[k] > 0)).map((k) => (
+                          <span key={k} title={`${auTaskLabel(k)}: ${formatNum(e.requestsByTask?.[k] || 0)} lượt · ${formatVND(e.costByTask[k])}`}>
+                            <i style={{ background: AU_TASK[k].color }} />{auTaskLabel(k)} <b>{formatNum(e.requestsByTask?.[k] || 0)}</b><em>{pctOf(e.costByTask[k], e.cost)}%</em>
+                          </span>
+                        ))}
                       </div>
                       <div className="au-stk">
                         <div style={{ width: `${(e.shown / max) * 100}%` }}>

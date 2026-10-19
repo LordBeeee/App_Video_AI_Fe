@@ -64,12 +64,12 @@ export function CostLine({ data = [], base }) {
           <svg viewBox="0 0 1000 300" preserveAspectRatio="none">
             <defs>
               <linearGradient id="au-cl-g" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stopColor="#FF7A1A" stopOpacity="0.34" />
-                <stop offset="100%" stopColor="#FF7A1A" stopOpacity="0" />
+                <stop offset="0%" stopColor="var(--t-primary, #d4621a)" stopOpacity="0.34" />
+                <stop offset="100%" stopColor="var(--t-primary, #d4621a)" stopOpacity="0" />
               </linearGradient>
             </defs>
             {area && <path d={area} fill="url(#au-cl-g)" />}
-            <path d={line} fill="none" stroke="#FF7A1A" strokeWidth="3.5" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+            <path d={line} fill="none" stroke="var(--t-primary, #d4621a)" strokeWidth="3.5" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
           </svg>
         </div>
         {has(base) && base > 0 && (
@@ -125,7 +125,7 @@ export function Heatmap({ heat = [] }) {
                 key={c}
                 className="au-hm-c"
                 title={`${DOW[r]} · ${c}h: ${formatNum(n)} lượt`}
-                style={{ background: n ? `rgba(255,122,26,${(0.16 + 0.84 * Math.sqrt(n / max)).toFixed(2)})` : undefined }}
+                style={{ background: n ? `rgba(212, 98, 26,${(0.16 + 0.84 * Math.sqrt(n / max)).toFixed(2)})` : undefined }}
               />
             ))}
           </div>

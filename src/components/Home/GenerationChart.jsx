@@ -128,7 +128,7 @@ export default function GenerationChart({
 
           <div className="flex items-center gap-6">
             {[
-              { color: 'bg-primary', shadow: 'shadow-[0_0_8px_rgba(243,136,32,0.45)]', label: 'Prompt' },
+              { color: 'bg-primary', shadow: 'shadow-[0_0_8px_rgba(212, 98, 26,0.45)]', label: 'Prompt' },
               { color: 'bg-[#ffad5c]', shadow: 'shadow-[0_0_8px_rgba(255,173,92,0.45)]', label: 'Ảnh' },
               { color: 'bg-[#bd5706]', shadow: 'shadow-[0_0_8px_rgba(189,87,6,0.4)]', label: 'Video' },
             ].map(({ color, shadow, label }) => (
@@ -188,8 +188,8 @@ export default function GenerationChart({
                 >
                   <defs>
                     <linearGradient id="indigoGradient" x1="0" x2="0" y1="0" y2="1">
-                      <stop offset="0%"   stopColor="#f38820" stopOpacity="0.28" />
-                      <stop offset="100%" stopColor="#f38820" stopOpacity="0"   />
+                      <stop offset="0%"   stopColor="var(--t-primary, #d4621a)" stopOpacity="0.28" />
+                      <stop offset="100%" stopColor="var(--t-primary, #d4621a)" stopOpacity="0"   />
                     </linearGradient>
                   </defs>
 
@@ -211,7 +211,7 @@ export default function GenerationChart({
 
                   {/* Prompts line */}
                   {promptPath && (
-                    <path d={promptPath} fill="none" stroke="#f38820" strokeWidth="3" strokeLinecap="round" />
+                    <path d={promptPath} fill="none" stroke="var(--t-primary, #d4621a)" strokeWidth="3" strokeLinecap="round" />
                   )}
 
                   {/* Images line */}

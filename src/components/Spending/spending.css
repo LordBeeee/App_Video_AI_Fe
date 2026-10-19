@@ -1,5 +1,5 @@
 .sp {
-  --or: #ff7a1a; --soft: #ffb070; --gold: #ffc44d; --ink: #241c17; --deep: #c2410c;
+  --or: var(--t-primary, #d4621a); --soft: var(--t-soft, #f4ae52); --gold: var(--t-accent, #f4ae52); --ink: var(--t-ink, #2a1a0e); --deep: var(--t-secondary, #a84a0f);
   position: fixed; z-index: 45; display: flex; flex-direction: column; align-items: flex-end; gap: 12px;
   font-family: 'Be Vietnam Pro', system-ui, sans-serif; font-size: 13px; color: #fff;
 }
@@ -8,12 +8,12 @@
 .sp-row { display: flex; align-items: center; gap: 10px; }
 .sp-fab {
   position: relative; width: 58px; height: 58px; border-radius: 50%; border: 2px solid var(--or); cursor: grab; padding: 0; touch-action: none; user-select: none;
-  background: radial-gradient(circle at 30% 25%, #44362c, #1f1814 70%); color: var(--or);
+  background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--t-ink, #2a1a0e), white 11%), color-mix(in srgb, var(--t-ink, #2a1a0e), black 14%) 70%); color: var(--or);
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 12px 28px -8px rgba(255, 122, 26, 0.55), 0 0 0 4px rgba(255, 122, 26, 0.12);
+  box-shadow: 0 12px 28px -8px color-mix(in srgb, var(--t-primary, #d4621a) 55%, transparent), 0 0 0 4px color-mix(in srgb, var(--t-primary, #d4621a) 12%, transparent);
   animation: sp-float 4.2s ease-in-out infinite; transition: transform 0.25s cubic-bezier(0.3, 1.4, 0.5, 1), box-shadow 0.25s;
 }
-.sp-fab:hover { transform: scale(1.1) rotate(-6deg); box-shadow: 0 16px 34px -8px rgba(255, 122, 26, 0.75), 0 0 0 6px rgba(255, 122, 26, 0.18); }
+.sp-fab:hover { transform: scale(1.1) rotate(-6deg); box-shadow: 0 16px 34px -8px color-mix(in srgb, var(--t-primary, #d4621a) 75%, transparent), 0 0 0 6px color-mix(in srgb, var(--t-primary, #d4621a) 18%, transparent); }
 .sp-fab .material-symbols-outlined { font-size: 27px; }
 .sp.open .sp-fab { animation: none; width: 46px; height: 46px; }
 .sp.open .sp-fab .material-symbols-outlined { font-size: 22px; }
@@ -32,8 +32,8 @@
 
 .sp-panel {
   width: 330px; max-width: calc(100vw - 24px); padding: 16px; border-radius: 24px; display: flex; flex-direction: column; gap: 14px;
-  background: linear-gradient(155deg, #2e241d 0%, #1f1814 100%); border: 2px solid var(--or);
-  box-shadow: 0 24px 50px -16px rgba(22, 16, 12, 0.7), 0 0 0 6px rgba(255, 122, 26, 0.1);
+  background: linear-gradient(155deg, color-mix(in srgb, var(--t-ink, #2a1a0e), white 4%) 0%, color-mix(in srgb, var(--t-ink, #2a1a0e), black 14%) 100%); border: 2px solid var(--or);
+  box-shadow: 0 24px 50px -16px rgba(22, 16, 12, 0.7), 0 0 0 6px color-mix(in srgb, var(--t-primary, #d4621a) 10%, transparent);
   transform-origin: bottom right; animation: sp-panel 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
   max-height: calc(100vh - 110px); overflow-y: auto; scrollbar-width: none;
 }
@@ -52,20 +52,20 @@
 .sp-big { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 40px; line-height: 1.05; letter-spacing: -0.01em; }
 .sp-big small { font-size: 16px; color: var(--or); margin-left: 5px; }
 .sp-dl { padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 700; background: rgba(255, 255, 255, 0.08); color: var(--soft); white-space: nowrap; }
-.sp-dl.up { background: rgba(255, 122, 26, 0.2); color: var(--gold); }
+.sp-dl.up { background: color-mix(in srgb, var(--t-primary, #d4621a) 20%, transparent); color: var(--gold); }
 .sp-dl.down { background: rgba(34, 165, 89, 0.2); color: #4ade80; }
 
 .sp-bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; height: 76px; }
 .sp-bc { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .sp-bt { flex: 1; display: flex; align-items: flex-end; border-radius: 6px; background: rgba(255, 255, 255, 0.05); overflow: hidden; }
-.sp-bt i { width: 100%; min-height: 3px; border-radius: 6px 6px 0 0; background: rgba(255, 176, 112, 0.55); transform-origin: bottom; animation: sp-grow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: var(--d); }
+.sp-bt i { width: 100%; min-height: 3px; border-radius: 6px 6px 0 0; background: color-mix(in srgb, var(--t-soft, #f4ae52) 55%, transparent); transform-origin: bottom; animation: sp-grow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: var(--d); }
 .sp-bc.now .sp-bt i { background: linear-gradient(0deg, var(--or), var(--gold)); }
 .sp-bc span { font-size: 10px; text-align: center; color: var(--soft); opacity: 0.8; }
 .sp-bc.now span { color: #fff; font-weight: 700; opacity: 1; }
 @keyframes sp-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 
 .sp-chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.sp-chips > div { position: relative; padding: 9px 10px; border-radius: 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 122, 26, 0.25); min-width: 0; transition: transform 0.2s, border-color 0.2s; }
+.sp-chips > div { position: relative; padding: 9px 10px; border-radius: 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid color-mix(in srgb, var(--t-primary, #d4621a) 25%, transparent); min-width: 0; transition: transform 0.2s, border-color 0.2s; }
 .sp-chips > div:hover { transform: translateY(-2px); border-color: var(--or); }
 .sp-chips span { display: block; font-size: 10.5px; color: var(--soft); white-space: nowrap; }
 .sp-chips b { display: block; margin-top: 3px; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -80,7 +80,7 @@
 .sp-mixl i { width: 8px; height: 8px; border-radius: 50%; }
 .sp-mixl b { color: #fff; }
 
-.sp-bud { padding-top: 12px; border-top: 1px solid rgba(255, 176, 112, 0.22); }
+.sp-bud { padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--t-soft, #f4ae52) 22%, transparent); }
 .sp-bud-t { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--soft); }
 .sp-bud-t button { width: 26px; height: 26px; border: 0; border-radius: 8px; background: none; color: var(--soft); cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .sp-bud-t button:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
@@ -91,12 +91,12 @@
 .sp-trk > div.bad { background: linear-gradient(90deg, #7f1d1d, #ef4444); }
 .sp-bud-s { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 11px; color: var(--soft); }
 .sp-bud-s .bad { color: #f87171; font-weight: 700; }
-.sp-set { width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px; border-radius: 14px; border: 1.5px dashed rgba(255, 176, 112, 0.5); background: none; color: var(--soft); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-.sp-set:hover { border-color: var(--or); color: #fff; background: rgba(255, 122, 26, 0.1); }
+.sp-set { width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px; border-radius: 14px; border: 1.5px dashed color-mix(in srgb, var(--t-soft, #f4ae52) 50%, transparent); background: none; color: var(--soft); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.sp-set:hover { border-color: var(--or); color: #fff; background: color-mix(in srgb, var(--t-primary, #d4621a) 10%, transparent); }
 .sp-set .material-symbols-outlined { font-size: 17px; }
 .sp-edit { display: flex; gap: 6px; }
 .sp-edit input { flex: 1; min-width: 0; height: 36px; padding: 0 12px; border-radius: 12px; border: 1.5px solid var(--or); background: rgba(255, 255, 255, 0.06); color: #fff; font: inherit; outline: none; }
-.sp-edit input::placeholder { color: rgba(255, 176, 112, 0.6); }
+.sp-edit input::placeholder { color: color-mix(in srgb, var(--t-soft, #f4ae52) 60%, transparent); }
 .sp-edit button { padding: 0 14px; border: 0; border-radius: 12px; background: var(--or); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
 
 .sp-go { display: flex; align-items: center; justify-content: center; gap: 6px; height: 38px; border-radius: 14px; background: var(--or); color: var(--ink); font-weight: 700; text-decoration: none; transition: transform 0.2s, background 0.2s; }
