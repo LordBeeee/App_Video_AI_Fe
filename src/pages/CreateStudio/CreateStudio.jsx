@@ -121,16 +121,40 @@ export default function CreateStudio() {
     }
   }, [modality]);
 
+  const changeModel = (nextModel) => {
+    if (nextModel === selectedModel) return;
+    generationRun.current += 1;
+    clearQuote();
+    setPrompt("");
+    setActiveShot(null);
+    setOptions({});
+    setReferences([]);
+    setVideoReference(null);
+    setElements([]);
+    setReferencePickerOpen(false);
+    setElementPickerOpen(false);
+    setVideoPickerOpen(false);
+    setUploading(false);
+    setGenerating(false);
+    setResult(null);
+    setError("");
+    setSelectedModel(nextModel);
+  };
+
   useEffect(() => {
     let active = true;
     setModels([]);
     setSelectedModel("");
+    setPrompt("");
+    setActiveShot(null);
     setResult(null);
     setReferences([]);
     setVideoReference(null);
     setElements([]);
     setReferencePickerOpen(false);
     setElementPickerOpen(false);
+    setVideoPickerOpen(false);
+    setUploading(false);
     setGenerating(false);
     getAiCatalog(modality)
       .then((items) => {
@@ -211,11 +235,14 @@ export default function CreateStudio() {
   const uploadReference = async (event, target = "reference") => {
     const file = event.target.files?.[0];
     if (!file) return;
+    const run = generationRun.current;
     setUploading(true);
     setError("");
     try {
       const asset = await uploadAssetApi(file);
+      if (run !== generationRun.current) return;
       setReferences((current) => {
+        if (run !== generationRun.current) return current;
         const frameCount = current.filter((item) => ["first_frame", "last_frame"].includes(item.role)).length;
         if (current.length >= referenceLimit || (isOmni && target === "frame" && frameCount >= 2)) return current;
         const role = isOmni ? target === "frame"
@@ -224,9 +251,9 @@ export default function CreateStudio() {
         return [...current, { id: Number(asset.id), url: asset.storedUrl, type: asset.assetType, role }];
       });
     } catch (err) {
-      setError(err.message || "Upload thất bại");
+      if (run === generationRun.current) setError(err.message || "Upload thất bại");
     } finally {
-      setUploading(false);
+      if (run === generationRun.current) setUploading(false);
       event.target.value = "";
     }
   };
@@ -267,13 +294,15 @@ export default function CreateStudio() {
   const uploadVideoReference = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    const run = generationRun.current;
     setUploading(true);
     try {
       const asset = await uploadAssetApi(file);
+      if (run !== generationRun.current) return;
       setVideoReference({ id: Number(asset.id), url: asset.storedUrl, role: "feature_video" });
       setOptions((current) => ({ ...current, multiShot: true, audioMode: "off", generateAudio: false }));
-    } catch (err) { setError(err.message || "Upload video thất bại"); }
-    finally { setUploading(false); event.target.value = ""; }
+    } catch (err) { if (run === generationRun.current) setError(err.message || "Upload video thất bại"); }
+    finally { if (run === generationRun.current) setUploading(false); event.target.value = ""; }
   };
   const removeMention = (mention) => {
     const pattern = new RegExp(`${mention}(?=\\s|$)`, "g");
@@ -439,7 +468,7 @@ export default function CreateStudio() {
               modality={modality}
               models={models}
               value={selectedModel}
-              onChange={setSelectedModel}
+              onChange={changeModel}
             />
             <GenerationInputs
               modality={modality}
