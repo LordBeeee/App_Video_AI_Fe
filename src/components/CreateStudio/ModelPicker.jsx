@@ -55,7 +55,6 @@ function capabilityTags(model, modality) {
     }
     if (capabilities.generateAudio) tags.push("Có âm thanh");
     if (capabilities.nativeAudioIncluded) tags.push("Có âm thanh mặc định");
-    if (model?.pricing?.unitType === "unpublished_api_rate") tags.push("Chưa có giá API");
   }
 
   if (modality === "audio" && model?.voices?.length) {
