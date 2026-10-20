@@ -1,10 +1,19 @@
 import GenerationOptions from "./GenerationOptions";
+import { videoAspectRatioApplies } from "../../utils/createStudio.utils";
 
 const money = (value) =>
   `${new Intl.NumberFormat("vi-VN").format(Number(value || 0))} ₫`;
 
 export default function GenerationControls({ modality, options, capabilities, model, setOptions, setReferences, videoReference, quote, quoteError, generating, prompt, references, requiresReference = true, ready, onGenerate }) {
   const label = modality === "image" ? "ảnh" : modality === "video" ? "video" : "audio";
+  const videoSettings = modality === "video" ? [
+    ...(videoAspectRatioApplies(capabilities, references, videoReference) && options.aspectRatio ? [options.aspectRatio] : []),
+    options.resolution || "Độ phân giải",
+    `${options.duration || 5}s`,
+    capabilities.nativeAudioIncluded ? "Có âm thanh mặc định"
+      : capabilities.referenceVideos && options.audioMode === "original" ? "Giữ âm thanh gốc"
+      : (capabilities.referenceVideos ? options.audioMode === "native" : options.generateAudio) ? "Có âm thanh" : "Tắt âm thanh",
+  ].join(" · ") : "";
 
   return (
     <div className="st-foot">
@@ -16,12 +25,7 @@ export default function GenerationControls({ modality, options, capabilities, mo
             <b>{modality === "video" && capabilities.multiShot ? "Cài đặt" : `Cài đặt ${modality === "image" ? "ảnh" : modality === "video" ? "video" : "audio"}`}</b>
             <span className="s">
               {modality === "video" && (
-                <span>
-                  {options.aspectRatio && `${options.aspectRatio} · `}
-                  {options.resolution || "Độ phân giải"} · {options.duration || 5}s
-                  {capabilities.nativeAudioIncluded && " · Có âm thanh"}
-                  {capabilities.generateAudio && (options.generateAudio ? " · Có âm thanh" : " · Tắt âm thanh")}
-                </span>
+                <span>{videoSettings}</span>
               )}
               {modality === "image" && (
                 <>
@@ -41,8 +45,8 @@ export default function GenerationControls({ modality, options, capabilities, mo
           </span>
           <span className="material-symbols-outlined">expand_more</span>
           </summary>
-          <div className="st-det-in">
-            <GenerationOptions modality={modality} options={options} capabilities={capabilities} model={model} setOptions={setOptions} setReferences={setReferences} videoReference={videoReference} />
+          <div className={`st-det-in${modality === "video" ? " st-video-det-in" : ""}`}>
+            <GenerationOptions modality={modality} options={options} capabilities={capabilities} model={model} setOptions={setOptions} setReferences={setReferences} references={references} videoReference={videoReference} />
           </div>
         </details>
         {modality === "video" && capabilities.multiShot && (

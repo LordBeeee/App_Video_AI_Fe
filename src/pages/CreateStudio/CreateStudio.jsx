@@ -13,7 +13,7 @@ import StudioTabs from "../../components/CreateStudio/StudioTabs";
 import AssetPicker from "../../components/Library/AssetPicker";
 import "../../components/Aurora/aurora.css";
 import "../../components/CreateStudio/studio.css";
-import { formatVideoShots, referenceLimitFor, validVideoShots, values } from "../../utils/createStudio.utils";
+import { formatVideoShots, referenceLimitFor, validVideoShots, values, videoAspectRatioApplies } from "../../utils/createStudio.utils";
 import { usePriceQuote } from "./usePriceQuote";
 import { uploadAssetApi } from "../../services/asset.service";
 import {
@@ -71,6 +71,7 @@ export default function CreateStudio() {
     : prompt;
   const supportsElements = ["kling/kling-3.0", "kling/kling-3.0-omni"].includes(selectedModel);
   const isOmni = selectedModel === "kling/kling-3.0-omni";
+  const isSeedance = model?.provider === "seedance";
   const orderedImageReferences = useMemo(() => isOmni
     ? [
         ...references.filter((item) => item.role === "first_frame"),
@@ -94,18 +95,20 @@ export default function CreateStudio() {
   ], [isOmni, references, videoReference, supportsElements, elements]);
   const quoteOptions = useMemo(() => ({
     ...options,
+    ...(isSeedance ? { referenceAssetIds: references.map((item) => item.id) } : {}),
+    ...(isOmni && !videoAspectRatioApplies(capabilities, references, videoReference) ? { aspectRatio: undefined } : {}),
     ...(supportsElements ? { elementAssetIds: elements.map((element) => element.id) } : {}),
     ...(isOmni ? { referenceInputs: [
       ...orderedImageReferences.map((reference) => ({ assetId: reference.id, type: reference.role || "refer_image" })),
       ...(videoReference ? [{ assetId: videoReference.id, type: videoReference.role }] : []),
     ] } : {}),
-  }), [supportsElements, isOmni, options, elements, orderedImageReferences, videoReference]);
+  }), [supportsElements, isOmni, isSeedance, options, capabilities, references, elements, orderedImageReferences, videoReference]);
   const { quote, quoteError, clearQuote } = usePriceQuote({
     modality,
     modelSlug: selectedModel,
     prompt: generationPrompt,
     options: quoteOptions,
-    enabled: shotsValid,
+    enabled: shotsValid && (!isSeedance || references.length > 0),
   });
   const referenceLimit =
     modality === "video" && !isOmni && options.referenceMode !== "refer_image"
@@ -480,7 +483,7 @@ export default function CreateStudio() {
               uploadReference={uploadReference}
               setReferencePickerOpen={setReferencePickerOpen}
               isOmni={isOmni}
-              requiresFrame={["kling/kling-3.0-turbo", "kling/kling-3.0"].includes(selectedModel)}
+              requiresFrame={capabilities.requiresImage}
               onRemoveReference={removeReference}
               videoReference={videoReference}
               onRemoveVideoReference={removeVideoReference}

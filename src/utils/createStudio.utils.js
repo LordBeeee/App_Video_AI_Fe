@@ -38,6 +38,12 @@ export function referenceLimitFor(modality, capabilities) {
   return 0;
 }
 
+export function videoAspectRatioApplies(capabilities, references = [], videoReference = null) {
+  if (!capabilities?.aspectRatios?.length) return false;
+  if (!capabilities.referenceVideos) return true;
+  return !videoReference && !references.some((reference) => reference.role === "first_frame");
+}
+
 export function formatVideoShots(shots) {
   return shots.map((shot, index) =>
     `shot ${index + 1}, ${shot.duration}, ${shot.prompt.trim()};`,

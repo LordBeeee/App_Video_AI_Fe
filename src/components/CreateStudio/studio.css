@@ -112,6 +112,11 @@
 .st-sum b { display: block; font-size: 13px; }
 .st-sum .s { display: flex; gap: 6px; overflow: hidden; white-space: nowrap; font-size: 11px; color: var(--mute); }
 .st-det-in { max-height: 36vh; overflow-y: auto; border-top: 1.5px solid var(--line); padding: 12px; }
+.st-video-options { gap: 12px; }
+.st-video-options .st-row { color: var(--ink); font-size: 13px; }
+.st-video-options .st-fs { width: 100%; }
+.st-video-audio-note { margin: 0; min-height: 44px; }
+.st-video-det-in { max-height: 50vh; scrollbar-width: thin; }
 .st-video-tools { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; min-width: 0; }
 .st-video-tools .st-det { min-width: 0; }
 .st-video-tools .st-det[open] { grid-column: 1 / -1; }
@@ -351,6 +356,7 @@
   .st-ctl .st-box, .st-ctl .st-det, .st-ctl .st-pick, .st-ctl .st-fs, .st-ctl .st-sw, .st-ctl .st-ref, .st-ctl .st-add { background: rgba(255, 255, 255, 0.05); border-color: color-mix(in srgb, var(--or) 28%, transparent); color: #fff; }
   .st-ctl .st-box:focus-within, .st-ctl .st-fs:focus-within, .st-ctl .st-fs:hover, .st-ctl .st-pick:hover:not(:disabled), .st-ctl .st-sw:hover { border-color: var(--or); }
   .st-ctl .st-lb { color: #fff; }
+  .st-ctl .st-video-options .st-row { color: #fff; }
   .st-ctl .st-lb em, .st-ctl .st-pick small, .st-ctl .st-pick .material-symbols-outlined, .st-ctl .st-sum > .material-symbols-outlined, .st-ctl .st-sum .s, .st-ctl .st-row, .st-ctl .st-ends, .st-ctl .st-add, .st-ctl .st-sw { color: var(--soft); }
   .st-ctl .st-sw:hover { color: #fff; }
   .st-ctl .st-lb .ic, .st-ctl .au-hic { background: transparent; box-shadow: inset 0 0 0 1.5px var(--or); color: var(--or); }
