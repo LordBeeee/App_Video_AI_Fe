@@ -145,6 +145,13 @@ export default function PromptEditor({ modality, modelId, mentionAssets = [], ca
             tone="dark"
           />
         )}
+        {modality === "video" && modelId === "seedance/seedance-2.5" && (
+          <InfoTip
+            info="Giới hạn tối đa 2.500 ký tự. BytePlus khuyến nghị prompt không quá 1.000 từ tiếng Anh để model ít bỏ sót chi tiết."
+            label="Hướng dẫn prompt Seedance 2.5"
+            tone="dark"
+          />
+        )}
         <em>{countLabel}</em>
       </p>
       {richPrompt ? <MentionPrompt
