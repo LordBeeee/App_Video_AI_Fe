@@ -130,6 +130,12 @@
 .st-video-options { gap: 12px; }
 .st-video-options .st-row { color: var(--ink); font-size: 13px; }
 .st-video-options .st-fs { width: 100%; }
+.st-ratio-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
+.st-ratio-option { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-width: 0; height: 54px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink); font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; transition: border-color .15s, background .15s; }
+.st-ratio-option:hover, .st-ratio-option:focus-visible { border-color: var(--or); outline: none; }
+.st-ratio-option.on { border-color: var(--or); background: var(--pill); color: var(--deep); }
+.st-ratio-option .material-symbols-outlined { font-size: 23px; line-height: 1; }
+.st-ratio-shape { display: block; flex: none; border: 2px solid currentColor; border-radius: 3px; }
 .st-video-audio-note { margin: 0; min-height: 44px; }
 .st-video-det-in { max-height: 50vh; scrollbar-width: thin; }
 .st-video-tools { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; min-width: 0; }
@@ -381,6 +387,9 @@
   .st-ctl .st-choice-options .st-dd-it { color: #fff; }
   .st-ctl .st-choice-options .st-dd-it:hover, .st-ctl .st-choice-options .st-dd-it:focus-visible { background: rgba(255, 255, 255, 0.08); }
   .st-ctl .st-choice-options .st-dd-it.on { background: color-mix(in srgb, var(--or) 18%, transparent); }
+  .st-ctl .st-ratio-option { background: rgba(255, 255, 255, 0.05); border-color: color-mix(in srgb, var(--or) 28%, transparent); color: var(--soft); }
+  .st-ctl .st-ratio-option:hover, .st-ctl .st-ratio-option:focus-visible { border-color: var(--or); color: #fff; }
+  .st-ctl .st-ratio-option.on { background: var(--or); border-color: var(--or); color: var(--ink); }
   .st-ctl .st-ta, .st-ctl .st-fs input[type='number'] { color: #fff; }
   .st-ctl .st-ta::placeholder, .st-ctl .st-fs input::placeholder { color: color-mix(in srgb, var(--soft) 60%, transparent); }
 .st-ctl .st-rich-prompt:empty::before { color: color-mix(in srgb, var(--soft) 60%, transparent); }

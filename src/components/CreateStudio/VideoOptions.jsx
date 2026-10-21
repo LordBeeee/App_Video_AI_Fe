@@ -1,5 +1,14 @@
-import { FieldSelect, MenuSelect, SeedField } from "./OptionFields";
+import { FieldSelect, SeedField } from "./OptionFields";
 import { videoAspectRatioApplies } from "../../utils/createStudio.utils";
+
+const RATIO_SHAPES = {
+  "21:9": [28, 12],
+  "16:9": [28, 16],
+  "4:3": [24, 18],
+  "1:1": [20, 20],
+  "3:4": [18, 24],
+  "9:16": [14, 25],
+};
 
 export default function VideoOptions({ options, capabilities, setOption, setOptions, setReferences, references, videoReference }) {
   const showAspectRatio = capabilities.omniTaskTypes
@@ -42,14 +51,22 @@ export default function VideoOptions({ options, capabilities, setOption, setOpti
       {showAspectRatio && (
         <div className="c12">
           <p className="st-lb"><span className="g">Tỷ lệ khung hình</span></p>
-          <MenuSelect
-            label="Tỷ lệ khung hình"
-            icon="aspect_ratio"
-            value={options.aspectRatio || ""}
-            onChange={(value) => setOptions((current) => ({ ...current, aspectRatio: value, size: "" }))}
-            options={capabilities.aspectRatios}
-            className="c12"
-          />
+          <div className="st-ratio-grid" role="group" aria-label="Tỷ lệ khung hình">
+            {capabilities.aspectRatios.map((ratio) => (
+              <button
+                key={ratio}
+                type="button"
+                className={`st-ratio-option${(options.aspectRatio || "adaptive") === ratio ? " on" : ""}`}
+                aria-pressed={(options.aspectRatio || "adaptive") === ratio}
+                onClick={() => setOptions((current) => ({ ...current, aspectRatio: ratio, size: "" }))}
+              >
+                {ratio === "adaptive"
+                  ? <span className="material-symbols-outlined" aria-hidden="true">crop_free</span>
+                  : <span className="st-ratio-shape" aria-hidden="true" style={{ width: RATIO_SHAPES[ratio]?.[0], height: RATIO_SHAPES[ratio]?.[1] }} />}
+                <span>{ratio === "adaptive" ? "Tự động" : ratio}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
       {capabilities.locksOmniOutput && options.omniTaskType !== "reference" && (
