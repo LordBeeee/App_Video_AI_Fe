@@ -1,8 +1,16 @@
+export function formatFileSize(bytes) {
+  const size = bytes == null || String(bytes).trim() === "" ? NaN : Number(bytes);
+  if (!Number.isFinite(size) || size < 0) return "— MB";
+  if (size > 0 && size < 10_000) return "< 0,01 MB";
+  return `${(size / 1_000_000).toLocaleString("vi-VN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MB`;
+}
+
 export function mapAssetToItem(asset) {
   const isVideo = asset.assetType === "video";
   return {
     id: asset.id,
     type: asset.assetType,
+    fileSizeBytes: asset.fileSizeBytes,
     category: asset.assetRole === "element" ? "element" : asset.assetRole === "voice" ? "voice" : asset.sourceType === "uploaded" ? "upload" : "creative",
     duration: asset.durationSeconds ? `${asset.durationSeconds}s` : undefined,
     favorite: !!asset.isFavorite,

@@ -14,7 +14,7 @@ import StudioTabs from "../../components/CreateStudio/StudioTabs";
 import AssetPicker from "../../components/Library/AssetPicker";
 import "../../components/Aurora/aurora.css";
 import "../../components/CreateStudio/studio.css";
-import { formatVideoShots, referenceLimitFor, validVideoShots, values, videoAspectRatioApplies } from "../../utils/createStudio.utils";
+import { formatVideoShots, referenceLimitFor, studioErrorMessage, validateFrameImageSize, validVideoShots, values, videoAspectRatioApplies } from "../../utils/createStudio.utils";
 import { usePriceQuote } from "./usePriceQuote";
 import { uploadAssetApi } from "../../services/asset.service";
 import {
@@ -294,6 +294,8 @@ export default function CreateStudio() {
     setUploading(true);
     setError("");
     try {
+      if (modality === "video") await validateFrameImageSize(file);
+      if (run !== generationRun.current) return;
       const asset = await uploadAssetApi(file);
       if (run !== generationRun.current) return;
       setReferences((current) => {
@@ -313,7 +315,15 @@ export default function CreateStudio() {
     }
   };
 
-  const addSelectedAssets = (assets, target = "reference") => {
+  const addSelectedAssets = async (assets, target = "reference") => {
+    const run = generationRun.current;
+    try {
+      if (modality === "video") await Promise.all(assets.map(validateFrameImageSize));
+    } catch (err) {
+      if (run === generationRun.current) setError(studioErrorMessage(err));
+      return;
+    }
+    if (run !== generationRun.current) return;
     setReferences((current) => {
       const existingIds = new Set(current.map((item) => String(item.id)));
       const selected = [];
@@ -490,10 +500,23 @@ export default function CreateStudio() {
   };
 
   const pollVideo = async (id, run) => {
+    let lastError = "";
     for (let attempt = 0; attempt < 120; attempt++) {
       await new Promise((resolve) => setTimeout(resolve, 5000));
       if (run !== generationRun.current) return;
-      const current = await getGeneration(id);
+      let current;
+      try {
+        current = await getGeneration(id);
+      } catch (err) {
+        if (run !== generationRun.current) return;
+        const status = err.response?.status;
+        if (status && status < 500 && ![408, 429].includes(status)) throw err;
+        const message = studioErrorMessage(err, "Chưa thể kiểm tra trạng thái video. Hệ thống sẽ thử lại.");
+        if (message !== lastError) setError(message);
+        lastError = message;
+        continue;
+      }
+      lastError = "";
       if (run !== generationRun.current) return;
       setResult(current);
       if (["succeeded", "failed"].includes(current.status)) return current;
@@ -532,13 +555,11 @@ export default function CreateStudio() {
         created = await pollVideo(created.id, run);
       }
       if (run !== generationRun.current) return;
+      if (created?.status === "failed") setError(studioErrorMessage(created, "Tạo video thất bại. Vui lòng thử lại."));
       await loadHistory();
     } catch (err) {
       if (run !== generationRun.current) return;
-      const detail = err.response?.data?.message;
-      setError(
-        typeof detail === "object" ? detail.message : detail || err.message,
-      );
+      setError(studioErrorMessage(err));
     } finally {
       if (run === generationRun.current) setGenerating(false);
     }

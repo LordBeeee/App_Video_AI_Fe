@@ -2,6 +2,42 @@ import { decode, encode } from "gpt-tokenizer";
 
 export const MEDIA_PROMPT_TOKEN_LIMIT = 4000;
 
+export function studioErrorMessage(error, fallback = "Không thể hoàn tất yêu cầu. Vui lòng thử lại.") {
+  const detail = error?.response?.data?.message ?? error?.errorMessage ?? error?.message;
+  if (typeof detail === "string") return detail.trim() || fallback;
+  if (Array.isArray(detail)) return detail.filter((item) => typeof item === "string").join("; ") || fallback;
+  return typeof detail?.message === "string" ? detail.message : fallback;
+}
+
+export async function validateFrameImageSize(source) {
+  const isFile = source instanceof Blob;
+  let { width, height } = source;
+  if (isFile || width == null || height == null) {
+    const url = isFile ? URL.createObjectURL(source) : source.storedUrl;
+    try {
+      ({ width, height } = await new Promise((resolve, reject) => {
+        const image = new Image();
+        const timer = setTimeout(() => finish(new Error("Không thể đọc kích thước ảnh. Vui lòng chọn lại ảnh.")), 15000);
+        const finish = (error) => {
+          clearTimeout(timer);
+          image.onload = null;
+          image.onerror = null;
+          if (error) reject(error);
+          else resolve({ width: image.naturalWidth, height: image.naturalHeight });
+        };
+        image.onload = () => finish();
+        image.onerror = () => finish(new Error("Không thể đọc kích thước ảnh. Vui lòng chọn lại ảnh."));
+        image.src = url;
+      }));
+    } finally {
+      if (isFile) URL.revokeObjectURL(url);
+    }
+  }
+  if (!Number.isFinite(Number(width)) || !Number.isFinite(Number(height)) || width < 300 || height < 300) {
+    throw new Error("Ảnh cần có chiều rộng và chiều cao tối thiểu 300 px.");
+  }
+}
+
 export function dragMention(event, mention) {
   event.dataTransfer.clearData();
   event.dataTransfer.setData("application/x-kling-mention", mention);

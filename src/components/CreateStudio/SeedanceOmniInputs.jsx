@@ -4,7 +4,7 @@ import { dragMention } from "../../utils/createStudio.utils";
 
 const KINDS = [
   { type: "image", label: "Ảnh tham chiếu", icon: "add_photo_alternate", accept: "image/jpeg,image/png,image/webp,image/heic,image/heif", max: 30, info: "Tối đa 30 ảnh tham chiếu. Ảnh tải lên tối đa 10 MB, kích thước mỗi chiều 300–6.000 px và tỷ lệ rộng/cao từ 0,4 đến 2,5." },
-  { type: "video", label: "Video tham chiếu", icon: "smart_display", accept: "video/mp4,video/quicktime", max: 10, info: "Tối đa 10 video MP4/MOV, tổng thời lượng không quá 30 giây. Mỗi video dài 2–30 giây; khi chỉnh sửa video cần dài 4–30 giây. Mỗi file tối đa 200 MB." },
+  { type: "video", label: "Video tham chiếu", icon: "smart_display", accept: "video/mp4,video/quicktime", max: 10, info: "Tối đa 10 video MP4/MOV, tổng thời lượng không quá 30 giây. Mỗi video dài 2–30 giây; khi chỉnh sửa video cần dài 4–30 giây. Mỗi file tối đa 100 MB." },
   { type: "audio", label: "Âm thanh tham chiếu", icon: "graphic_eq", accept: "audio/mpeg,audio/mp3,audio/wav,audio/x-wav", max: 10, info: "Âm thanh dùng kèm ảnh hoặc video tham chiếu. Tối đa 10 tệp MP3/WAV, mỗi tệp dài 2–30 giây và tối đa 15 MB. Tổng thời lượng âm thanh không quá 30 giây." },
 ];
 

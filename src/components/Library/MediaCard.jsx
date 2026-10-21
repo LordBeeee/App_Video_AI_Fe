@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { formatFileSize } from "../../utils/library.utils";
 
 const TYPE_META = {
   video: { icon: "movie", label: "Video" },
@@ -25,6 +26,7 @@ export default function MediaCard({
   const caption = item.name || (item.type === "video" && !isCustomAsset ? item.duration : "");
   const open = menuOpenId === item.id;
   const menuRef = useRef(null);
+  const fileSize = formatFileSize(item.fileSizeBytes);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -86,6 +88,7 @@ export default function MediaCard({
             <span className="c"><span className="material-symbols-outlined">play_arrow</span></span>
           </div>
         )}
+        <span className="lb-size" title={fileSize === "— MB" ? "Chưa có thông tin dung lượng" : `Dung lượng: ${fileSize}`}>{fileSize}</span>
       </div>
 
       <div className="lb-ft">

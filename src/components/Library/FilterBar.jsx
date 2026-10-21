@@ -1,4 +1,4 @@
-import { Pills } from "../Aurora/AuroraUI";
+import { InfoTip, Pills } from "../Aurora/AuroraUI";
 
 export const FILTER_TABS = [
   { value: "Creative", label: "Sáng tạo", icon: "auto_awesome" },
@@ -28,13 +28,18 @@ export function LibraryAction({ activeTab, uploading, fileInputRef, onUploadFile
         </button>
       )}
       {activeTab === "Upload" && (
-        <>
+        <div className="lb-upload-action">
           <input ref={fileInputRef} type="file" accept="image/*,video/*,audio/*" multiple onChange={onUploadFile} className="hidden" />
+          <InfoTip label="Giới hạn dung lượng tải lên" info={{
+            title: "Giới hạn mỗi file tải lên",
+            what: <>Ảnh: tối đa 10 MB.<br />Video: tối đa 100 MB.<br />Âm thanh: tối đa 100 MB.</>,
+            note: "Model có thể yêu cầu giới hạn thấp hơn khi dùng làm tham chiếu.",
+          }} />
           <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="au-btn solid">
             <span className={`material-symbols-outlined${uploading ? " lb-spin" : ""}`}>{uploading ? "progress_activity" : "upload"}</span>
             {uploading ? "Đang tải lên..." : "Tải lên"}
           </button>
-        </>
+        </div>
       )}
     </>
   );

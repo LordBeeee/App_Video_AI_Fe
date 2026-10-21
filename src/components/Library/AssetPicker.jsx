@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getLibraryAssetsApi, getElementsApi } from "../../services/asset.service";
 import { Pills, Empty } from "../Aurora/AuroraUI";
+import { formatFileSize } from "../../utils/library.utils";
 import "./library.css";
 
 const TABS = [
@@ -61,6 +62,7 @@ export default function AssetPicker({ type = "image", max = 1, excludedIds = [],
           <div className="lb-pks">
             {visibleItems.map((item) => {
               const chosen = selected.some((id) => String(id) === String(item.id));
+              const fileSize = formatFileSize(item.fileSizeBytes);
               return (
                 <div key={item.id} style={{ minWidth: 0 }}>
                   <button
@@ -77,6 +79,7 @@ export default function AssetPicker({ type = "image", max = 1, excludedIds = [],
                       <img src={item.storedUrl} alt={`Ảnh ${item.id}`} />
                     )}
                     {chosen && <span className="ck"><span className="material-symbols-outlined">check</span></span>}
+                    <span className="lb-size" title={fileSize === "— MB" ? "Chưa có thông tin dung lượng" : `Dung lượng: ${fileSize}`}>{fileSize}</span>
                   </button>
                   {choosingElement && <span className="lb-ref-name">{item.metadata?.name || `Element #${item.id}`}</span>}
                   {type === "voice-sample" && item.assetType === "audio" && <audio controls src={item.storedUrl} />}

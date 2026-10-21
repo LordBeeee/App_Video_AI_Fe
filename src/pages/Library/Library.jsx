@@ -14,6 +14,7 @@ import { Page, Card, ErrorBox } from "../../components/Aurora/AuroraUI";
 import MediaGrid from "../../components/Library/MediaGrid";
 import DetailOverlay from "../../components/Library/DetailOverlay";
 import CreateCustomAssetModal from "../../components/Library/CreateCustomAssetModal";
+import { Toast } from "../../components/UserDetail/UserDetailUI";
 import { mapAssetToItem } from "../../utils/library.utils";
 import "../../components/Library/library.css";
 
@@ -28,6 +29,7 @@ export default function Library() {
   const [itemsByTab, setItemsByTab] = useState({});
   const [loadingTab, setLoadingTab] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const [creatingAssetKind, setCreatingAssetKind] = useState(null);
   const [deletingAssetId, setDeletingAssetId] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
@@ -96,6 +98,7 @@ export default function Library() {
     const files = Array.from(e.target.files || []);
     e.target.value = "";
     if (files.length === 0) return;
+    setUploadError("");
     setUploading(true);
     try {
       for (const file of files) {
@@ -103,7 +106,7 @@ export default function Library() {
       }
       await fetchItems("Upload");
     } catch (err) {
-      alert(err.message);
+      setUploadError(err.message || "Tải file lên thất bại");
     } finally {
       setUploading(false);
     }
@@ -265,6 +268,7 @@ export default function Library() {
         fetchItems(creatingAssetKind === "voice" ? "Voice" : "Element");
         fetchItems("Upload");
       }} />}
+      {uploadError && <div role="alert"><Toast message={uploadError} type="error" onClose={() => setUploadError("")} /></div>}
     </Page>
   );
 }

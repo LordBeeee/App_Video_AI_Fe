@@ -4,8 +4,8 @@ export async function uploadAssetApi(file) {
   if (file.type.startsWith('image/') && file.size > 10_000_000) {
     throw new Error('Ảnh tải lên không được vượt quá 10 MB')
   }
-  if (file.type.startsWith('video/') && file.size > 200_000_000) {
-    throw new Error('Video tải lên không được vượt quá 200 MB')
+  if ((file.type.startsWith('video/') || file.type.startsWith('audio/')) && file.size > 100_000_000) {
+    throw new Error(`${file.type.startsWith('audio/') ? 'Âm thanh' : 'Video'} tải lên không được vượt quá 100 MB`)
   }
   const formData = new FormData()
   formData.append('file', file)

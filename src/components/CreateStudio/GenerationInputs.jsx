@@ -27,6 +27,7 @@ export default function GenerationInputs({
   const frameMode = modality === "video" && !isOmni && options.referenceMode !== "refer_image";
   const frames = references.filter((reference) => ["first_frame", "last_frame"].includes(reference.role));
   const referenceImages = references.filter((reference) => reference.role === "refer_image");
+  const frameInfo = `Ảnh JPG/PNG, tối đa 10 MB. Chiều rộng và chiều cao đều phải từ 300 px trở lên. ${requiresFrame ? "Ảnh đầu bắt buộc; ảnh cuối tùy chọn." : "Có thể thêm ảnh đầu hoặc ảnh cuối để định hướng video."}`;
   const addImage = (target) => (
     <div className="st-add">
       <label title={uploading ? "Đang tải ảnh" : "Tải ảnh"}>
@@ -57,7 +58,7 @@ export default function GenerationInputs({
     <>
       {isOmni && referenceLimit > 0 && <>
         <div className="st-box">
-          <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">add_photo_alternate</span></span><span className="g">Ảnh khung hình</span></p>
+          <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">add_photo_alternate</span></span><span className="g">Ảnh khung hình</span><InfoTip info={frameInfo} label="Yêu cầu ảnh khung hình" tone="dark" /></p>
           <div className="st-refs">
             {frames.map((reference) => imageCard(reference, reference.role === "first_frame" ? "Ảnh đầu" : "Ảnh cuối"))}
             {frames.length < 2 && references.length < referenceLimit && addImage("frame")}
@@ -76,6 +77,7 @@ export default function GenerationInputs({
           <p className="st-lb">
             <span className="ic"><span className="material-symbols-outlined">add_photo_alternate</span></span>
             <span className="g">{frameMode ? "Ảnh khung hình" : "Ảnh tham chiếu"}{frameMode && requiresFrame && <span className="st-required" title="Ảnh đầu bắt buộc; ảnh cuối tùy chọn" aria-label="Ảnh đầu bắt buộc">*</span>}</span>
+            {frameMode && <InfoTip info={frameInfo} label="Yêu cầu ảnh khung hình" tone="dark" />}
           </p>
           <div className="st-refs">
             {references.map((reference, index) => (

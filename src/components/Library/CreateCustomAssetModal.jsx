@@ -185,7 +185,7 @@ export default function CreateCustomAssetModal({ assetKind = "element", onClose,
                   <div>
                     <p className="lb-lab">Video nhân vật {req}</p>
                     {tile(video, "video", "Video nhân vật")}
-                    <p className="lb-hint">MP4/MOV, 3–8 giây, 1080p, 16:9 hoặc 9:16, tối đa 200 MB.</p>
+                    <p className="lb-hint">MP4/MOV, 3–8 giây, 1080p, 16:9 hoặc 9:16, tối đa 100 MB.</p>
                     {video && <button type="button" onClick={() => setVideo(null)} className="lb-link mute" style={{ marginTop: 6 }}>Xóa video</button>}
                   </div>
                 )}
