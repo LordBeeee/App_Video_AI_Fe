@@ -20,6 +20,10 @@ export default function VideoOptions({ options, capabilities, setOption, setOpti
     : capabilities.generateAudio ? ["off", "native"] : [];
   const selectedAudio = capabilities.referenceVideos
     ? options.audioMode || "off" : options.generateAudio ? "native" : "off";
+  const durationIndex = Math.max(0, capabilities.durations?.findIndex((duration) =>
+    String(duration) === String(options.duration)) ?? -1);
+  const durationProgress = capabilities.durations?.length > 1
+    ? durationIndex / (capabilities.durations.length - 1) * 100 : 0;
   const audioLabels = {
     off: "Tắt âm thanh",
     native: "Bật âm thanh",
@@ -105,9 +109,10 @@ export default function VideoOptions({ options, capabilities, setOption, setOpti
             max={capabilities.durations.length - 1}
             step="1"
             disabled={capabilities.durations.length === 1}
-            value={Math.max(0, capabilities.durations.findIndex((duration) => String(duration) === String(options.duration)))}
+            value={durationIndex}
             onChange={(event) => setOption("duration", capabilities.durations[Number(event.target.value)])}
             className="st-range"
+            style={{ "--range-progress": `${durationProgress}%` }}
           />
           <div className="st-ends">
             <span>{capabilities.durations[0] === -1 ? "Tự động" : `${capabilities.durations[0]}s`}</span>
