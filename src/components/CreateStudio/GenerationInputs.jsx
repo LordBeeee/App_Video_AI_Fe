@@ -1,4 +1,5 @@
 import { InfoTip } from "../Aurora/AuroraUI";
+import { dragMention } from "../../utils/createStudio.utils";
 
 export default function GenerationInputs({
   modality,
@@ -26,12 +27,6 @@ export default function GenerationInputs({
   const frameMode = modality === "video" && !isOmni && options.referenceMode !== "refer_image";
   const frames = references.filter((reference) => ["first_frame", "last_frame"].includes(reference.role));
   const referenceImages = references.filter((reference) => reference.role === "refer_image");
-  const dragMention = (event, mention) => {
-    event.dataTransfer.clearData();
-    event.dataTransfer.setData("application/x-kling-mention", mention);
-    event.dataTransfer.setData("text/plain", mention);
-    event.dataTransfer.effectAllowed = "copy";
-  };
   const addImage = (target) => (
     <div className="st-add">
       <label title={uploading ? "Đang tải ảnh" : "Tải ảnh"}>

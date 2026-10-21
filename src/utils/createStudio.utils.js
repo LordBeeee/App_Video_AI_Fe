@@ -2,6 +2,13 @@ import { decode, encode } from "gpt-tokenizer";
 
 export const MEDIA_PROMPT_TOKEN_LIMIT = 4000;
 
+export function dragMention(event, mention) {
+  event.dataTransfer.clearData();
+  event.dataTransfer.setData("application/x-kling-mention", mention);
+  event.dataTransfer.setData("text/plain", mention);
+  event.dataTransfer.effectAllowed = "copy";
+}
+
 export function limitMediaPrompt(value) {
   const tokens = encode(value);
   return tokens.length <= MEDIA_PROMPT_TOKEN_LIMIT

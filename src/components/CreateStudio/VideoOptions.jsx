@@ -1,4 +1,4 @@
-import { FieldSelect, SeedField } from "./OptionFields";
+import { FieldSelect, MenuSelect, SeedField } from "./OptionFields";
 import { videoAspectRatioApplies } from "../../utils/createStudio.utils";
 
 export default function VideoOptions({ options, capabilities, setOption, setOptions, setReferences, references, videoReference }) {
@@ -42,7 +42,7 @@ export default function VideoOptions({ options, capabilities, setOption, setOpti
       {showAspectRatio && (
         <div className="c12">
           <p className="st-lb"><span className="g">Tỷ lệ khung hình</span></p>
-          <FieldSelect
+          <MenuSelect
             label="Tỷ lệ khung hình"
             icon="aspect_ratio"
             value={options.aspectRatio || ""}

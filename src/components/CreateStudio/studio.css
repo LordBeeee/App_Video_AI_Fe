@@ -51,6 +51,8 @@
 .st-refs { display: flex; flex-wrap: wrap; gap: 10px; }
 .st-audio-ref-icon { display: grid; place-items: center; width: 100%; height: 100%; font-size: 28px; }
 .st-omni-audio-preview { display: block; max-width: 100%; margin-top: 10px; }
+.st-omni-errors { display: grid; gap: 6px; margin-top: 10px; }
+.st-omni-errors .st-note { margin: 0; }
 .st-ref { position: relative; width: 88px; height: 88px; padding: 0; border-radius: 16px; overflow: hidden; border: 1.5px solid var(--line); background: #fff; cursor: pointer; }
 .st-ref img, .st-ref video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .st-ref .del { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: color-mix(in srgb, var(--t-ink, #2a1a0e) 65%, transparent); color: #fff; font-size: 12px; font-weight: 700; }
@@ -88,6 +90,17 @@
 .st-fs input[type='number'] { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 13px; font-weight: 700; color: var(--ink); appearance: textfield; }
 .st-fs input[type='number']::-webkit-inner-spin-button, .st-fs input[type='number']::-webkit-outer-spin-button { appearance: none; }
 .st-fs input::placeholder { color: #a09389; font-weight: 600; }
+.st-choice { min-width: 0; }
+.st-choice > summary { width: 100%; cursor: pointer; list-style: none; }
+.st-choice > summary::-webkit-details-marker { display: none; }
+.st-choice > summary:focus-visible { outline: 2px solid var(--or); outline-offset: 2px; }
+.st-choice > summary > .st-choice-chevron { width: auto; height: auto; background: none; color: var(--mute); font-size: 20px; transition: transform 0.2s; }
+.st-choice[open] .st-choice-chevron { transform: rotate(180deg); }
+.st-choice-options { display: grid; gap: 3px; margin-top: 6px; padding: 6px; border: 1.5px solid var(--line); border-radius: 14px; background: #fff; box-shadow: 0 12px 24px -18px var(--ink); }
+.st-choice-options .st-dd-it { width: 100%; color: var(--ink); }
+.st-choice-options .st-dd-it:hover, .st-choice-options .st-dd-it:focus-visible { background: var(--pill); }
+.st-choice-options .st-dd-it.on { background: var(--pill); }
+.st-choice-options .st-dd-it.on .material-symbols-outlined { color: var(--or); }
 .st-fs.chk { gap: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
 .st-fs input[type='checkbox'], .st-range { accent-color: var(--or); }
 .st-sw { min-height: 44px; border-radius: 14px; border: 1.5px solid var(--line); background: #fff; color: var(--mute); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; }
@@ -363,6 +376,11 @@
   .st-ctl .st-sw:hover { color: #fff; }
   .st-ctl .st-lb .ic, .st-ctl .au-hic { background: transparent; box-shadow: inset 0 0 0 1.5px var(--or); color: var(--or); }
   .st-ctl .st-fs > .material-symbols-outlined { background: var(--or); color: var(--ink); }
+  .st-ctl .st-choice > summary > .st-choice-chevron { background: none; color: var(--soft); }
+  .st-ctl .st-choice-options { background: var(--dk); border-color: color-mix(in srgb, var(--or) 28%, transparent); }
+  .st-ctl .st-choice-options .st-dd-it { color: #fff; }
+  .st-ctl .st-choice-options .st-dd-it:hover, .st-ctl .st-choice-options .st-dd-it:focus-visible { background: rgba(255, 255, 255, 0.08); }
+  .st-ctl .st-choice-options .st-dd-it.on { background: color-mix(in srgb, var(--or) 18%, transparent); }
   .st-ctl .st-ta, .st-ctl .st-fs input[type='number'] { color: #fff; }
   .st-ctl .st-ta::placeholder, .st-ctl .st-fs input::placeholder { color: color-mix(in srgb, var(--soft) 60%, transparent); }
 .st-ctl .st-rich-prompt:empty::before { color: color-mix(in srgb, var(--soft) 60%, transparent); }

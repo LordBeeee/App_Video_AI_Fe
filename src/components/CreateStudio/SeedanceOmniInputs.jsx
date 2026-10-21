@@ -1,7 +1,11 @@
+import { InfoTip } from "../Aurora/AuroraUI";
+import { MenuSelect } from "./OptionFields";
+import { dragMention } from "../../utils/createStudio.utils";
+
 const KINDS = [
-  { type: "image", label: "Ảnh tham chiếu", icon: "add_photo_alternate", accept: "image/jpeg,image/png,image/webp,image/heic,image/heif", max: 30 },
-  { type: "video", label: "Video tham chiếu", icon: "smart_display", accept: "video/mp4,video/quicktime", max: 10 },
-  { type: "audio", label: "Âm thanh tham chiếu", icon: "graphic_eq", accept: "audio/mpeg,audio/mp3,audio/wav,audio/x-wav", max: 10 },
+  { type: "image", label: "Ảnh tham chiếu", icon: "add_photo_alternate", accept: "image/jpeg,image/png,image/webp,image/heic,image/heif", max: 30, info: "Tối đa 30 ảnh tham chiếu. Ảnh tải lên tối đa 10 MB, kích thước mỗi chiều 300–6.000 px và tỷ lệ rộng/cao từ 0,4 đến 2,5." },
+  { type: "video", label: "Video tham chiếu", icon: "smart_display", accept: "video/mp4,video/quicktime", max: 10, info: "Tối đa 10 video MP4/MOV, tổng thời lượng không quá 30 giây. Mỗi video dài 2–30 giây; khi chỉnh sửa video cần dài 4–30 giây. Mỗi file tối đa 200 MB." },
+  { type: "audio", label: "Âm thanh tham chiếu", icon: "graphic_eq", accept: "audio/mpeg,audio/mp3,audio/wav,audio/x-wav", max: 10, info: "Âm thanh dùng kèm ảnh hoặc video tham chiếu. Tối đa 10 tệp MP3/WAV, mỗi tệp dài 2–30 giây và tối đa 15 MB. Tổng thời lượng âm thanh không quá 30 giây." },
 ];
 
 const MODES = [
@@ -10,27 +14,34 @@ const MODES = [
   { value: "extend", label: "Kéo dài video" },
 ];
 
-export default function SeedanceOmniInputs({ mode, onModeChange, assets, valid, uploading, onUpload, onPick, onRemove, onInsertMention }) {
+const MODE_INFO = {
+  reference: "Chọn ít nhất một ảnh hoặc video tham chiếu; có thể thêm âm thanh. Có thể chọn tỷ lệ khung hình và thời lượng đầu ra.",
+  edit: "Chọn ít nhất một video dài 4–30 giây và mô tả rõ phần cần sửa. Tỷ lệ khung hình theo video gốc; thời lượng đầu ra tự động.",
+  extend: "Chọn ít nhất một video và mô tả rõ cách kéo dài về trước hoặc sau. Tỷ lệ khung hình theo video được kéo dài.",
+};
+
+export default function SeedanceOmniInputs({ mode, onModeChange, assets, errors, uploading, onUpload, onPick, onRemove, onInsertMention }) {
   return <>
     <div className="st-box">
-      <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">tune</span></span><span className="g">Cách tạo video</span></p>
-      <select className="st-ref-role" aria-label="Cách tạo video Seedance Omni" value={mode} onChange={(event) => onModeChange(event.target.value)}>
-        {MODES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-      </select>
-      {mode !== "reference" && <p className="st-note">Chọn ít nhất một video và mô tả rõ {mode === "edit" ? "nội dung cần chỉnh sửa" : "cách kéo dài video"} trong prompt.</p>}
-      {assets.length > 0 && !valid && <p className="st-note bad">Mỗi video/audio cần dài 2–30 giây (video chỉnh sửa: 4–30 giây); tổng thời lượng mỗi loại tối đa 30 giây.</p>}
+      <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">tune</span></span><span className="g">Mục đích tạo video</span><InfoTip info={MODE_INFO[mode]} label="Hướng dẫn cách tạo video Seedance Omni" tone="dark" /></p>
+      <MenuSelect label="Cách tạo video Seedance Omni" icon="movie_edit" value={mode} onChange={onModeChange} options={MODES} />
+      {errors.length > 0 && <div role="alert" className="st-omni-errors">
+        {errors.map((error) => <p className="st-note bad" key={error}>{error}</p>)}
+      </div>}
     </div>
     {KINDS.map((kind) => {
       const selected = assets.filter((asset) => asset.type === kind.type);
       return <div className="st-box" key={kind.type}>
-        <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">{kind.icon}</span></span><span className="g">{kind.label}{kind.type === "video" && mode !== "reference" && <span className="st-required">*</span>}</span><em>{selected.length}/{kind.max}</em></p>
+        <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">{kind.icon}</span></span><span className="g">{kind.label}{(kind.type === "video" || (kind.type === "image" && mode === "reference")) && <span className="st-required" title={mode === "reference" ? "Cần ít nhất một ảnh hoặc video tham chiếu" : "Cần ít nhất một video tham chiếu"} aria-label={mode === "reference" ? "Cần ít nhất một ảnh hoặc video tham chiếu" : "Cần ít nhất một video tham chiếu"}>*</span>}</span><InfoTip info={kind.info} label={`Giới hạn ${kind.label.toLowerCase()}`} tone="dark" /><em>{selected.length}/{kind.max}</em></p>
         <div className="st-refs">
           {selected.map((asset) => {
             const mention = `@${kind.type}_${asset.id}`;
-            return <div className="st-ref st-element" key={asset.id}>
-              {kind.type === "image" && <img src={asset.url} alt={kind.label} />}
-              {kind.type === "video" && <video src={asset.url} muted playsInline />}
-              {kind.type === "audio" && <span className="material-symbols-outlined st-audio-ref-icon">graphic_eq</span>}
+            return <div className="st-ref st-element" key={asset.id} title={`Kéo vào prompt hoặc nhấn ${mention}`}>
+              <div draggable onDragStart={(event) => dragMention(event, mention)}>
+                {kind.type === "image" && <img src={asset.url} alt={kind.label} draggable={false} />}
+                {kind.type === "video" && <video src={asset.url} muted playsInline />}
+                {kind.type === "audio" && <span className="material-symbols-outlined st-audio-ref-icon">graphic_eq</span>}
+              </div>
               <button type="button" className="st-element-remove" aria-label={`Gỡ ${kind.label}`} onClick={() => onRemove(asset)}>×</button>
               <button type="button" className="cap st-element-mention" onClick={() => onInsertMention(mention)}>{mention}</button>
             </div>;

@@ -30,6 +30,40 @@ const MODALITIES = {
   audio: { title: "Tạo giọng nói", icon: "graphic_eq" },
 };
 
+function seedanceOmniErrors(assets, mode) {
+  const errors = [];
+  const videos = assets.filter((asset) => asset.type === "video");
+  const audios = assets.filter((asset) => asset.type === "audio");
+  if (assets.length > 50) errors.push("Chỉ được chọn tối đa 50 tài nguyên tham chiếu.");
+
+  for (const asset of assets) {
+    const label = `${asset.type === "image" ? "Ảnh" : asset.type === "video" ? "Video" : "Âm thanh"} #${asset.id}`;
+    const seconds = asset.durationSeconds;
+    const { width, height } = asset;
+    if (!asset.url?.startsWith("https://")) errors.push(`${label}: URL không hợp lệ.`);
+    if (asset.type === "image") {
+      if (!["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"].includes(asset.mimeType)) errors.push(`${label}: định dạng ảnh không được hỗ trợ.`);
+      if (asset.fileSizeBytes != null && asset.fileSizeBytes > 10_000_000) errors.push(`${label}: vượt 10 MB.`);
+      if ((width != null && (width < 300 || width > 6000)) || (height != null && (height < 300 || height > 6000)) ||
+        (width != null && height != null && (width / height < 0.4 || width / height > 2.5))) errors.push(`${label}: kích thước hoặc tỷ lệ ảnh không hợp lệ.`);
+    } else if (asset.type === "video") {
+      if (!["video/mp4", "video/quicktime"].includes(asset.mimeType)) errors.push(`${label}: chỉ hỗ trợ MP4/MOV.`);
+      if (!Number.isFinite(seconds) || seconds < (mode === "edit" ? 4 : 2) || seconds > 30) errors.push(`${label}: cần dài ${mode === "edit" ? "4" : "2"}–30 giây.`);
+      if (asset.fileSizeBytes != null && asset.fileSizeBytes > 200_000_000) errors.push(`${label}: vượt 200 MB.`);
+      if ((width != null && (width < 300 || width > 6000)) || (height != null && (height < 300 || height > 6000)) ||
+        (width != null && height != null && (width / height < 0.4 || width / height > 2.5 || width * height < 407696 || width * height > 8295044))) errors.push(`${label}: kích thước hoặc tỷ lệ video không hợp lệ.`);
+      if (asset.fps != null && (asset.fps < 24 || asset.fps > 60)) errors.push(`${label}: FPS phải từ 24 đến 60.`);
+    } else if (asset.type === "audio") {
+      if (!["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav"].includes(asset.mimeType)) errors.push(`${label}: chỉ hỗ trợ MP3/WAV.`);
+      if (!Number.isFinite(seconds) || seconds < 2 || seconds > 30) errors.push(`${label}: cần dài 2–30 giây.`);
+      if (asset.fileSizeBytes != null && asset.fileSizeBytes > 15_000_000) errors.push(`${label}: vượt 15 MB.`);
+    }
+  }
+  if (videos.reduce((sum, asset) => sum + asset.durationSeconds, 0) > 30) errors.push("Tổng thời lượng video tham chiếu vượt 30 giây.");
+  if (audios.reduce((sum, asset) => sum + asset.durationSeconds, 0) > 30) errors.push("Tổng thời lượng âm thanh tham chiếu vượt 30 giây.");
+  return errors;
+}
+
 export default function CreateStudio() {
   const { modality: routeModality = "image" } = useParams();
   const modality = ["image", "video", "audio"].includes(routeModality)
@@ -76,17 +110,10 @@ export default function CreateStudio() {
   const isOmni = selectedModel === "kling/kling-3.0-omni";
   const isSeedanceOmni = selectedModel === "seedance/seedance-2.5-omni";
   const isSeedance = model?.provider === "seedance";
-  const seedanceAssetsValid = useMemo(() => {
-    const duration = (asset) => Number(asset.durationSeconds);
-    const videos = seedanceAssets.filter((asset) => asset.type === "video");
-    const audios = seedanceAssets.filter((asset) => asset.type === "audio");
-    return seedanceAssets.length > 0 &&
-      (options.omniTaskType === "reference" || videos.length > 0) &&
-      videos.every((asset) => duration(asset) >= (options.omniTaskType === "edit" ? 4 : 2) && duration(asset) <= 30) &&
-      audios.every((asset) => duration(asset) >= 2 && duration(asset) <= 30) &&
-      videos.reduce((sum, asset) => sum + duration(asset), 0) <= 30 &&
-      audios.reduce((sum, asset) => sum + duration(asset), 0) <= 30;
-  }, [seedanceAssets, options.omniTaskType]);
+  const seedanceErrors = useMemo(() => seedanceOmniErrors(seedanceAssets, options.omniTaskType || "reference"), [seedanceAssets, options.omniTaskType]);
+  const hasSeedanceReference = seedanceAssets.some((asset) => asset.type === "video" ||
+    ((options.omniTaskType || "reference") === "reference" && asset.type === "image"));
+  const seedanceAssetsValid = hasSeedanceReference && seedanceErrors.length === 0;
   const orderedImageReferences = useMemo(() => isOmni
     ? [
         ...references.filter((item) => item.role === "first_frame"),
@@ -340,6 +367,8 @@ export default function CreateStudio() {
       const additions = assets.filter((asset) => asset.assetType === type && !existing.has(Number(asset.id)))
         .filter(() => ++count <= limit)
         .map((asset) => ({ id: Number(asset.id), type, url: asset.storedUrl,
+          mimeType: asset.mimeType, fileSizeBytes: asset.fileSizeBytes == null ? null : Number(asset.fileSizeBytes),
+          width: asset.width, height: asset.height, fps: asset.fps,
           durationSeconds: Number(asset.metadata?.mediaDurationSeconds ?? asset.durationSeconds ?? asset.duration) }));
       return [...current, ...additions];
     });
@@ -541,7 +570,7 @@ export default function CreateStudio() {
               mode={options.omniTaskType || "reference"}
               onModeChange={changeSeedanceTask}
               assets={seedanceAssets}
-              valid={seedanceAssetsValid}
+              errors={seedanceErrors}
               uploading={uploading}
               onUpload={uploadSeedanceAsset}
               onPick={setSeedancePickerType}
