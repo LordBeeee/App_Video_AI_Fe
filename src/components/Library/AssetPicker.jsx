@@ -15,9 +15,7 @@ export default function AssetPicker({ type = "image", max = 1, excludedIds = [],
   const [items, setItems] = useState([]);
   const [selected, setSelected] = useState([]);
   const [error, setError] = useState("");
-  const visibleItems = choosingElement
-    ? items.filter((item) => !excludedIds.some((id) => String(id) === String(item.id)))
-    : items;
+  const visibleItems = items.filter((item) => !excludedIds.some((id) => String(id) === String(item.id)));
 
   useEffect(() => {
     let active = true;
@@ -43,8 +41,8 @@ export default function AssetPicker({ type = "image", max = 1, excludedIds = [],
       <div className="lb-mb lg" onMouseDown={(e) => e.stopPropagation()}>
         <div className="lb-mh">
           <div className="au-chl">
-            <span className="au-hic"><span className="material-symbols-outlined">{choosingElement ? "bookmark" : type === "voice-sample" ? "graphic_eq" : type === "video" ? "smart_display" : "image"}</span></span>
-            <h2 className="au-h3 au-fd">Chọn {choosingElement ? "Element" : type === "voice-sample" ? "mẫu giọng" : type === "video" ? "video" : "ảnh"} ({selected.length}/{max})</h2>
+            <span className="au-hic"><span className="material-symbols-outlined">{choosingElement ? "bookmark" : type === "voice-sample" || type === "audio" ? "graphic_eq" : type === "video" ? "smart_display" : "image"}</span></span>
+            <h2 className="au-h3 au-fd">Chọn {choosingElement ? "Element" : type === "voice-sample" ? "mẫu giọng" : type === "video" ? "video" : type === "audio" ? "âm thanh" : "ảnh"} ({selected.length}/{max})</h2>
           </div>
           <button type="button" onClick={onClose} className="au-ico" aria-label="Đóng" title="Đóng"><span className="material-symbols-outlined">close</span></button>
         </div>

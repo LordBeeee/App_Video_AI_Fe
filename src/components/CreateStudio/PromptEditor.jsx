@@ -10,7 +10,7 @@ import {
 
 export default function PromptEditor({ modality, modelId, mentionAssets = [], capabilities, prompt, setPrompt, options, setOptions, onFocusShot }) {
   const isMediaPrompt = modality === "image" || modality === "video";
-  const richPrompt = ["kling/kling-3.0", "kling/kling-3.0-omni"].includes(modelId);
+  const richPrompt = ["kling/kling-3.0", "kling/kling-3.0-omni", "seedance/seedance-2.5-omni"].includes(modelId);
   const promptTokenCount = useMemo(
     () => (isMediaPrompt ? countTokens(prompt) : 0),
     [isMediaPrompt, prompt],
@@ -145,7 +145,7 @@ export default function PromptEditor({ modality, modelId, mentionAssets = [], ca
             tone="dark"
           />
         )}
-        {modality === "video" && modelId === "seedance/seedance-2.5" && (
+        {modality === "video" && modelId?.startsWith("seedance/seedance-2.5") && (
           <InfoTip
             info="Giới hạn tối đa 2.500 ký tự. BytePlus khuyến nghị prompt không quá 1.000 từ tiếng Anh để model ít bỏ sót chi tiết."
             label="Hướng dẫn prompt Seedance 2.5"

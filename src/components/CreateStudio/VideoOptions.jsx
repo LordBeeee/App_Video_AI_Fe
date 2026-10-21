@@ -2,7 +2,9 @@ import { FieldSelect, SeedField } from "./OptionFields";
 import { videoAspectRatioApplies } from "../../utils/createStudio.utils";
 
 export default function VideoOptions({ options, capabilities, setOption, setOptions, setReferences, references, videoReference }) {
-  const showAspectRatio = videoAspectRatioApplies(capabilities, references, videoReference);
+  const showAspectRatio = capabilities.omniTaskTypes
+    ? options.omniTaskType === "reference"
+    : videoAspectRatioApplies(capabilities, references, videoReference);
   const audioChoices = capabilities.referenceVideos
     ? videoReference?.role === "base_video" ? ["off", "original"]
       : videoReference ? ["off"] : ["off", "native"]
@@ -50,6 +52,9 @@ export default function VideoOptions({ options, capabilities, setOption, setOpti
           />
         </div>
       )}
+      {capabilities.omniTaskTypes && options.omniTaskType !== "reference" && (
+        <p className="st-note c12">Tỷ lệ khung hình: adaptive, theo video được chọn.</p>
+      )}
       {capabilities.resolutions?.length > 0 && (
         <div className="c12">
           <p className="st-lb"><span className="g">Độ phân giải</span></p>
@@ -68,11 +73,13 @@ export default function VideoOptions({ options, capabilities, setOption, setOpti
           </div>
         </div>
       )}
-      {capabilities.durations?.length > 0 && (
+      {capabilities.omniTaskTypes && options.omniTaskType === "edit" ? (
+        <p className="st-note c12">Thời lượng: tự động theo video gốc.</p>
+      ) : capabilities.durations?.length > 0 && (
         <div className="c12">
           <div className="st-row">
             <span>Thời lượng</span>
-            <span className="st-chip">{options.duration}s</span>
+            <span className="st-chip">{options.duration === -1 ? "Tự động" : `${options.duration}s`}</span>
           </div>
           <input
             type="range"
@@ -86,7 +93,7 @@ export default function VideoOptions({ options, capabilities, setOption, setOpti
             className="st-range"
           />
           <div className="st-ends">
-            <span>{capabilities.durations[0]}s</span>
+            <span>{capabilities.durations[0] === -1 ? "Tự động" : `${capabilities.durations[0]}s`}</span>
             <span>{capabilities.durations.at(-1)}s</span>
           </div>
         </div>

@@ -1,6 +1,8 @@
 import InfoPanel from "../Library/InfoPanel";
 import { Empty } from "../Aurora/AuroraUI";
 
+const lastFrameDownloadUrl = (url) => url?.replace("/image/upload/", "/image/upload/fl_attachment/");
+
 export function MobileGenerationResult({ result, modality, onCopyPrompt, promptCopied }) {
   if (!result) return null;
   return (
@@ -25,6 +27,9 @@ export function MobileGenerationResult({ result, modality, onCopyPrompt, promptC
             {modality === "audio" && <div className="st-aud"><audio src={url} controls /></div>}
           </div>
           <a href={url} target="_blank" rel="noreferrer">Mở hoặc tải xuống</a>
+          {modality === "video" && result.lastFrameUrl && (
+            <a href={lastFrameDownloadUrl(result.lastFrameUrl)} target="_blank" rel="noreferrer">Tải ảnh cuối</a>
+          )}
         </div>
       ))}
     </div>
@@ -68,6 +73,11 @@ export function DesktopGenerationResult({ result, modality, icon, onCopyPrompt, 
               <a className="au-btn" href={result.outputUrls[0]} target="_blank" rel="noreferrer">
                 <span className="material-symbols-outlined">download</span>Tải xuống
               </a>
+              {modality === "video" && result.lastFrameUrl && (
+                <a className="au-btn" href={lastFrameDownloadUrl(result.lastFrameUrl)} target="_blank" rel="noreferrer">
+                  <span className="material-symbols-outlined">image</span>Tải ảnh cuối
+                </a>
+              )}
             </div>
           </div>
         )}

@@ -9,7 +9,7 @@ export default function GenerationControls({ modality, options, capabilities, mo
   const videoSettings = modality === "video" ? [
     ...(videoAspectRatioApplies(capabilities, references, videoReference) && options.aspectRatio ? [options.aspectRatio] : []),
     options.resolution || "Độ phân giải",
-    `${options.duration || 5}s`,
+    options.duration === -1 ? "Thời lượng tự động" : `${options.duration || 5}s`,
     capabilities.nativeAudioIncluded ? "Có âm thanh mặc định"
       : capabilities.referenceVideos && options.audioMode === "original" ? "Giữ âm thanh gốc"
       : (capabilities.referenceVideos ? options.audioMode === "native" : options.generateAudio) ? "Có âm thanh" : "Tắt âm thanh",

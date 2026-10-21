@@ -49,6 +49,8 @@
 .st-prompt-mention > span { overflow: hidden; text-overflow: ellipsis; }
 
 .st-refs { display: flex; flex-wrap: wrap; gap: 10px; }
+.st-audio-ref-icon { display: grid; place-items: center; width: 100%; height: 100%; font-size: 28px; }
+.st-omni-audio-preview { display: block; max-width: 100%; margin-top: 10px; }
 .st-ref { position: relative; width: 88px; height: 88px; padding: 0; border-radius: 16px; overflow: hidden; border: 1.5px solid var(--line); background: #fff; cursor: pointer; }
 .st-ref img, .st-ref video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .st-ref .del { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: color-mix(in srgb, var(--t-ink, #2a1a0e) 65%, transparent); color: #fff; font-size: 12px; font-weight: 700; }

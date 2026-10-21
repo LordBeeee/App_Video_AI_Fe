@@ -1,6 +1,6 @@
 import { useLayoutEffect, useMemo, useRef } from "react";
 
-const MENTION_PATTERN = /@(image|video|element)_\d+/g;
+const MENTION_PATTERN = /@(image|video|audio|element)_\d+/g;
 const DRAG_TYPE = "application/x-kling-mention";
 
 function plainText(node) {
@@ -25,6 +25,11 @@ function mentionChip(mention, asset) {
     preview.src = asset.url;
     preview.muted = true;
     preview.preload = "metadata";
+    chip.append(preview);
+  } else if (asset.kind === "audio") {
+    const preview = document.createElement("span");
+    preview.className = "material-symbols-outlined";
+    preview.textContent = "graphic_eq";
     chip.append(preview);
   } else {
     const preview = document.createElement("img");
@@ -100,7 +105,7 @@ export default function MentionPrompt({ value, onChange, assets, maxLength, plac
 
   const handleDrop = (event) => {
     const mention = event.dataTransfer.getData(DRAG_TYPE);
-    if (!/^@(image|video|element)_\d+$/.test(mention)) return;
+    if (!/^@(image|video|audio|element)_\d+$/.test(mention)) return;
     event.preventDefault();
     const root = editor.current;
     const asset = assetMap.get(mention);

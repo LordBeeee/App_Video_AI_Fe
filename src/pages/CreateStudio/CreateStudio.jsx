@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import ModelPicker from "../../components/CreateStudio/ModelPicker";
 import GenerationControls from "../../components/CreateStudio/GenerationControls";
 import GenerationInputs from "../../components/CreateStudio/GenerationInputs";
+import SeedanceOmniInputs from "../../components/CreateStudio/SeedanceOmniInputs";
 import PromptEditor from "../../components/CreateStudio/PromptEditor";
 import {
   MobileGenerationResult,
@@ -43,6 +44,8 @@ export default function CreateStudio() {
     maxOutputTokens: 1024,
   });
   const [references, setReferences] = useState([]);
+  const [seedanceAssets, setSeedanceAssets] = useState([]);
+  const [seedancePickerType, setSeedancePickerType] = useState(null);
   const [videoReference, setVideoReference] = useState(null);
   const [videoPickerOpen, setVideoPickerOpen] = useState(false);
   const [elements, setElements] = useState([]);
@@ -71,7 +74,19 @@ export default function CreateStudio() {
     : prompt;
   const supportsElements = ["kling/kling-3.0", "kling/kling-3.0-omni"].includes(selectedModel);
   const isOmni = selectedModel === "kling/kling-3.0-omni";
+  const isSeedanceOmni = selectedModel === "seedance/seedance-2.5-omni";
   const isSeedance = model?.provider === "seedance";
+  const seedanceAssetsValid = useMemo(() => {
+    const duration = (asset) => Number(asset.durationSeconds);
+    const videos = seedanceAssets.filter((asset) => asset.type === "video");
+    const audios = seedanceAssets.filter((asset) => asset.type === "audio");
+    return seedanceAssets.length > 0 &&
+      (options.omniTaskType === "reference" || videos.length > 0) &&
+      videos.every((asset) => duration(asset) >= (options.omniTaskType === "edit" ? 4 : 2) && duration(asset) <= 30) &&
+      audios.every((asset) => duration(asset) >= 2 && duration(asset) <= 30) &&
+      videos.reduce((sum, asset) => sum + duration(asset), 0) <= 30 &&
+      audios.reduce((sum, asset) => sum + duration(asset), 0) <= 30;
+  }, [seedanceAssets, options.omniTaskType]);
   const orderedImageReferences = useMemo(() => isOmni
     ? [
         ...references.filter((item) => item.role === "first_frame"),
@@ -89,26 +104,31 @@ export default function CreateStudio() {
     ...(isOmni && videoReference ? [{
       mention: `@video_${videoReference.id}`, url: videoReference.url, kind: "video", label: "Video tham chiếu",
     }] : []),
+    ...(isSeedanceOmni ? seedanceAssets.map((asset) => ({
+      mention: `@${asset.type}_${asset.id}`, url: asset.url, kind: asset.type,
+      label: `${asset.type === "image" ? "Ảnh" : asset.type === "video" ? "Video" : "Âm thanh"} tham chiếu`,
+    })) : []),
     ...(supportsElements ? elements.map((element) => ({
       mention: `@element_${element.id}`, url: element.url, kind: element.type, label: element.name || "Element",
     })) : []),
-  ], [isOmni, references, videoReference, supportsElements, elements]);
+  ], [isOmni, isSeedanceOmni, seedanceAssets, references, videoReference, supportsElements, elements]);
   const quoteOptions = useMemo(() => ({
     ...options,
-    ...(isSeedance ? { referenceAssetIds: references.map((item) => item.id) } : {}),
+    ...(isSeedance && !isSeedanceOmni ? { referenceAssetIds: references.map((item) => item.id) } : {}),
+    ...(isSeedanceOmni ? { referenceInputs: seedanceAssets.map((asset) => ({ assetId: asset.id, type: `reference_${asset.type}` })) } : {}),
     ...(isOmni && !videoAspectRatioApplies(capabilities, references, videoReference) ? { aspectRatio: undefined } : {}),
     ...(supportsElements ? { elementAssetIds: elements.map((element) => element.id) } : {}),
     ...(isOmni ? { referenceInputs: [
       ...orderedImageReferences.map((reference) => ({ assetId: reference.id, type: reference.role || "refer_image" })),
       ...(videoReference ? [{ assetId: videoReference.id, type: videoReference.role }] : []),
     ] } : {}),
-  }), [supportsElements, isOmni, isSeedance, options, capabilities, references, elements, orderedImageReferences, videoReference]);
+  }), [supportsElements, isOmni, isSeedance, isSeedanceOmni, seedanceAssets, options, capabilities, references, elements, orderedImageReferences, videoReference]);
   const { quote, quoteError, clearQuote } = usePriceQuote({
     modality,
     modelSlug: selectedModel,
     prompt: generationPrompt,
     options: quoteOptions,
-    enabled: shotsValid && (!isSeedance || references.length > 0),
+    enabled: shotsValid && (!isSeedance || (isSeedanceOmni ? seedanceAssetsValid : references.length > 0)),
   });
   const referenceLimit =
     modality === "video" && !isOmni && options.referenceMode !== "refer_image"
@@ -132,6 +152,8 @@ export default function CreateStudio() {
     setActiveShot(null);
     setOptions({});
     setReferences([]);
+    setSeedanceAssets([]);
+    setSeedancePickerType(null);
     setVideoReference(null);
     setElements([]);
     setReferencePickerOpen(false);
@@ -152,6 +174,8 @@ export default function CreateStudio() {
     setActiveShot(null);
     setResult(null);
     setReferences([]);
+    setSeedanceAssets([]);
+    setSeedancePickerType(null);
     setVideoReference(null);
     setElements([]);
     setReferencePickerOpen(false);
@@ -216,12 +240,13 @@ export default function CreateStudio() {
         ...(capabilities.multiShot ? { multiShot: false, customShots: false, shots: [] } : {}),
         ...(capabilities.referenceVideos ? { audioMode: "off" } : {}),
         ...(capabilities.seed ? { seed: "" } : {}),
+        ...(isSeedanceOmni ? { omniTaskType: "reference", aspectRatio: "adaptive" } : {}),
       });
     }
     if (modality === "audio") {
       setOptions({ voice: model.voices?.[0] || "", speed: 1 });
     }
-  }, [model, modality, capabilities]);
+  }, [model, modality, capabilities, isSeedanceOmni]);
 
   useEffect(() => {
     setReferences((current) =>
@@ -306,6 +331,43 @@ export default function CreateStudio() {
       setOptions((current) => ({ ...current, multiShot: true, audioMode: "off", generateAudio: false }));
     } catch (err) { if (run === generationRun.current) setError(err.message || "Upload video thất bại"); }
     finally { if (run === generationRun.current) setUploading(false); event.target.value = ""; }
+  };
+  const addSeedanceAssets = (assets, type) => {
+    const limit = type === "image" ? 30 : 10;
+    setSeedanceAssets((current) => {
+      const existing = new Set(current.map((item) => item.id));
+      let count = current.filter((item) => item.type === type).length;
+      const additions = assets.filter((asset) => asset.assetType === type && !existing.has(Number(asset.id)))
+        .filter(() => ++count <= limit)
+        .map((asset) => ({ id: Number(asset.id), type, url: asset.storedUrl,
+          durationSeconds: Number(asset.metadata?.mediaDurationSeconds ?? asset.durationSeconds ?? asset.duration) }));
+      return [...current, ...additions];
+    });
+    setSeedancePickerType(null);
+  };
+  const uploadSeedanceAsset = async (event, type) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (type === "audio" && file.size > 15_000_000) {
+      setError("Âm thanh tham chiếu không được vượt quá 15 MB");
+      event.target.value = "";
+      return;
+    }
+    const run = generationRun.current;
+    setUploading(true);
+    try {
+      const asset = await uploadAssetApi(file);
+      if (run === generationRun.current) addSeedanceAssets([asset], type);
+    } catch (err) {
+      if (run === generationRun.current) setError(err.message || "Tải tài nguyên thất bại");
+    } finally {
+      if (run === generationRun.current) setUploading(false);
+      event.target.value = "";
+    }
+  };
+  const changeSeedanceTask = (mode) => {
+    setOptions((current) => ({ ...current, omniTaskType: mode,
+      aspectRatio: "adaptive", duration: mode === "edit" ? -1 : 5 }));
   };
   const removeMention = (mention) => {
     const pattern = new RegExp(`${mention}(?=\\s|$)`, "g");
@@ -416,7 +478,8 @@ export default function CreateStudio() {
       generating ||
       !generationPrompt.trim() ||
       !shotsValid ||
-      (modality === "video" && !isOmni && !references.length)
+      (modality === "video" && !isOmni && !isSeedanceOmni && !references.length) ||
+      (isSeedanceOmni && !seedanceAssetsValid)
     ) return;
     const run = generationRun.current;
     setGenerating(true);
@@ -426,7 +489,8 @@ export default function CreateStudio() {
         quoteId: quote.quoteId,
         prompt: generationPrompt,
         referenceUrls: orderedImageReferences.map((item) => item.url),
-        referenceAssetIds: [...orderedImageReferences.map((item) => item.id), ...(videoReference ? [videoReference.id] : [])],
+        referenceAssetIds: isSeedanceOmni ? seedanceAssets.map((item) => item.id)
+          : [...orderedImageReferences.map((item) => item.id), ...(videoReference ? [videoReference.id] : [])],
         ...(isOmni ? { elementAssetIds: elements.map((item) => item.id) } : {}),
       });
       if (run !== generationRun.current) return;
@@ -473,7 +537,17 @@ export default function CreateStudio() {
               value={selectedModel}
               onChange={changeModel}
             />
-            <GenerationInputs
+            {isSeedanceOmni ? <SeedanceOmniInputs
+              mode={options.omniTaskType || "reference"}
+              onModeChange={changeSeedanceTask}
+              assets={seedanceAssets}
+              valid={seedanceAssetsValid}
+              uploading={uploading}
+              onUpload={uploadSeedanceAsset}
+              onPick={setSeedancePickerType}
+              onRemove={(asset) => { removeMention(`@${asset.type}_${asset.id}`); setSeedanceAssets((current) => current.filter((item) => item.id !== asset.id)); }}
+              onInsertMention={insertMention}
+            /> : <GenerationInputs
               modality={modality}
               options={options}
               referenceLimit={referenceLimit}
@@ -495,7 +569,7 @@ export default function CreateStudio() {
               setElementPickerOpen={setElementPickerOpen}
               onInsertElementMention={insertElementMention}
               onInsertMention={insertMention}
-            />
+            />}
             <PromptEditor
               modality={modality}
               modelId={selectedModel}
@@ -528,8 +602,9 @@ export default function CreateStudio() {
             generating={generating}
             prompt={generationPrompt}
             references={references}
-            ready={shotsValid && (!isOmni || (!videoReference || !options.generateAudio) && (!videoReference || videoReference.role !== "base_video" || !options.multiShot))}
-            requiresReference={!isOmni}
+            ready={shotsValid && (!isOmni || (!videoReference || !options.generateAudio) && (!videoReference || videoReference.role !== "base_video" || !options.multiShot)) &&
+              (!isSeedanceOmni || seedanceAssetsValid)}
+            requiresReference={!isOmni && !isSeedanceOmni}
             onGenerate={generate}
           />
         </section>
@@ -572,6 +647,12 @@ export default function CreateStudio() {
       )}
       {videoPickerOpen && isOmni && (
         <AssetPicker type="video" max={1} onClose={() => setVideoPickerOpen(false)} onConfirm={addSelectedVideo} />
+      )}
+      {seedancePickerType && isSeedanceOmni && (
+        <AssetPicker type={seedancePickerType} max={seedancePickerType === "image" ? 30 : 10}
+          excludedIds={seedanceAssets.map((asset) => asset.id)}
+          onClose={() => setSeedancePickerType(null)}
+          onConfirm={(assets) => addSeedanceAssets(assets, seedancePickerType)} />
       )}
 
       {error && (
