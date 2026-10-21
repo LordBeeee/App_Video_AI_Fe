@@ -3,9 +3,9 @@ import { MenuSelect } from "./OptionFields";
 import { dragMention } from "../../utils/createStudio.utils";
 
 const KINDS = [
-  { type: "image", label: "Ảnh tham chiếu", icon: "add_photo_alternate", accept: "image/jpeg,image/png,image/webp,image/heic,image/heif", max: 30, info: "Tối đa 30 ảnh tham chiếu. Ảnh tải lên tối đa 10 MB, kích thước mỗi chiều 300–6.000 px và tỷ lệ rộng/cao từ 0,4 đến 2,5." },
-  { type: "video", label: "Video tham chiếu", icon: "smart_display", accept: "video/mp4,video/quicktime", max: 10, info: "Tối đa 10 video MP4/MOV, tổng thời lượng không quá 30 giây. Mỗi video dài 2–30 giây; khi chỉnh sửa video cần dài 4–30 giây. Mỗi file tối đa 100 MB." },
-  { type: "audio", label: "Âm thanh tham chiếu", icon: "graphic_eq", accept: "audio/mpeg,audio/mp3,audio/wav,audio/x-wav", max: 10, info: "Âm thanh dùng kèm ảnh hoặc video tham chiếu. Tối đa 10 tệp MP3/WAV, mỗi tệp dài 2–30 giây và tối đa 15 MB. Tổng thời lượng âm thanh không quá 30 giây." },
+  { type: "image", label: "Ảnh tham chiếu", icon: "add_photo_alternate", accept: "image/jpeg,image/png,image/webp,image/heic,image/heif", limit: "maxReferenceImages" },
+  { type: "video", label: "Video tham chiếu", icon: "smart_display", accept: "video/mp4,video/quicktime", limit: "maxReferenceVideos" },
+  { type: "audio", label: "Âm thanh tham chiếu", icon: "graphic_eq", accept: "audio/mpeg,audio/mp3,audio/wav,audio/x-wav", limit: "maxReferenceAudios" },
 ];
 
 const MODES = [
@@ -20,19 +20,33 @@ const MODE_INFO = {
   extend: "Chọn ít nhất một video và mô tả rõ cách kéo dài về trước hoặc sau. Tỷ lệ khung hình theo video được kéo dài.",
 };
 
-export default function SeedanceOmniInputs({ mode, onModeChange, assets, errors, uploading, onUpload, onPick, onRemove, onInsertMention }) {
+const MODE_INFO_20 = {
+  reference: "Chọn ít nhất một ảnh hoặc video; có thể thêm âm thanh. Mô tả video mới và nêu rõ tài nguyên nào dùng làm tham chiếu.",
+  edit: "Chọn video gốc và viết rõ nội dung cần thêm, xóa hoặc thay đổi trong video đó.",
+  extend: "Chọn video gốc và viết rõ muốn kéo dài về trước hay sau, cùng nội dung cần tạo thêm.",
+};
+
+export default function SeedanceOmniInputs({ mode, onModeChange, assets, errors, uploading, onUpload, onPick, onRemove, onInsertMention, capabilities, isSeedance25 }) {
+  const videoSeconds = capabilities.maxReferenceVideoSeconds || 30;
+  const audioSeconds = capabilities.maxReferenceAudioSeconds || 30;
+  const info = {
+    image: `Tối đa ${capabilities.maxReferenceImages} ảnh tham chiếu. Ảnh tải lên tối đa 10 MB, kích thước mỗi chiều 300–6.000 px và tỷ lệ rộng/cao từ 0,4 đến 2,5.`,
+    video: `Tối đa ${capabilities.maxReferenceVideos} video MP4/MOV, tổng thời lượng không quá ${videoSeconds} giây. Mỗi video dài 2–${videoSeconds} giây${isSeedance25 ? "; khi chỉnh sửa cần dài 4–30 giây" : ""}. Mỗi file tối đa 200 MB.`,
+    audio: `Âm thanh dùng kèm ảnh hoặc video tham chiếu. Tối đa ${capabilities.maxReferenceAudios} tệp MP3/WAV, mỗi tệp dài 2–${audioSeconds} giây và tối đa 15 MB. Tổng thời lượng không quá ${audioSeconds} giây.`,
+  };
   return <>
     <div className="st-box">
-      <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">tune</span></span><span className="g">Mục đích tạo video</span><InfoTip info={MODE_INFO[mode]} label="Hướng dẫn cách tạo video Seedance Omni" tone="dark" /></p>
+      <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">tune</span></span><span className="g">Mục đích tạo video</span><InfoTip info={isSeedance25 ? MODE_INFO[mode] : MODE_INFO_20[mode]} label="Hướng dẫn cách tạo video Seedance Omni" tone="dark" /></p>
       <MenuSelect label="Cách tạo video Seedance Omni" icon="movie_edit" value={mode} onChange={onModeChange} options={MODES} />
       {errors.length > 0 && <div role="alert" className="st-omni-errors">
         {errors.map((error) => <p className="st-note bad" key={error}>{error}</p>)}
       </div>}
     </div>
     {KINDS.map((kind) => {
+      const max = capabilities[kind.limit] || 0;
       const selected = assets.filter((asset) => asset.type === kind.type);
       return <div className="st-box" key={kind.type}>
-        <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">{kind.icon}</span></span><span className="g">{kind.label}{(kind.type === "video" || (kind.type === "image" && mode === "reference")) && <span className="st-required" title={mode === "reference" ? "Cần ít nhất một ảnh hoặc video tham chiếu" : "Cần ít nhất một video tham chiếu"} aria-label={mode === "reference" ? "Cần ít nhất một ảnh hoặc video tham chiếu" : "Cần ít nhất một video tham chiếu"}>*</span>}</span><InfoTip info={kind.info} label={`Giới hạn ${kind.label.toLowerCase()}`} tone="dark" /><em>{selected.length}/{kind.max}</em></p>
+        <p className="st-lb"><span className="ic"><span className="material-symbols-outlined">{kind.icon}</span></span><span className="g">{kind.label}{(kind.type === "video" || (kind.type === "image" && mode === "reference")) && <span className="st-required" title={mode === "reference" ? "Cần ít nhất một ảnh hoặc video tham chiếu" : "Cần ít nhất một video tham chiếu"} aria-label={mode === "reference" ? "Cần ít nhất một ảnh hoặc video tham chiếu" : "Cần ít nhất một video tham chiếu"}>*</span>}</span><InfoTip info={info[kind.type]} label={`Giới hạn ${kind.label.toLowerCase()}`} tone="dark" /><em>{selected.length}/{max}</em></p>
         <div className="st-refs">
           {selected.map((asset) => {
             const mention = `@${kind.type}_${asset.id}`;
@@ -46,7 +60,7 @@ export default function SeedanceOmniInputs({ mode, onModeChange, assets, errors,
               <button type="button" className="cap st-element-mention" onClick={() => onInsertMention(mention)}>{mention}</button>
             </div>;
           })}
-          {selected.length < kind.max && <div className="st-add">
+          {selected.length < max && <div className="st-add">
             <label title={`Tải ${kind.label.toLowerCase()}`}><span className={`material-symbols-outlined${uploading ? " au-spin" : ""}`}>{uploading ? "progress_activity" : kind.icon}</span>
               <input type="file" accept={kind.accept} style={{ display: "none" }} disabled={uploading} onChange={(event) => onUpload(event, kind.type)} />
             </label>

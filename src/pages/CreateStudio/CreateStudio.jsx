@@ -30,11 +30,17 @@ const MODALITIES = {
   audio: { title: "Tạo giọng nói", icon: "graphic_eq" },
 };
 
-function seedanceOmniErrors(assets, mode) {
+function seedanceOmniErrors(assets, mode, capabilities, isSeedance25) {
   const errors = [];
   const videos = assets.filter((asset) => asset.type === "video");
   const audios = assets.filter((asset) => asset.type === "audio");
-  if (assets.length > 50) errors.push("Chỉ được chọn tối đa 50 tài nguyên tham chiếu.");
+  const maxVideoSeconds = capabilities.maxReferenceVideoSeconds || 30;
+  const maxAudioSeconds = capabilities.maxReferenceAudioSeconds || 30;
+  if (assets.filter((asset) => asset.type === "image").length > (capabilities.maxReferenceImages || 0) ||
+      videos.length > (capabilities.maxReferenceVideos || 0) ||
+      audios.length > (capabilities.maxReferenceAudios || 0)) {
+    errors.push("Số tài nguyên tham chiếu vượt giới hạn model.");
+  }
 
   for (const asset of assets) {
     const label = `${asset.type === "image" ? "Ảnh" : asset.type === "video" ? "Video" : "Âm thanh"} #${asset.id}`;
@@ -48,19 +54,20 @@ function seedanceOmniErrors(assets, mode) {
         (width != null && height != null && (width / height < 0.4 || width / height > 2.5))) errors.push(`${label}: kích thước hoặc tỷ lệ ảnh không hợp lệ.`);
     } else if (asset.type === "video") {
       if (!["video/mp4", "video/quicktime"].includes(asset.mimeType)) errors.push(`${label}: chỉ hỗ trợ MP4/MOV.`);
-      if (!Number.isFinite(seconds) || seconds < (mode === "edit" ? 4 : 2) || seconds > 30) errors.push(`${label}: cần dài ${mode === "edit" ? "4" : "2"}–30 giây.`);
+      const minSeconds = isSeedance25 && mode === "edit" ? 4 : 2;
+      if (!Number.isFinite(seconds) || seconds < minSeconds || seconds > maxVideoSeconds) errors.push(`${label}: cần dài ${minSeconds}–${maxVideoSeconds} giây.`);
       if (asset.fileSizeBytes != null && asset.fileSizeBytes > 200_000_000) errors.push(`${label}: vượt 200 MB.`);
       if ((width != null && (width < 300 || width > 6000)) || (height != null && (height < 300 || height > 6000)) ||
         (width != null && height != null && (width / height < 0.4 || width / height > 2.5 || width * height < 407696 || width * height > 8295044))) errors.push(`${label}: kích thước hoặc tỷ lệ video không hợp lệ.`);
       if (asset.fps != null && (asset.fps < 24 || asset.fps > 60)) errors.push(`${label}: FPS phải từ 24 đến 60.`);
     } else if (asset.type === "audio") {
       if (!["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav"].includes(asset.mimeType)) errors.push(`${label}: chỉ hỗ trợ MP3/WAV.`);
-      if (!Number.isFinite(seconds) || seconds < 2 || seconds > 30) errors.push(`${label}: cần dài 2–30 giây.`);
+      if (!Number.isFinite(seconds) || seconds < 2 || seconds > maxAudioSeconds) errors.push(`${label}: cần dài 2–${maxAudioSeconds} giây.`);
       if (asset.fileSizeBytes != null && asset.fileSizeBytes > 15_000_000) errors.push(`${label}: vượt 15 MB.`);
     }
   }
-  if (videos.reduce((sum, asset) => sum + asset.durationSeconds, 0) > 30) errors.push("Tổng thời lượng video tham chiếu vượt 30 giây.");
-  if (audios.reduce((sum, asset) => sum + asset.durationSeconds, 0) > 30) errors.push("Tổng thời lượng âm thanh tham chiếu vượt 30 giây.");
+  if (videos.reduce((sum, asset) => sum + asset.durationSeconds, 0) > maxVideoSeconds) errors.push(`Tổng thời lượng video tham chiếu vượt ${maxVideoSeconds} giây.`);
+  if (audios.reduce((sum, asset) => sum + asset.durationSeconds, 0) > maxAudioSeconds) errors.push(`Tổng thời lượng âm thanh tham chiếu vượt ${maxAudioSeconds} giây.`);
   return errors;
 }
 
@@ -108,9 +115,10 @@ export default function CreateStudio() {
     : prompt;
   const supportsElements = ["kling/kling-3.0", "kling/kling-3.0-omni"].includes(selectedModel);
   const isOmni = selectedModel === "kling/kling-3.0-omni";
-  const isSeedanceOmni = selectedModel === "seedance/seedance-2.5-omni";
+  const isSeedanceOmni = model?.provider === "seedance" && !!capabilities.omniTaskTypes;
+  const isSeedance25 = selectedModel.startsWith("seedance/seedance-2.5");
   const isSeedance = model?.provider === "seedance";
-  const seedanceErrors = useMemo(() => seedanceOmniErrors(seedanceAssets, options.omniTaskType || "reference"), [seedanceAssets, options.omniTaskType]);
+  const seedanceErrors = useMemo(() => seedanceOmniErrors(seedanceAssets, options.omniTaskType || "reference", capabilities, isSeedance25), [seedanceAssets, options.omniTaskType, capabilities, isSeedance25]);
   const hasSeedanceReference = seedanceAssets.some((asset) => asset.type === "video" ||
     ((options.omniTaskType || "reference") === "reference" && asset.type === "image"));
   const seedanceAssetsValid = hasSeedanceReference && seedanceErrors.length === 0;
@@ -370,7 +378,8 @@ export default function CreateStudio() {
     finally { if (run === generationRun.current) setUploading(false); event.target.value = ""; }
   };
   const addSeedanceAssets = (assets, type) => {
-    const limit = type === "image" ? 30 : 10;
+    const limit = type === "image" ? capabilities.maxReferenceImages
+      : type === "video" ? capabilities.maxReferenceVideos : capabilities.maxReferenceAudios;
     setSeedanceAssets((current) => {
       const existing = new Set(current.map((item) => item.id));
       let count = current.filter((item) => item.type === type).length;
@@ -406,7 +415,7 @@ export default function CreateStudio() {
   };
   const changeSeedanceTask = (mode) => {
     setOptions((current) => ({ ...current, omniTaskType: mode,
-      aspectRatio: "adaptive", duration: mode === "edit" ? -1 : 5 }));
+      aspectRatio: "adaptive", duration: isSeedance25 && mode === "edit" ? -1 : 5 }));
   };
   const removeMention = (mention) => {
     const pattern = new RegExp(`${mention}(?=\\s|$)`, "g");
@@ -589,6 +598,8 @@ export default function CreateStudio() {
             />
             {isSeedanceOmni ? <SeedanceOmniInputs
               mode={options.omniTaskType || "reference"}
+              capabilities={capabilities}
+              isSeedance25={isSeedance25}
               onModeChange={changeSeedanceTask}
               assets={seedanceAssets}
               errors={seedanceErrors}
@@ -699,7 +710,8 @@ export default function CreateStudio() {
         <AssetPicker type="video" max={1} onClose={() => setVideoPickerOpen(false)} onConfirm={addSelectedVideo} />
       )}
       {seedancePickerType && isSeedanceOmni && (
-        <AssetPicker type={seedancePickerType} max={seedancePickerType === "image" ? 30 : 10}
+        <AssetPicker type={seedancePickerType} max={seedancePickerType === "image" ? capabilities.maxReferenceImages
+          : seedancePickerType === "video" ? capabilities.maxReferenceVideos : capabilities.maxReferenceAudios}
           excludedIds={seedanceAssets.map((asset) => asset.id)}
           onClose={() => setSeedancePickerType(null)}
           onConfirm={(assets) => addSeedanceAssets(assets, seedancePickerType)} />

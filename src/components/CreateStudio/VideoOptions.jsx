@@ -3,7 +3,7 @@ import { videoAspectRatioApplies } from "../../utils/createStudio.utils";
 
 export default function VideoOptions({ options, capabilities, setOption, setOptions, setReferences, references, videoReference }) {
   const showAspectRatio = capabilities.omniTaskTypes
-    ? options.omniTaskType === "reference"
+    ? !capabilities.locksOmniOutput || options.omniTaskType === "reference"
     : videoAspectRatioApplies(capabilities, references, videoReference);
   const audioChoices = capabilities.referenceVideos
     ? videoReference?.role === "base_video" ? ["off", "original"]
@@ -52,7 +52,7 @@ export default function VideoOptions({ options, capabilities, setOption, setOpti
           />
         </div>
       )}
-      {capabilities.omniTaskTypes && options.omniTaskType !== "reference" && (
+      {capabilities.locksOmniOutput && options.omniTaskType !== "reference" && (
         <p className="st-note c12">Tỷ lệ khung hình: adaptive, theo video được chọn.</p>
       )}
       {capabilities.resolutions?.length > 0 && (
@@ -73,7 +73,7 @@ export default function VideoOptions({ options, capabilities, setOption, setOpti
           </div>
         </div>
       )}
-      {capabilities.omniTaskTypes && options.omniTaskType === "edit" ? (
+      {capabilities.locksOmniOutput && options.omniTaskType === "edit" ? (
         <p className="st-note c12">Thời lượng: tự động theo video gốc.</p>
       ) : capabilities.durations?.length > 0 && (
         <div className="c12">
