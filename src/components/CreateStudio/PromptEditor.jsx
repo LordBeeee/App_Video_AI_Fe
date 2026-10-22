@@ -154,6 +154,9 @@ export default function PromptEditor({ modality, modelId, mentionAssets = [], ca
             tone="dark"
           />
         )}
+        {modality === "video" && modelId?.startsWith("google/veo-3.1") && (
+          <InfoTip info="Veo 3.1 hỗ trợ prompt tiếng Anh. Hãy mô tả chuyển động, góc máy, bối cảnh và âm thanh mong muốn bằng tiếng Anh." label="Hướng dẫn prompt Veo 3.1" tone="dark" />
+        )}
         <em>{countLabel}</em>
       </p>
       {richPrompt ? <MentionPrompt

@@ -118,6 +118,7 @@ export default function CreateStudio() {
   const isSeedanceOmni = model?.provider === "seedance" && !!capabilities.omniTaskTypes;
   const isSeedance25 = selectedModel.startsWith("seedance/seedance-2.5");
   const isSeedance = model?.provider === "seedance";
+  const isVeo = model?.provider === "veo";
   const seedanceErrors = useMemo(() => seedanceOmniErrors(seedanceAssets, options.omniTaskType || "reference", capabilities, isSeedance25), [seedanceAssets, options.omniTaskType, capabilities, isSeedance25]);
   const hasSeedanceReference = seedanceAssets.some((asset) => asset.type === "video" ||
     ((options.omniTaskType || "reference") === "reference" && asset.type === "image"));
@@ -149,7 +150,7 @@ export default function CreateStudio() {
   ], [isOmni, isSeedanceOmni, seedanceAssets, references, videoReference, supportsElements, elements]);
   const quoteOptions = useMemo(() => ({
     ...options,
-    ...(isSeedance && !isSeedanceOmni ? { referenceAssetIds: references.map((item) => item.id) } : {}),
+    ...((isSeedance && !isSeedanceOmni || isVeo) ? { referenceAssetIds: references.map((item) => item.id) } : {}),
     ...(isSeedanceOmni ? { referenceInputs: seedanceAssets.map((asset) => ({ assetId: asset.id, type: `reference_${asset.type}` })) } : {}),
     ...(isOmni && !videoAspectRatioApplies(capabilities, references, videoReference) ? { aspectRatio: undefined } : {}),
     ...(supportsElements ? { elementAssetIds: elements.map((element) => element.id) } : {}),
@@ -157,13 +158,13 @@ export default function CreateStudio() {
       ...orderedImageReferences.map((reference) => ({ assetId: reference.id, type: reference.role || "refer_image" })),
       ...(videoReference ? [{ assetId: videoReference.id, type: videoReference.role }] : []),
     ] } : {}),
-  }), [supportsElements, isOmni, isSeedance, isSeedanceOmni, seedanceAssets, options, capabilities, references, elements, orderedImageReferences, videoReference]);
+  }), [supportsElements, isOmni, isSeedance, isSeedanceOmni, isVeo, seedanceAssets, options, capabilities, references, elements, orderedImageReferences, videoReference]);
   const { quote, quoteError, clearQuote } = usePriceQuote({
     modality,
     modelSlug: selectedModel,
     prompt: generationPrompt,
     options: quoteOptions,
-    enabled: shotsValid && (!isSeedance || (isSeedanceOmni ? seedanceAssetsValid : references.length > 0)),
+    enabled: shotsValid && ((!isSeedance && !isVeo) || (isSeedanceOmni ? seedanceAssetsValid : references.length > 0)),
   });
   const referenceLimit =
     modality === "video" && !isOmni && options.referenceMode !== "refer_image"

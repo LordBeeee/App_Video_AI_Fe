@@ -27,7 +27,7 @@ export default function GenerationInputs({
   const frameMode = modality === "video" && !isOmni && options.referenceMode !== "refer_image";
   const frames = references.filter((reference) => ["first_frame", "last_frame"].includes(reference.role));
   const referenceImages = references.filter((reference) => reference.role === "refer_image");
-  const frameInfo = `Ảnh JPG/PNG, tối đa 10 MB. Chiều rộng và chiều cao đều phải từ 300 px trở lên. ${requiresFrame ? "Ảnh đầu bắt buộc; ảnh cuối tùy chọn." : "Có thể thêm ảnh đầu hoặc ảnh cuối để định hướng video."}`;
+  const frameInfo = `Ảnh JPG/PNG, tải lên tối đa 10 MB. Chiều rộng và chiều cao đều phải từ 300 px trở lên. ${requiresFrame ? "Ảnh đầu bắt buộc; ảnh cuối tùy chọn." : "Có thể thêm ảnh đầu hoặc ảnh cuối để định hướng video."}`;
   const addImage = (target) => (
     <div className="st-add">
       <label title={uploading ? "Đang tải ảnh" : "Tải ảnh"}>
