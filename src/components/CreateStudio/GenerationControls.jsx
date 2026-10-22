@@ -85,11 +85,11 @@ export default function GenerationControls({ modality, options, capabilities, mo
 
       <div className="st-bar">
         <div className="st-price">
-          <small>Tạm tính</small>
-          <b className={quote ? "" : "none"} title={quote ? money(quote.maxPriceVnd) : "Chưa có báo giá"}>
-            {quote ? money(quote.maxPriceVnd) : "— ₫"}
+          <small>{model?.provider === 'seedance' ? 'Ước tính' : 'Tạm tính'}</small>
+          <b className={quote ? "" : "none"} title={quote ? money(model?.provider === 'seedance' ? quote.minPriceVnd : quote.maxPriceVnd) : "Chưa có báo giá"}>
+            {quote ? money(model?.provider === 'seedance' ? quote.minPriceVnd : quote.maxPriceVnd) : "— ₫"}
           </b>
-          {quote && quote.minPriceVnd !== quote.maxPriceVnd && <span>Từ {money(quote.minPriceVnd)}</span>}
+          {quote && quote.minPriceVnd !== quote.maxPriceVnd && <span>{model?.provider === 'seedance' ? `Tạm giữ tối đa ${money(quote.maxPriceVnd)}` : `Từ ${money(quote.minPriceVnd)}`}</span>}
         </div>
         <button
           type="button"
