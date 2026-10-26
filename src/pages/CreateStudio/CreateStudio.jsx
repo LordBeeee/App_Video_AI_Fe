@@ -260,7 +260,7 @@ export default function CreateStudio() {
       setElementPickerOpen(false);
       setOptions({
         ...(capabilities.resolutions?.length
-          ? { resolution: capabilities.resolutions[0] }
+          ? { resolution: ["1080p", "720p"].find((resolution) => capabilities.resolutions.includes(resolution)) || capabilities.resolutions[0] }
           : {}),
         ...(capabilities.aspectRatios?.length
           ? { aspectRatio: capabilities.aspectRatios[0] }
