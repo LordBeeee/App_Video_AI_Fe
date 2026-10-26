@@ -27,6 +27,8 @@ export function mapAssetToItem(asset) {
     options: { duration: asset.duration },
     startImages: asset.frames,
     name: asset.metadata?.name,
+    description: asset.metadata?.description,
+    sourceUrls: Array.isArray(asset.metadata?.sourceUrls) ? asset.metadata.sourceUrls : [],
     provider: asset.metadata?.provider,
     status: asset.metadata?.status,
     deleteStatus: asset.metadata?.deleteStatus,

@@ -1,4 +1,6 @@
 import { InfoTip } from "../Aurora/AuroraUI";
+import useUploadLimits from "../../hooks/useUploadLimits";
+import { formatUploadLimit } from "../../services/asset.service";
 import { MenuSelect } from "./OptionFields";
 import { dragMention } from "../../utils/createStudio.utils";
 
@@ -27,12 +29,13 @@ const MODE_INFO_20 = {
 };
 
 export default function SeedanceOmniInputs({ mode, onModeChange, assets, errors, uploading, onUpload, onPick, onRemove, onInsertMention, capabilities, isSeedance25 }) {
+  const uploadLimits = useUploadLimits();
   const videoSeconds = capabilities.maxReferenceVideoSeconds || 30;
   const audioSeconds = capabilities.maxReferenceAudioSeconds || 30;
   const info = {
-    image: `Tối đa ${capabilities.maxReferenceImages} ảnh tham chiếu. Ảnh tải lên tối đa 10 MB, kích thước mỗi chiều 300–6.000 px và tỷ lệ rộng/cao từ 0,4 đến 2,5.`,
-    video: `Tối đa ${capabilities.maxReferenceVideos} video MP4/MOV, tổng thời lượng không quá ${videoSeconds} giây. Mỗi video dài 2–${videoSeconds} giây${isSeedance25 ? "; khi chỉnh sửa cần dài 4–30 giây" : ""}. Mỗi file tối đa 200 MB.`,
-    audio: `Âm thanh dùng kèm ảnh hoặc video tham chiếu. Tối đa ${capabilities.maxReferenceAudios} tệp MP3/WAV, mỗi tệp dài 2–${audioSeconds} giây và tối đa 15 MB. Tổng thời lượng không quá ${audioSeconds} giây.`,
+    image: `Tối đa ${capabilities.maxReferenceImages} ảnh tham chiếu. Ảnh tải lên tối đa ${formatUploadLimit(Math.min(uploadLimits.image, 10_000_000))}, kích thước mỗi chiều 300–6.000 px và tỷ lệ rộng/cao từ 0,4 đến 2,5.`,
+    video: `Tối đa ${capabilities.maxReferenceVideos} video MP4/MOV, tổng thời lượng không quá ${videoSeconds} giây. Mỗi video dài 2–${videoSeconds} giây${isSeedance25 ? "; khi chỉnh sửa cần dài 4–30 giây" : ""}. Mỗi file tối đa ${formatUploadLimit(Math.min(uploadLimits.video, 200_000_000))}.`,
+    audio: `Âm thanh dùng kèm ảnh hoặc video tham chiếu. Tối đa ${capabilities.maxReferenceAudios} tệp MP3/WAV, mỗi tệp dài 2–${audioSeconds} giây và tối đa ${formatUploadLimit(Math.min(uploadLimits.audio, 15_000_000))}. Tổng thời lượng không quá ${audioSeconds} giây.`,
   };
   return <>
     <div className="st-box">

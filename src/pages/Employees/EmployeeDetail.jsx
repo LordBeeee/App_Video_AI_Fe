@@ -8,6 +8,8 @@ import {
   resetEmployeePasswordApi,
 } from '../../services/user.service'
 import { Card, Avatar, Skeleton, ErrorBox } from '../../components/Aurora/AuroraUI'
+import useUploadLimits from '../../hooks/useUploadLimits'
+import { formatUploadLimit } from '../../services/asset.service'
 
 function Field({ id, label, required, error, className = '', children }) {
   return (
@@ -123,6 +125,7 @@ function DetailSkeleton() {
 }
 
 export default function EmployeeDetail() {
+  const uploadLimits = useUploadLimits()
   const { id } = useParams()
 
   const [user, setUser] = useState(null)
@@ -184,6 +187,11 @@ export default function EmployeeDetail() {
   function handleFileChange(e) {
     const file = e.target.files[0]
     if (!file) return
+    if (file.size > uploadLimits.image) {
+      showToast(`Ảnh đại diện không được vượt quá ${formatUploadLimit(uploadLimits.image)}`, 'error')
+      e.target.value = ''
+      return
+    }
     setAvatarFile(file)
     setAvatarPreview(URL.createObjectURL(file))
   }

@@ -1,4 +1,6 @@
 import { InfoTip } from "../Aurora/AuroraUI";
+import useUploadLimits from "../../hooks/useUploadLimits";
+import { formatUploadLimit } from "../../services/asset.service";
 import { dragMention } from "../../utils/createStudio.utils";
 
 export default function GenerationInputs({
@@ -24,10 +26,11 @@ export default function GenerationInputs({
   onInsertElementMention,
   onInsertMention,
 }) {
+  const uploadLimits = useUploadLimits();
   const frameMode = modality === "video" && !isOmni && options.referenceMode !== "refer_image";
   const frames = references.filter((reference) => ["first_frame", "last_frame"].includes(reference.role));
   const referenceImages = references.filter((reference) => reference.role === "refer_image");
-  const frameInfo = `Ảnh JPG/PNG, tải lên tối đa 10 MB. Chiều rộng và chiều cao đều phải từ 300 px trở lên. ${requiresFrame ? "Ảnh đầu bắt buộc; ảnh cuối tùy chọn." : "Có thể thêm ảnh đầu hoặc ảnh cuối để định hướng video."}`;
+  const frameInfo = `Ảnh JPG/PNG, tải lên tối đa ${formatUploadLimit(Math.min(uploadLimits.image, 10_000_000))}. Chiều rộng và chiều cao đều phải từ 300 px trở lên. ${requiresFrame ? "Ảnh đầu bắt buộc; ảnh cuối tùy chọn." : "Có thể thêm ảnh đầu hoặc ảnh cuối để định hướng video."}`;
   const addImage = (target) => (
     <div className="st-add">
       <label title={uploading ? "Đang tải ảnh" : "Tải ảnh"}>

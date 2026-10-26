@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { createElementApi, createVoiceApi, getVoicesApi, uploadAssetApi } from "../../services/asset.service";
+import { createElementApi, createVoiceApi, getVoicesApi, uploadAssetApi, formatUploadLimit } from "../../services/asset.service";
 import AssetPicker from "./AssetPicker";
-import { Pills } from "../Aurora/AuroraUI";
+import { InfoTip, Pills } from "../Aurora/AuroraUI";
+import useUploadLimits from "../../hooks/useUploadLimits";
 import "./library.css";
 
 const KINDS = [
@@ -11,6 +12,9 @@ const KINDS = [
 
 export default function CreateCustomAssetModal({ assetKind = "element", onClose, onCreated }) {
   const [kind, setKind] = useState("image");
+  const uploadLimits = useUploadLimits();
+  const imageLimit = Math.min(uploadLimits.image, 10_000_000);
+  const videoLimit = Math.min(uploadLimits.video, 200_000_000);
   const isVoice = assetKind === "voice";
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -117,6 +121,7 @@ export default function CreateCustomAssetModal({ assetKind = "element", onClose,
             <div className="au-chl">
               <span className="au-hic"><span className="material-symbols-outlined">bookmark_add</span></span>
               <h2 className="au-h3 au-fd">Tạo {isVoice ? "Voice" : "Element"}</h2>
+              {!isVoice && <InfoTip label="Element là gì?" info="Element là đối tượng tham chiếu tái sử dụng để giữ ngoại hình nhân vật hoặc vật thể nhất quán khi tạo nội dung." />}
             </div>
             <button type="button" onClick={onClose} className="au-ico" aria-label="Đóng" title="Đóng"><span className="material-symbols-outlined">close</span></button>
           </div>
@@ -162,12 +167,12 @@ export default function CreateCustomAssetModal({ assetKind = "element", onClose,
                 {kind === "image" ? (
                   <>
                     <div>
-                      <p className="lb-lab">Ảnh chính diện {req}</p>
+                      <p className="lb-lab"><span>Ảnh chính diện {req} <InfoTip label="Yêu cầu ảnh chính diện" info={`JPG/PNG, tối đa ${formatUploadLimit(imageLimit)}, mỗi chiều từ 300 px, tỉ lệ 1:2,5 đến 2,5:1.`} /></span></p>
                       {tile(main, "main", "Ảnh chính diện")}
                       {main && <button type="button" onClick={() => setMain(null)} className="lb-link mute" style={{ marginTop: 6 }}>Xóa ảnh</button>}
                     </div>
                     <div>
-                      <p className="lb-lab"><span style={{ color: "var(--ink)", fontSize: 13, fontWeight: 600 }}>Ảnh tham chiếu bổ sung {req}</span><span>{additional.length}/3</span></p>
+                      <p className="lb-lab"><span style={{ color: "var(--ink)", fontSize: 13, fontWeight: 600 }}>Ảnh tham chiếu bổ sung {req} <InfoTip label="Yêu cầu ảnh tham chiếu bổ sung" info={`Thêm 1–3 ảnh từ góc khác hoặc cận cảnh, khác ảnh chính diện. JPG/PNG, mỗi ảnh tối đa ${formatUploadLimit(imageLimit)}, mỗi chiều từ 300 px, tỉ lệ 1:2,5 đến 2,5:1.`} /></span><span>{additional.length}/3</span></p>
                       <div className="lb-row">
                         {additional.map((asset) => (
                           <div key={asset.id} style={{ position: "relative" }}>
@@ -183,9 +188,8 @@ export default function CreateCustomAssetModal({ assetKind = "element", onClose,
                   </>
                 ) : (
                   <div>
-                    <p className="lb-lab">Video nhân vật {req}</p>
+                    <p className="lb-lab"><span>Video nhân vật {req} <InfoTip label="Yêu cầu video Element" info={`MP4/MOV, tối đa ${formatUploadLimit(videoLimit)}, dài 3–8 giây, 1080p, tỉ lệ 16:9 hoặc 9:16. Kling hiện hỗ trợ Element video cho nhân vật dạng người, phong cách chân thực.`} /></span></p>
                     {tile(video, "video", "Video nhân vật")}
-                    <p className="lb-hint">MP4/MOV, 3–8 giây, 1080p, 16:9 hoặc 9:16, tối đa 100 MB.</p>
                     {video && <button type="button" onClick={() => setVideo(null)} className="lb-link mute" style={{ marginTop: 6 }}>Xóa video</button>}
                   </div>
                 )}

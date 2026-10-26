@@ -1,12 +1,33 @@
 import api from './api'
 
+const FALLBACK_UPLOAD_LIMITS = { image: 10_000_000, video: 100_000_000, audio: 100_000_000 }
+let uploadLimitsCache = null
+let uploadLimitsExpires = 0
+let uploadLimitsPending = null
+
+export async function getUploadLimitsApi() {
+  if (uploadLimitsCache && Date.now() < uploadLimitsExpires) return uploadLimitsCache
+  if (uploadLimitsPending) return uploadLimitsPending
+  uploadLimitsPending = api.get('/assets/upload-limits').then(({ data }) => {
+    uploadLimitsCache = {
+      image: Number(data.image) || FALLBACK_UPLOAD_LIMITS.image,
+      video: Number(data.video) || FALLBACK_UPLOAD_LIMITS.video,
+      audio: Number(data.audio) || FALLBACK_UPLOAD_LIMITS.audio,
+    }
+    uploadLimitsExpires = Date.now() + 5 * 60_000
+    return uploadLimitsCache
+  }).catch(() => FALLBACK_UPLOAD_LIMITS).finally(() => { uploadLimitsPending = null })
+  return uploadLimitsPending
+}
+
+export function formatUploadLimit(bytes) {
+  return `${Math.floor(bytes / 1_000_000)} MB`
+}
+
 export async function uploadAssetApi(file) {
-  if (file.type.startsWith('image/') && file.size > 10_000_000) {
-    throw new Error('Ảnh tải lên không được vượt quá 10 MB')
-  }
-  if ((file.type.startsWith('video/') || file.type.startsWith('audio/')) && file.size > 100_000_000) {
-    throw new Error(`${file.type.startsWith('audio/') ? 'Âm thanh' : 'Video'} tải lên không được vượt quá 100 MB`)
-  }
+  const type = file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'audio'
+  const limits = await getUploadLimitsApi()
+  if (file.size > limits[type]) throw new Error(`${type === 'image' ? 'Ảnh' : type === 'video' ? 'Video' : 'Âm thanh'} tải lên không được vượt quá ${formatUploadLimit(limits[type])}`)
   const formData = new FormData()
   formData.append('file', file)
   try {

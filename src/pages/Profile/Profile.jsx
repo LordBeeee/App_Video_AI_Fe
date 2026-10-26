@@ -4,6 +4,8 @@ import { InfoRow, SectionLabel, FieldError, AvatarUploader, Toast } from '../../
 import { profileService } from '../../services/profile.service'
 import { updateProfileApi, changePasswordApi } from '../../services/user.service'
 import { useAuthStore } from '../../store/auth.store'
+import useUploadLimits from '../../hooks/useUploadLimits'
+import { formatUploadLimit } from '../../services/asset.service'
 
 // ─── Password strength (giống EmployeeModal) ──────────────────────────────────
 const PWD_RULES = [
@@ -88,6 +90,7 @@ const INIT_PWD  = { current: '', newPwd: '', confirm: '' }
 const INIT_PERR = { current: '', newPwd: '', confirm: '' }
 
 export default function Profile () {
+  const uploadLimits = useUploadLimits()
   const [user, setUser]                 = useState(null)
   const [loading, setLoading]           = useState(true)
   const [form, setForm]                 = useState({ fullName: '', username: '', phone: '' })
@@ -150,6 +153,11 @@ export default function Profile () {
   function handleFileChange(e) {
     const file = e.target.files[0]
     if (!file) return
+    if (file.size > uploadLimits.image) {
+      showToast(`Ảnh đại diện không được vượt quá ${formatUploadLimit(uploadLimits.image)}`, 'error')
+      e.target.value = ''
+      return
+    }
     setAvatarFile(file)
     setAvatarPreview(URL.createObjectURL(file))
   }

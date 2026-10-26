@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import PreviewPanel from "./PreviewPanel";
 import InfoPanel from "./InfoPanel";
 import ThumbnailRail from "./ThumbnailRail";
@@ -19,6 +20,10 @@ export default function DetailOverlay({
   promptCopied,
   thumbRefs,
 }) {
+  const [referenceIndex, setReferenceIndex] = useState(0);
+  useEffect(() => setReferenceIndex(0), [item.id]);
+  const references = item.category === "element" && item.type === "image" ? item.sourceUrls : [];
+  const previewItem = references.length ? { ...item, src: references[referenceIndex] || references[0], alt: `${item.name || 'Element'} - ${referenceIndex === 0 ? 'Ảnh chính diện' : `Ảnh tham chiếu ${referenceIndex}`}` } : item;
   const fileName = item.name || `${item.type}_${item.id}.${item.type === "video" ? "mp4" : item.type === "audio" ? "mp3" : "png"}`;
 
   return (
@@ -73,7 +78,14 @@ export default function DetailOverlay({
       </header>
 
       <div className="lb-ov-body">
-        <PreviewPanel item={item} onPrev={onPrev} onNext={onNext} />
+        <div className="lb-preview-column">
+          <PreviewPanel item={previewItem} onPrev={onPrev} onNext={onNext} />
+          {references.length > 1 && <div className="lb-element-references" aria-label="Ảnh tham chiếu của Element">
+            {references.map((url, index) => <button key={`${url}-${index}`} type="button" className={`lb-element-reference${referenceIndex === index ? " on" : ""}`} onClick={() => setReferenceIndex(index)} aria-label={index === 0 ? "Xem ảnh chính diện" : `Xem ảnh tham chiếu bổ sung ${index}`}>
+              <img src={url} alt="" /><span>{index === 0 ? "Chính diện" : `Bổ sung ${index}`}</span>
+            </button>)}
+          </div>}
+        </div>
 
         {(["creative", "element", "voice"].includes(item.category)) && (
           <InfoPanel item={item} onCopyPrompt={onCopyPrompt} promptCopied={promptCopied} />

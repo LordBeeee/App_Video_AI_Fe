@@ -1,4 +1,6 @@
 import { InfoTip, Pills } from "../Aurora/AuroraUI";
+import useUploadLimits from "../../hooks/useUploadLimits";
+import { formatUploadLimit } from "../../services/asset.service";
 
 export const FILTER_TABS = [
   { value: "Creative", label: "Sáng tạo", icon: "auto_awesome" },
@@ -19,6 +21,7 @@ export function TabBar({ activeTab, setActiveTab }) {
 }
 
 export function LibraryAction({ activeTab, uploading, fileInputRef, onUploadFile, onCreateCustomAsset }) {
+  const limits = useUploadLimits();
   return (
     <>
       {["Element", "Voice"].includes(activeTab) && (
@@ -32,7 +35,7 @@ export function LibraryAction({ activeTab, uploading, fileInputRef, onUploadFile
           <input ref={fileInputRef} type="file" accept="image/*,video/*,audio/*" multiple onChange={onUploadFile} className="hidden" />
           <InfoTip label="Giới hạn dung lượng tải lên" info={{
             title: "Giới hạn mỗi file tải lên",
-            what: <>Ảnh: tối đa 10 MB.<br />Video: tối đa 100 MB.<br />Âm thanh: tối đa 100 MB.</>,
+            what: <>Ảnh: tối đa {formatUploadLimit(limits.image)}.<br />Video: tối đa {formatUploadLimit(limits.video)}.<br />Âm thanh: tối đa {formatUploadLimit(limits.audio)}.</>,
             note: "Model có thể yêu cầu giới hạn thấp hơn khi dùng làm tham chiếu.",
           }} />
           <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="au-btn solid">

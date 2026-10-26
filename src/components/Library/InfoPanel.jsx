@@ -86,6 +86,7 @@ export default function InfoPanel({
       </header>
 
       <div className="au-scroll lb-info-b">
+        {item.category === 'element' && item.description && <section><div className="lb-sh">Mô tả Element</div><p className="lb-pr">{item.description}</p></section>}
         {inputs.length > 0 && (
           <section>
             <div className="lb-sh"><span className="material-symbols-outlined">collections</span>Nguồn đầu vào</div>
