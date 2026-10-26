@@ -69,7 +69,7 @@
 .sp-chips > div:hover { transform: translateY(-2px); border-color: var(--or); }
 .sp-chips span { display: block; font-size: 10.5px; color: var(--soft); white-space: nowrap; }
 .sp-chips b { display: block; margin-top: 3px; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sp-chips em { position: absolute; top: 8px; right: 8px; font-style: normal; font-size: 10px; font-weight: 700; color: var(--soft); }
+.sp-chips em { display: block; margin-top: 4px; font-style: normal; font-size: 10px; font-weight: 700; line-height: 1.25; color: var(--soft); }
 .sp-chips em.up { color: var(--gold); }
 .sp-chips em.down { color: #4ade80; }
 
