@@ -1,3 +1,6 @@
+import VideoSourceGroups from './VideoSourceGroups'
+import { videoSourceGroups as buildVideoSourceGroups } from '../../utils/videoSources.utils'
+
 const formatMoney = (value) =>
   `${new Intl.NumberFormat('vi-VN').format(Number(value || 0))} ₫`
 
@@ -20,25 +23,10 @@ export default function InfoPanel({
         type: 'image',
         url,
       }))
-  const videoInputs = type === 'video'
-    ? [...inputs, ...(item.elementAssets || []).map((asset) => ({ ...asset, role: 'element' }))]
-    : []
-
-  const inputLabel = (asset, index) => {
-    if (asset.role === 'element') return asset.name || `Element #${asset.id}`
-    const referenceType = item.options?.referenceInputs?.find((input) =>
-      Number(input.assetId) === Number(asset.id))?.type
-    if (referenceType === 'first_frame') return 'Ảnh đầu'
-    if (referenceType === 'last_frame') return 'Ảnh cuối'
-    if (asset.type === 'video') return 'Video tham chiếu'
-    if (asset.type === 'audio') return 'Âm thanh tham chiếu'
-    if (referenceType === 'refer_image' || referenceType === 'reference_image' || item.options?.referenceMode === 'refer_image') return 'Ảnh tham chiếu'
-    if (type === 'video') return index === 0 ? 'Ảnh đầu' : 'Ảnh cuối'
-    return asset.role === 'input' || index === 0 ? 'Bắt đầu' : 'Tham chiếu'
-  }
+  const sourceGroups = type === 'video' ? buildVideoSourceGroups(item, inputs) : []
 
   const inputCard = (asset, index) => {
-    const label = inputLabel(asset, index)
+    const label = asset.role === 'input' || index === 0 ? 'Bắt đầu' : 'Tham chiếu'
     return (
       <div key={`${asset.role}-${asset.id || asset.url}`} className="st-inp" title={label}>
         <div>
@@ -90,11 +78,7 @@ export default function InfoPanel({
           {copyButton}
         </div>
 
-        {videoInputs.length > 0 && (
-          <div className="st-info-inputs au-scroll" aria-label="Nguồn đầu vào video">
-            {videoInputs.map(inputCard)}
-          </div>
-        )}
+        {type === 'video' && <VideoSourceGroups groups={sourceGroups} />}
 
         {item.prompt && <p className="st-prompt au-scroll">{item.prompt}</p>}
       </div>
