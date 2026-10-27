@@ -175,10 +175,14 @@ export default function CreateStudio() {
     try {
       const response = await getGenerations(modality);
       if (request === historyRequest.current) setHistory(response.items || []);
-    } catch {
-      if (request === historyRequest.current) setHistory([]);
-    }
+    } catch { /* Keep the current items when a refresh fails. */ }
   }, [modality]);
+
+  const upsertHistory = (item) => {
+    if (!item?.id) return;
+    historyRequest.current += 1;
+    setHistory((current) => [item, ...current.filter((entry) => entry.id !== item.id)].slice(0, 100));
+  };
 
   const changeModel = (nextModel) => {
     if (nextModel === selectedModel) return;
@@ -529,6 +533,7 @@ export default function CreateStudio() {
       lastError = "";
       if (run !== generationRun.current) return;
       setResult(current);
+      upsertHistory(current);
       if (["succeeded", "failed"].includes(current.status)) return current;
     }
     throw new Error("Video vẫn đang xử lý. Bạn có thể xem lại trong lịch sử.");
@@ -546,8 +551,9 @@ export default function CreateStudio() {
     const run = generationRun.current;
     setGenerating(true);
     setError("");
+    let created;
     try {
-      let created = await createGeneration({
+      created = await createGeneration({
         quoteId: quote.quoteId,
         prompt: generationPrompt,
         referenceUrls: orderedImageReferences.map((item) => item.url),
@@ -557,6 +563,7 @@ export default function CreateStudio() {
       });
       if (run !== generationRun.current) return;
       setResult(created);
+      if (modality === "video") upsertHistory(created);
       clearQuote();
       if (
         modality === "video" &&
@@ -566,12 +573,15 @@ export default function CreateStudio() {
       }
       if (run !== generationRun.current) return;
       if (created?.status === "failed") setError(studioErrorMessage(created, "Tạo video thất bại. Vui lòng thử lại."));
-      await loadHistory();
+      if (modality !== "video") await loadHistory();
     } catch (err) {
       if (run !== generationRun.current) return;
       setError(studioErrorMessage(err));
     } finally {
-      if (run === generationRun.current) setGenerating(false);
+      if (run === generationRun.current) {
+        if (modality === "video") await loadHistory();
+        setGenerating(false);
+      }
     }
   };
 
