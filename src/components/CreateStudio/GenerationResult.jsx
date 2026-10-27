@@ -26,7 +26,7 @@ export function MobileGenerationResult({ result, modality, onCopyPrompt, promptC
             {modality === "video" && <video src={url} controls />}
             {modality === "audio" && <div className="st-aud"><audio src={url} controls /></div>}
           </div>
-          <a href={url} target="_blank" rel="noreferrer">Mở hoặc tải xuống</a>
+          {modality !== "video" && <a href={url} target="_blank" rel="noreferrer">Mở hoặc tải xuống</a>}
           {modality === "video" && result.lastFrameUrl && (
             <a href={lastFrameDownloadUrl(result.lastFrameUrl)} target="_blank" rel="noreferrer">Tải ảnh cuối</a>
           )}
@@ -39,7 +39,7 @@ export function MobileGenerationResult({ result, modality, onCopyPrompt, promptC
 export function DesktopGenerationResult({ result, modality, icon, onCopyPrompt, promptCopied }) {
   return (
     <section className="au-card st-res">
-      <div className="st-res-in">
+      <div className={`st-res-in${modality === "video" && result?.outputUrls?.length ? " st-res-video" : ""}`}>
         {!result && (
           <Empty icon={icon} text="Sẵn sàng sáng tạo" hint="Chọn model, nhập prompt và xem giá trước khi tạo." />
         )}
@@ -55,7 +55,7 @@ export function DesktopGenerationResult({ result, modality, icon, onCopyPrompt, 
           </div>
         )}
         {result?.outputUrls?.length > 0 && (
-          <div>
+          <div className={modality === "video" ? "st-video-result" : undefined}>
             <InfoPanel item={result} variant="inline" onCopyPrompt={onCopyPrompt} promptCopied={promptCopied} />
             {modality === "audio" ? (
               <div className="st-media st-aud">
@@ -68,17 +68,23 @@ export function DesktopGenerationResult({ result, modality, icon, onCopyPrompt, 
                 {modality === "video" && <video src={result.outputUrls[0]} controls />}
               </div>
             )}
-            <div className="st-rf">
-              <span>Đã lưu vào Thư viện</span>
-              <a className="au-btn" href={result.outputUrls[0]} target="_blank" rel="noreferrer">
-                <span className="material-symbols-outlined">download</span>Tải xuống
-              </a>
-              {modality === "video" && result.lastFrameUrl && (
-                <a className="au-btn" href={lastFrameDownloadUrl(result.lastFrameUrl)} target="_blank" rel="noreferrer">
-                  <span className="material-symbols-outlined">image</span>Tải ảnh cuối
-                </a>
-              )}
-            </div>
+            {(modality !== "video" || result.lastFrameUrl) && (
+              <div className={`st-rf${modality === "video" ? " st-rf-frame" : ""}`}>
+                {modality !== "video" && (
+                  <>
+                    <span>Đã lưu vào Thư viện</span>
+                    <a className="au-btn" href={result.outputUrls[0]} target="_blank" rel="noreferrer">
+                      <span className="material-symbols-outlined">download</span>Tải xuống
+                    </a>
+                  </>
+                )}
+                {modality === "video" && result.lastFrameUrl && (
+                  <a className="au-btn" href={lastFrameDownloadUrl(result.lastFrameUrl)} target="_blank" rel="noreferrer">
+                    <span className="material-symbols-outlined">image</span>Tải ảnh cuối
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
