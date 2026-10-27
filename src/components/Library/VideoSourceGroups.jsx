@@ -12,6 +12,7 @@ function SourcePreview({ item, controls = false }) {
 }
 
 function SourceGroup({ group }) {
+  const compact = group.items.every((item) => item.type !== 'video' && item.type !== 'audio')
   const id = useId()
   const button = useRef(null)
   const popover = useRef(null)
@@ -71,7 +72,7 @@ function SourceGroup({ group }) {
 
   return (
     <>
-      <button ref={button} type="button" className={`st-source-group${open ? ' on' : ''}`}
+      <button ref={button} type="button" className={`st-source-group${compact ? ' compact' : ''}${open ? ' on' : ''}`}
         aria-expanded={open} aria-controls={open ? id : undefined}
         aria-label={`${group.label}, ${group.items.length} mục`}
         onClick={() => { clearTimeout(timer.current); setOpen((value) => !value) }}
@@ -81,16 +82,17 @@ function SourceGroup({ group }) {
         <span className="st-source-count">{group.items.length}</span>
       </button>
       {open && createPortal(
-        <div ref={popover} id={id} className={`st-source-pop${group.items.length === 1 ? ' one' : ''}`}
+        <div ref={popover} id={id} className={`st-source-pop${compact ? ' compact' : ''}${group.items.length === 1 ? ' one' : ''}`}
           role="region" aria-label={group.label}
           style={{ left: position?.left ?? 0, top: position?.top ?? 0, visibility: position ? 'visible' : 'hidden' }}
           onPointerEnter={hoverOn} onPointerLeave={hoverOff}>
-          <div className="st-source-pop-head"><strong>{group.label}</strong><span>{group.items.length} mục</span></div>
-          <div className="st-source-pop-grid">
+          {!compact && <div className="st-source-pop-head"><strong>{group.label}</strong><span>{group.items.length} mục</span></div>}
+          <div className="st-source-pop-grid" style={compact ? { gridTemplateColumns: `repeat(${Math.min(group.items.length, 6)}, 40px)` } : undefined}>
             {group.items.map((item, index) => (
-              <div className="st-source-pop-item" key={`${item.id || item.url}-${index}`}>
-                <div className="st-source-pop-media"><SourcePreview item={item} controls /></div>
-                <span title={item.label}>{item.label}</span>
+              <div className="st-source-pop-item" key={`${item.id || item.url}-${index}`}
+                role={compact ? 'img' : undefined} aria-label={compact ? `${item.label || group.label} ${index + 1}` : undefined}>
+                <div className="st-source-pop-media"><SourcePreview item={item} controls={!compact} /></div>
+                {!compact && <span title={item.label}>{item.label}</span>}
               </div>
             ))}
           </div>
