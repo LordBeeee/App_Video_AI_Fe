@@ -20,6 +20,40 @@ export default function InfoPanel({
         type: 'image',
         url,
       }))
+  const videoInputs = type === 'video'
+    ? [...inputs, ...(item.elementAssets || []).map((asset) => ({ ...asset, role: 'element' }))]
+    : []
+
+  const inputLabel = (asset, index) => {
+    if (asset.role === 'element') return asset.name || `Element #${asset.id}`
+    const referenceType = item.options?.referenceInputs?.find((input) =>
+      Number(input.assetId) === Number(asset.id))?.type
+    if (referenceType === 'first_frame') return 'Ảnh đầu'
+    if (referenceType === 'last_frame') return 'Ảnh cuối'
+    if (asset.type === 'video') return 'Video tham chiếu'
+    if (asset.type === 'audio') return 'Âm thanh tham chiếu'
+    if (referenceType === 'refer_image' || referenceType === 'reference_image' || item.options?.referenceMode === 'refer_image') return 'Ảnh tham chiếu'
+    if (type === 'video') return index === 0 ? 'Ảnh đầu' : 'Ảnh cuối'
+    return asset.role === 'input' || index === 0 ? 'Bắt đầu' : 'Tham chiếu'
+  }
+
+  const inputCard = (asset, index) => {
+    const label = inputLabel(asset, index)
+    return (
+      <div key={`${asset.role}-${asset.id || asset.url}`} className="st-inp" title={label}>
+        <div>
+          {asset.type === 'video' ? (
+            <video src={asset.url} poster={asset.thumbnailUrl || undefined} muted playsInline preload="metadata" />
+          ) : asset.type === 'audio' ? (
+            <span className="material-symbols-outlined">graphic_eq</span>
+          ) : (
+            <img src={asset.thumbnailUrl || asset.url} alt="" />
+          )}
+        </div>
+        <span>{label}</span>
+      </div>
+    )
+  }
 
   const inline = variant === 'inline'
 
@@ -47,18 +81,7 @@ export default function InfoPanel({
             {type === 'video' ? 'Video' : type === 'audio' ? 'Audio' : 'Image'}
           </div>
 
-          {inputs.map((asset, index) => (
-            <div key={asset.id || asset.url} className="st-inp">
-              <div>
-                {asset.type === 'video' ? (
-                  <video src={asset.url} muted />
-                ) : (
-                  <img src={asset.thumbnailUrl || asset.url} alt="" />
-                )}
-              </div>
-              <span>{asset.role === 'input' || index === 0 ? 'Bắt đầu' : 'Tham chiếu'}</span>
-            </div>
-          ))}
+          {type !== 'video' && inputs.map(inputCard)}
 
           {model && <span className="st-tg2">{model}</span>}
           {quality && <span className="st-tg2">{quality}</span>}
@@ -66,6 +89,12 @@ export default function InfoPanel({
           {price != null && <span className="st-tg2 ok">{formatMoney(price)}</span>}
           {copyButton}
         </div>
+
+        {videoInputs.length > 0 && (
+          <div className="st-info-inputs au-scroll" aria-label="Nguồn đầu vào video">
+            {videoInputs.map(inputCard)}
+          </div>
+        )}
 
         {item.prompt && <p className="st-prompt au-scroll">{item.prompt}</p>}
       </div>

@@ -225,6 +225,9 @@
 
 .st-info { margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; }
 .st-info-r { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.st-info-inputs { display: flex; gap: 8px; min-width: 0; overflow-x: auto; overflow-y: hidden; flex: none; padding-bottom: 4px; scrollbar-width: thin; }
+.st-info-inputs .st-inp { flex: none; max-width: 200px; }
+.st-info-inputs .st-inp > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .st-info-t { display: flex; align-items: center; gap: 8px; margin-right: 4px; font-size: 15px; font-weight: 800; }
 .st-info-t .material-symbols-outlined { font-size: 20px; color: var(--deep); }
 .st-inp { display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 14px; border: 1.5px solid var(--line); background: #f8f6f4; font-size: 12px; font-weight: 600; }
