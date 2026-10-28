@@ -1,5 +1,6 @@
 import InfoPanel from "../Library/InfoPanel";
 import { Empty } from "../Aurora/AuroraUI";
+import { videoSyncMessage, videoSyncTitle } from "../../utils/videoSyncStatus";
 
 const lastFrameDownloadUrl = (url) => url?.replace("/image/upload/", "/image/upload/fl_attachment/");
 
@@ -9,14 +10,14 @@ export function MobileGenerationResult({ result, modality, onCopyPrompt, promptC
     <div className="st-box st-mres">
       <p className="st-lb">
         Kết quả gần nhất
-        <em>{result.status}</em>
+        <em>{modality === "video" && result.status !== "succeeded" ? videoSyncTitle(result) : result.status}</em>
       </p>
       {result.outputUrls?.length > 0 && (
         <InfoPanel item={result} variant="inline" onCopyPrompt={onCopyPrompt} promptCopied={promptCopied} />
       )}
       {!result.outputUrls?.length && (
         <p className={`st-note${result.status === "failed" ? " bad" : ""}`}>
-          {result.errorMessage || "Nội dung đang được xử lý…"}
+          {modality === "video" ? videoSyncMessage(result) : result.errorMessage || "Nội dung đang được xử lý…"}
         </p>
       )}
       {result.outputUrls?.map((url) => (
@@ -47,10 +48,10 @@ export function DesktopGenerationResult({ result, modality, icon, onCopyPrompt, 
           <div className="st-wait">
             <div className="st-spin" />
             <h2 className="au-fd">
-              {result.status === "failed" ? "Tạo nội dung thất bại" : "Đang xử lý..."}
+              {modality === "video" ? videoSyncTitle(result) : result.status === "failed" ? "Tạo nội dung thất bại" : "Đang xử lý..."}
             </h2>
             <p className={result.status === "failed" ? "bad" : ""}>
-              {result.errorMessage || "Nội dung thường mất vài phút để hoàn tất."}
+              {modality === "video" ? videoSyncMessage(result) : result.errorMessage || "Nội dung thường mất vài phút để hoàn tất."}
             </p>
           </div>
         )}

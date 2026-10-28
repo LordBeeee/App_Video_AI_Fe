@@ -528,6 +528,7 @@ export default function CreateStudio() {
 
   const pollVideo = async (id, run) => {
     let lastError = "";
+    let latest;
     for (let attempt = 0; attempt < 120; attempt++) {
       await new Promise((resolve) => setTimeout(resolve, 5000));
       if (run !== generationRun.current) return;
@@ -544,12 +545,14 @@ export default function CreateStudio() {
         continue;
       }
       lastError = "";
+      latest = current;
       if (run !== generationRun.current) return;
       setResult(current);
       upsertHistory(current);
       if (["succeeded", "failed"].includes(current.status)) return current;
     }
-    throw new Error("Video vẫn đang xử lý. Bạn có thể xem lại trong lịch sử.");
+    if (latest) return latest;
+    throw new Error("Chưa thể kiểm tra trạng thái video. Hãy xem lại trong lịch sử.");
   };
 
   const generate = async () => {

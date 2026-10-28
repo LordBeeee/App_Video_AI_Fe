@@ -1,3 +1,5 @@
+import { videoSyncTitle } from "../../utils/videoSyncStatus";
+
 const money = (value) =>
   `${new Intl.NumberFormat("vi-VN").format(Number(value || 0))} ₫`;
 
@@ -20,6 +22,7 @@ export default function GenerationHistory({ history, resultId, onRefresh, onSele
             type="button"
             onClick={() => onSelect(item)}
             className={`st-li${resultId === item.id ? " on" : ""}`}
+            title={item.modality === "video" && item.status !== "succeeded" ? videoSyncTitle(item) : undefined}
           >
             <div className="st-th">
               {item.thumbnailUrl ? (
@@ -35,6 +38,7 @@ export default function GenerationHistory({ history, resultId, onRefresh, onSele
                 <span>{item.displayQuality || item.modelName}</span>
                 <span>{money(item.displayPriceVnd)}</span>
               </div>
+              {item.modality === "video" && item.status !== "succeeded" && <div className="sub"><span>{videoSyncTitle(item)}</span></div>}
             </div>
           </button>
         ))}
