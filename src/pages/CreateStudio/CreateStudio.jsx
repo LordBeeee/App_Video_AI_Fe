@@ -174,7 +174,11 @@ export default function CreateStudio() {
     const request = ++historyRequest.current;
     try {
       const response = await getGenerations(modality);
-      if (request === historyRequest.current) setHistory(response.items || []);
+      if (request === historyRequest.current) {
+        const items = response.items || [];
+        setHistory(items);
+        setResult((current) => items.find((item) => item.id === current?.id) || current);
+      }
     } catch { /* Keep the current items when a refresh fails. */ }
   }, [modality]);
 
@@ -239,6 +243,15 @@ export default function CreateStudio() {
       historyRequest.current += 1;
     };
   }, [modality, loadHistory]);
+
+  useEffect(() => {
+    if (modality !== "video" || generating || !history.some((item) =>
+      ["pending", "submitted", "queued", "processing", "running"].includes(item.status))) return;
+    const timer = setInterval(() => {
+      if (!document.hidden) void loadHistory();
+    }, 10000);
+    return () => clearInterval(timer);
+  }, [modality, generating, history, loadHistory]);
 
   useEffect(() => {
     if (!model) return;
