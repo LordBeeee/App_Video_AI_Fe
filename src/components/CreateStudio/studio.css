@@ -65,12 +65,14 @@
 .st-element > div:active { cursor: grabbing; }
 .st-element-remove { position: absolute; top: 3px; right: 3px; border: 0; border-radius: 50%; background: var(--ink); color: #fff; cursor: pointer; }
 .st-ref .st-element-mention { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border: 0; cursor: pointer; }
-.st-add { width: 88px; height: 88px; border-radius: 16px; border: 1.5px dashed var(--or); background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--deep); font-size: 12px; font-weight: 600; }
+.st-add { position: relative; width: 88px; height: 88px; border-radius: 16px; border: 1.5px dashed var(--or); background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--deep); font-size: 12px; font-weight: 600; }
 .st-add.st-element-add { cursor: pointer; }
-.st-add label { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+.st-add .st-add-upload { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0 0 24px; border: 0; border-radius: inherit; background: transparent; color: inherit; cursor: pointer; }
+.st-add .st-add-upload:disabled { cursor: wait; }
+.st-add .st-add-upload:focus-visible { outline: 2px solid var(--or); outline-offset: 2px; }
 .st-add .material-symbols-outlined { font-size: 22px; }
-.st-add button { border: 0; border-radius: 999px; padding: 1px 10px; background: var(--pill); color: var(--ink); font: inherit; font-size: 11px; font-weight: 600; cursor: pointer; }
-.st-add button:hover { background: var(--ink); color: var(--or); }
+.st-add .st-add-history { position: absolute; z-index: 1; bottom: 14px; border: 0; border-radius: 999px; padding: 1px 10px; background: var(--pill); color: var(--ink); font: inherit; font-size: 11px; font-weight: 600; cursor: pointer; }
+.st-add .st-add-history:hover { background: var(--ink); color: var(--or); }
 
 .st-g { display: grid; gap: 8px; }
 .st-g.g6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
@@ -442,8 +444,8 @@
   .st-ctl .st-ta, .st-ctl .st-fs input[type='number'] { color: #fff; }
   .st-ctl .st-ta::placeholder, .st-ctl .st-fs input::placeholder { color: color-mix(in srgb, var(--soft) 60%, transparent); }
 .st-ctl .st-rich-prompt:empty::before { color: color-mix(in srgb, var(--soft) 60%, transparent); }
-  .st-ctl .st-add button { background: var(--or); color: var(--ink); }
-  .st-ctl .st-add button:hover { background: var(--gold); }
+  .st-ctl .st-add .st-add-history { background: var(--or); color: var(--ink); }
+  .st-ctl .st-add .st-add-history:hover { background: var(--gold); }
   .st-ctl .st-sw.on { background: var(--or); border-color: var(--or); color: var(--ink); }
   .st-ctl .st-note { background: color-mix(in srgb, var(--or) 16%, transparent); color: var(--soft); }
   .st-ctl .st-note.bad { background: rgba(239, 68, 68, 0.16); color: #fca5a5; }

@@ -3,6 +3,7 @@ import useUploadLimits from "../../hooks/useUploadLimits";
 import { formatUploadLimit } from "../../services/asset.service";
 import { MenuSelect } from "./OptionFields";
 import { dragMention } from "../../utils/createStudio.utils";
+import UploadTile from "./UploadTile";
 
 const KINDS = [
   { type: "image", label: "Ảnh tham chiếu", icon: "add_photo_alternate", accept: "image/jpeg,image/png,image/webp,image/heic,image/heif", limit: "maxReferenceImages" },
@@ -63,12 +64,10 @@ export default function SeedanceOmniInputs({ mode, onModeChange, assets, errors,
               <button type="button" className="cap st-element-mention" onClick={() => onInsertMention(mention)}>{mention}</button>
             </div>;
           })}
-          {selected.length < max && <div className="st-add">
-            <label title={`Tải ${kind.label.toLowerCase()}`}><span className={`material-symbols-outlined${uploading ? " au-spin" : ""}`}>{uploading ? "progress_activity" : kind.icon}</span>
-              <input type="file" accept={kind.accept} style={{ display: "none" }} disabled={uploading} onChange={(event) => onUpload(event, kind.type)} />
-            </label>
-            <button type="button" onClick={() => onPick(kind.type)}>Lịch sử</button>
-          </div>}
+          {selected.length < max && <UploadTile title={`Tải ${kind.label.toLowerCase()}`}
+            accept={kind.accept} icon={kind.icon} uploading={uploading}
+            onChange={(event) => onUpload(event, kind.type)}
+            onHistory={() => onPick(kind.type)} />}
         </div>
         {kind.type === "audio" && selected.length > 0 && <audio controls src={selected.at(-1).url} className="st-omni-audio-preview" />}
       </div>;

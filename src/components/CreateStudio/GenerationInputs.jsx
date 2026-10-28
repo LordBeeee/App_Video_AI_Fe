@@ -2,6 +2,7 @@ import { InfoTip } from "../Aurora/AuroraUI";
 import useUploadLimits from "../../hooks/useUploadLimits";
 import { formatUploadLimit } from "../../services/asset.service";
 import { dragMention } from "../../utils/createStudio.utils";
+import UploadTile from "./UploadTile";
 
 export default function GenerationInputs({
   modality,
@@ -32,18 +33,11 @@ export default function GenerationInputs({
   const referenceImages = references.filter((reference) => reference.role === "refer_image");
   const frameInfo = `Ảnh JPG/PNG, tải lên tối đa ${formatUploadLimit(Math.min(uploadLimits.image, 10_000_000))}. Chiều rộng và chiều cao đều phải từ 300 px trở lên. ${requiresFrame ? "Ảnh đầu bắt buộc; ảnh cuối tùy chọn." : "Có thể thêm ảnh đầu hoặc ảnh cuối để định hướng video."}`;
   const addImage = (target) => (
-    <div className="st-add">
-      <label title={uploading ? "Đang tải ảnh" : "Tải ảnh"}>
-        <span className={`material-symbols-outlined${uploading ? " au-spin" : ""}`} aria-hidden="true">
-          {uploading ? "progress_activity" : "add_photo_alternate"}
-        </span>
-        <input type="file" aria-label={target === "frame" ? "Tải ảnh khung hình" : "Tải ảnh tham chiếu"}
-          accept={modality === "video" ? "image/jpeg,image/png" : "image/*"}
-          style={{ display: "none" }} disabled={uploading}
-          onChange={(event) => uploadReference(event, target)} />
-      </label>
-      <button type="button" onClick={() => setReferencePickerOpen(target)}>Lịch sử</button>
-    </div>
+    <UploadTile title={target === "frame" ? "Tải ảnh khung hình" : "Tải ảnh tham chiếu"}
+      accept={modality === "video" ? "image/jpeg,image/png" : "image/*"}
+      icon="add_photo_alternate" uploading={uploading}
+      onChange={(event) => uploadReference(event, target)}
+      onHistory={() => setReferencePickerOpen(target)} />
   );
   const imageCard = (reference, label) => (
     <div className={`st-ref${isOmni ? " st-mention-ref" : ""}`} key={reference.id}>
@@ -96,23 +90,10 @@ export default function GenerationInputs({
               </div>
             ))}
             {references.length < referenceLimit && (
-              <div className="st-add">
-                <label title={uploading ? "Đang tải ảnh" : "Tải ảnh"}>
-                  <span className={`material-symbols-outlined${uploading ? " au-spin" : ""}`} aria-hidden="true">
-                    {uploading ? "progress_activity" : "add_photo_alternate"}
-                  </span>
-                  <input
-                    type="file"
-                    aria-label="Tải ảnh"
-                    accept={modality === "video" ? "image/jpeg,image/png" : "image/*"}
-                    className="hidden"
-                    style={{ display: "none" }}
-                    disabled={uploading}
-                    onChange={(event) => uploadReference(event, "reference")}
-                  />
-                </label>
-                <button type="button" onClick={() => setReferencePickerOpen("reference")}>Lịch sử</button>
-              </div>
+              <UploadTile title="Tải ảnh" accept={modality === "video" ? "image/jpeg,image/png" : "image/*"}
+                icon="add_photo_alternate" uploading={uploading}
+                onChange={(event) => uploadReference(event, "reference")}
+                onHistory={() => setReferencePickerOpen("reference")} />
             )}
           </div>
         </div>
@@ -123,7 +104,9 @@ export default function GenerationInputs({
           onDragStart={(event) => dragMention(event, `@video_${videoReference.id}`)}><video src={videoReference.url} muted playsInline /></div><button type="button" className="st-element-remove" onClick={onRemoveVideoReference}>×</button><button type="button" className="cap st-element-mention" title="Chèn vào prompt" onClick={() => onInsertMention(`@video_${videoReference.id}`)}>@video_{videoReference.id}</button></div>
           <select className="st-ref-role" aria-label="Cách dùng video" value={videoReference.role} onChange={(event) => onVideoRoleChange(event.target.value)}>
             <option value="feature_video">Tham chiếu đặc điểm</option><option value="base_video">Chỉnh sửa video</option>
-          </select></div> : <div className="st-add"><label title="Tải video"><span className="material-symbols-outlined">upload</span><input type="file" accept="video/mp4,video/quicktime" style={{ display: "none" }} disabled={uploading} onChange={uploadVideoReference} /></label><button type="button" onClick={() => setVideoPickerOpen(true)}>Lịch sử</button></div>}
+          </select></div> : <UploadTile title="Tải video" accept="video/mp4,video/quicktime"
+            icon="upload" uploading={uploading} onChange={uploadVideoReference}
+            onHistory={() => setVideoPickerOpen(true)} />}
       </div>}
       {elements && (
         <div className="st-box">
