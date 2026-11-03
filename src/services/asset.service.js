@@ -100,3 +100,13 @@ export async function deleteVoiceApi(assetId) {
     throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Xóa Voice thất bại')
   }
 }
+
+export async function deleteLibraryAssetApi(assetId) {
+  try {
+    const { data } = await api.delete(`/assets/${assetId}`)
+    return data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Xóa tài nguyên thất bại')
+  }
+}

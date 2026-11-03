@@ -7,6 +7,7 @@ import {
   getVoicesApi,
   deleteElementApi,
   deleteVoiceApi,
+  deleteLibraryAssetApi,
 } from "../../services/asset.service";
 
 import FilterBar, { LibraryAction, TabBar } from "../../components/Library/FilterBar";
@@ -29,7 +30,8 @@ export default function Library() {
   const [itemsByTab, setItemsByTab] = useState({});
   const [loadingTab, setLoadingTab] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState("");
+  const [toast, setToast] = useState(null);
+  const closeToast = useCallback(() => setToast(null), []);
   const [creatingAssetKind, setCreatingAssetKind] = useState(null);
   const [deletingAssetId, setDeletingAssetId] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
@@ -58,7 +60,14 @@ export default function Library() {
         tab: tab.toLowerCase(),
       });
       if (requestIdsRef.current[tab] !== requestId) return;
-      updateTabItems(tab, (data.items || []).map(mapAssetToItem));
+      const nextItems = (data.items || []).map(mapAssetToItem);
+      const pending = (itemsByTabRef.current[tab] || []).filter((item) =>
+        ["submitted", "processing"].includes(item.deleteStatus));
+      const completed = pending.filter((item) => !nextItems.some((next) => String(next.id) === String(item.id)));
+      const failed = pending.filter((item) => nextItems.some((next) => String(next.id) === String(item.id) && next.deleteStatus === "failed"));
+      if (failed.length) setToast({ id: Date.now(), type: "error", message: nextItems.find((item) => String(item.id) === String(failed[0].id))?.deleteError || "Xóa tài nguyên thất bại. Vui lòng thử lại." });
+      else if (completed.length) setToast({ id: Date.now(), type: "success", message: completed.length > 1 ? `Đã xóa ${completed.length} tài nguyên` : "Đã xóa tài nguyên" });
+      updateTabItems(tab, nextItems);
       setFetchErrors((current) => ({ ...current, [tab]: "" }));
     } catch (err) {
       if (requestIdsRef.current[tab] !== requestId) return;
@@ -87,8 +96,8 @@ export default function Library() {
   }, [activeTab, typeFilter, favoritesOnly, providerFilter]);
 
   useEffect(() => {
-    if (!["Element", "Voice"].includes(activeTab) || !items.some((item) =>
-      ["submitted", "processing"].includes(item.status) ||
+    if (!items.some((item) =>
+      (["Element", "Voice"].includes(activeTab) && ["submitted", "processing"].includes(item.status)) ||
       ["submitted", "processing"].includes(item.deleteStatus))) return;
     const timer = setInterval(() => fetchItems(activeTab), 10000);
     return () => clearInterval(timer);
@@ -98,15 +107,16 @@ export default function Library() {
     const files = Array.from(e.target.files || []);
     e.target.value = "";
     if (files.length === 0) return;
-    setUploadError("");
+    setToast(null);
     setUploading(true);
     try {
       for (const file of files) {
         await uploadAssetApi(file);
       }
       await fetchItems("Upload");
+      setToast({ id: Date.now(), type: "success", message: "Đã tải tài nguyên lên thư viện" });
     } catch (err) {
-      setUploadError(err.message || "Tải file lên thất bại");
+      setToast({ id: Date.now(), type: "error", message: err.message || "Tải file lên thất bại" });
     } finally {
       setUploading(false);
     }
@@ -158,7 +168,7 @@ export default function Library() {
     } catch (err) {
       updateTabItems(activeTab, (itemsByTabRef.current[activeTab] || []).map((item) =>
         item.id === id ? { ...item, favorite: !next } : item));
-      alert(err.message);
+      setToast({ id: Date.now(), type: "error", message: err.message || "Thao tác thất bại" });
     }
   };
 
@@ -173,8 +183,37 @@ export default function Library() {
       setSelectedId((current) => current === item.id ? null : current);
       await fetchItems(kind);
     } catch (err) {
-      alert(err.message);
+      setToast({ id: Date.now(), type: "error", message: err.message || "Thao tác thất bại" });
       await fetchItems(kind);
+    } finally {
+      setDeletingAssetId(null);
+    }
+  };
+
+  const handleDeleteLibraryAsset = async (item, e) => {
+    e?.stopPropagation();
+    if (deletingAssetId || item.deleteStatus === "processing") return;
+    setMenuOpenId(null);
+    setOverlayMenuOpen(false);
+    if (!window.confirm("Xóa vĩnh viễn tài nguyên khỏi thư viện")) return;
+    const tab = item.category === "upload" ? "Upload" : "Creative";
+    setDeletingAssetId(item.id);
+    try {
+      const result = await deleteLibraryAssetApi(item.id);
+      setSelectedId((current) => current === item.id ? null : current);
+      // Invalidate in-flight list requests before updating this tab's cache.
+      requestIdsRef.current[tab] = (requestIdsRef.current[tab] || 0) + 1;
+      updateTabItems(tab, (itemsByTabRef.current[tab] || []).flatMap((entry) =>
+        entry.id !== item.id ? [entry] : result.status === "completed" ? [] : [{ ...entry, deleteStatus: result.status === "failed" ? "failed" : "processing", deleteError: result.status === "failed" ? result.message : null }]));
+      setToast(result.status === "failed"
+        ? { id: Date.now(), type: "error", message: result.message || "Xóa tài nguyên thất bại. Vui lòng thử lại." }
+        : result.status === "completed"
+        ? { id: Date.now(), type: "success", message: "Đã xóa tài nguyên" }
+        : { id: Date.now(), type: "info", message: "Đang xử lý xóa tài nguyên" });
+      await fetchItems(tab);
+    } catch (err) {
+      setToast({ id: Date.now(), type: "error", message: err.message || "Xóa tài nguyên thất bại" });
+      await fetchItems(tab);
     } finally {
       setDeletingAssetId(null);
     }
@@ -238,7 +277,7 @@ export default function Library() {
             menuOpenId={menuOpenId}
             setMenuOpenId={setMenuOpenId}
             onDownload={handleDownload}
-            onDelete={["Element", "Voice"].includes(activeTab) ? handleDeleteCustomAsset : undefined}
+            onDelete={["Element", "Voice"].includes(activeTab) ? handleDeleteCustomAsset : handleDeleteLibraryAsset}
             deletingId={deletingAssetId}
             emptyMessage={["Element", "Voice"].includes(activeTab) && loadingTab !== activeTab ? `Chưa có ${activeTab} phù hợp` : undefined}
           />
@@ -255,7 +294,7 @@ export default function Library() {
           onSelect={setSelectedId}
           onToggleFavorite={toggleFavorite}
           onDownload={handleDownload}
-          onDelete={["Element", "Voice"].includes(activeTab) ? handleDeleteCustomAsset : undefined}
+          onDelete={["Element", "Voice"].includes(activeTab) ? handleDeleteCustomAsset : handleDeleteLibraryAsset}
           deleting={deletingAssetId === selectedItem.id}
           overlayMenuOpen={overlayMenuOpen}
           setOverlayMenuOpen={setOverlayMenuOpen}
@@ -268,7 +307,8 @@ export default function Library() {
         fetchItems(creatingAssetKind === "voice" ? "Voice" : "Element");
         fetchItems("Upload");
       }} />}
-      {uploadError && <div role="alert"><Toast message={uploadError} type="error" onClose={() => setUploadError("")} /></div>}
+      {toast && <Toast key={toast.id} message={toast.message} type={toast.type} position="top-right"
+        duration={toast.type === "error" ? null : toast.type === "info" ? 5000 : 3000} onClose={closeToast} />}
     </Page>
   );
 }

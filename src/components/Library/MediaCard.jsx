@@ -20,7 +20,7 @@ export default function MediaCard({
   const isCustomAsset = ["element", "voice"].includes(item.category);
   const deletePending = deleting || ["submitting", "submitted", "processing"].includes(item.deleteStatus);
   const customStatus = deletePending ? "Đang xóa" : item.deleteStatus === "failed" ? "Xóa thất bại" : item.status === "failed" ? "Lỗi" : item.status && item.status !== "succeed" ? "Đang xử lý" : null;
-  const badge = isCustomAsset ? customStatus : item.status && item.status !== "succeeded" ? (item.status === "failed" ? "Lỗi" : "Đang xử lý") : null;
+  const badge = deletePending ? "Đang xóa" : item.deleteStatus === "failed" ? "Xóa thất bại" : isCustomAsset ? customStatus : item.status && item.status !== "succeeded" ? (item.status === "failed" ? "Lỗi" : "Đang xử lý") : null;
   const bad = badge === "Lỗi" || badge === "Xóa thất bại";
   const meta = TYPE_META[item.type] || TYPE_META.image;
   const caption = item.name || (item.type === "video" && !isCustomAsset ? item.duration : "");
@@ -117,7 +117,7 @@ export default function MediaCard({
                   <span className="material-symbols-outlined">download</span>
                   Tải xuống
                 </button>
-                {isCustomAsset && onDelete && (
+                {onDelete && (
                   <button type="button" onClick={(e) => onDelete(item, e)} disabled={deletePending} className="lb-mi bad">
                     <span className="material-symbols-outlined">delete</span>
                     Xóa

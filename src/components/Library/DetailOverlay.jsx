@@ -59,7 +59,7 @@ export default function DetailOverlay({
                     <span className="material-symbols-outlined">download</span>
                     Tải xuống
                   </button>
-                  {["element", "voice"].includes(item.category) && onDelete && (
+                  {onDelete && (
                     <button
                       type="button"
                       onClick={(e) => onDelete(item, e)}
