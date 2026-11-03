@@ -5,4 +5,5 @@ export const COLOR_CLASSES = [
   { bg: 'bg-outline-variant', text: 'text-on-surface' },
 ]
 
-export const EMPLOYEE_PAGE_LIMIT = 8
+export const EMPLOYEE_PAGE_LIMIT = 10
+export const EMPLOYEE_EXPANDED_PAGE_LIMIT = 8
