@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getAllUsersApi, getEmployeeStatsApi, toggleUserStatusApi, createEmployeeApi, deleteEmployeeApi } from '../../services/user.service'
-import { EMPLOYEE_PAGE_LIMIT } from '../../constants/employee'
+import { EMPLOYEE_PAGE_LIMIT, EMPLOYEE_EXPANDED_PAGE_LIMIT } from '../../constants/employee'
+import { useSidebarStore } from '../../store/sidebar.store'
 import { Page, Tile } from '../../components/Aurora/AuroraUI'
 import EmployeeCards       from '../../components/Employees/EmployeeCards'
 import EmployeeModal       from '../../components/Employees/EmployeeModal'
@@ -11,6 +12,8 @@ import { moneyShort }      from '../../utils/aurora.utils'
 const INITIAL_STATS = { total: 0, active: 0, banned: 0, monthlySpending: 0 }
 
 export default function Employees() {
+  const sidebarExpanded = useSidebarStore(s => s.locked || s.hover || s.menu)
+  const pageLimit = sidebarExpanded ? EMPLOYEE_EXPANDED_PAGE_LIMIT : EMPLOYEE_PAGE_LIMIT
   const [users,        setUsers]        = useState([])
   const [stats,        setStats]        = useState(INITIAL_STATS)
   const [loading,      setLoading]      = useState(true)
@@ -18,11 +21,18 @@ export default function Employees() {
   const [search,       setSearch]       = useState('')
   const [query,        setQuery]        = useState('')
   const [page,         setPage]         = useState(1)
+  const [previousLimit, setPreviousLimit] = useState(pageLimit)
   const [total,        setTotal]        = useState(0)
   const [togglingId,   setTogglingId]   = useState(null)
   const [showModal,    setShowModal]    = useState(false)
   const [submitting,   setSubmitting]   = useState(false)
   const [formError,    setFormError]    = useState('')
+
+  // Reset before fetching so changing the sidebar cannot request an empty page.
+  if (previousLimit !== pageLimit) {
+    setPreviousLimit(pageLimit)
+    setPage(1)
+  }
 
   useEffect(() => {
     const t = setTimeout(() => { setQuery(search); setPage(1) }, 400)
@@ -35,12 +45,14 @@ export default function Employees() {
   }, [])
 
   useEffect(() => {
+    let active = true
     setLoading(true)
-    getAllUsersApi({ page, limit: EMPLOYEE_PAGE_LIMIT, search: query })
-      .then(({ users, total }) => { setUsers(users); setTotal(total) })
+    getAllUsersApi({ page, limit: pageLimit, search: query })
+      .then(({ users, total }) => { if (active) { setUsers(users); setTotal(total) } })
       .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [page, query])
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [page, query, pageLimit])
 
   const handleToggle = async (user) => {
     if (togglingId) return
@@ -69,7 +81,7 @@ export default function Employees() {
       setShowModal(false)
       resetForm()
       const [usersData, statsData] = await Promise.all([
-        getAllUsersApi({ page, limit: EMPLOYEE_PAGE_LIMIT, search: query }),
+        getAllUsersApi({ page, limit: pageLimit, search: query }),
         getEmployeeStatsApi(),
       ])
       setUsers(usersData.users)
@@ -90,7 +102,7 @@ export default function Employees() {
     const nextPage = users.length === 1 && page > 1 ? page - 1 : page
 
     const [usersData, statsData] = await Promise.all([
-      getAllUsersApi({ page: nextPage, limit: EMPLOYEE_PAGE_LIMIT, search: query }),
+      getAllUsersApi({ page: nextPage, limit: pageLimit, search: query }),
       getEmployeeStatsApi(),
     ])
 
@@ -100,7 +112,7 @@ export default function Employees() {
     setStats(statsData)
   }
 
-  const totalPages = Math.max(1, Math.ceil(total / EMPLOYEE_PAGE_LIMIT))
+  const totalPages = Math.max(1, Math.ceil(total / pageLimit))
 
   const pageNums = Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
     const start = Math.min(Math.max(page - 2, 1), Math.max(totalPages - 4, 1))
@@ -133,6 +145,7 @@ export default function Employees() {
       </div>
 
       <EmployeeCards
+        pageLimit={pageLimit}
         users={users} loading={loading} query={query}
         togglingId={togglingId} onToggle={handleToggle}
         onDelete={handleDelete}

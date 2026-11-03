@@ -41,7 +41,7 @@ function DeleteConfirm({ user, deleting, onConfirm, onCancel }) {
   )
 }
 
-export default function EmployeeCards({ users, loading, query, togglingId, onToggle, onDelete }) {
+export default function EmployeeCards({ users, loading, query, togglingId, onToggle, onDelete, pageLimit = EMPLOYEE_PAGE_LIMIT }) {
   const navigate = useNavigate()
   const [pending, setPending] = useState(null)
   const [deleting, setDeleting] = useState(false)
@@ -66,7 +66,7 @@ export default function EmployeeCards({ users, loading, query, togglingId, onTog
       <div className="au-ecw au-scroll">
         {loading ? (
           <div className="au-ecg">
-            {Array.from({ length: EMPLOYEE_PAGE_LIMIT }).map((_, i) => <div key={i} className="au-sk au-ec-sk" />)}
+            {Array.from({ length: pageLimit }).map((_, i) => <div key={i} className="au-sk au-ec-sk" />)}
           </div>
         ) : users.length === 0 ? (
           <Empty icon={query ? 'person_search' : 'group_add'} text={query ? 'Không tìm thấy nhân viên' : 'Chưa có nhân viên nào'} hint={query ? 'Thử tìm bằng tên hoặc email khác.' : 'Tạo tài khoản đầu tiên để bắt đầu theo dõi chi tiêu AI.'} />
