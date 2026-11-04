@@ -7,6 +7,7 @@ export default function ChatComposer({
   onMaxOutputTokensChange,
   quote,
   sending,
+  disabled,
   error,
   onSend,
 }) {
@@ -23,6 +24,7 @@ export default function ChatComposer({
         {error && <p className="st-err">{error}</p>}
         <div className="st-cmp">
           <textarea
+            disabled={disabled}
             value={draft}
             onChange={(event) => onDraftChange(event.target.value)}
             rows={3}
@@ -38,6 +40,7 @@ export default function ChatComposer({
                   <button
                     key={value}
                     type="button"
+                    disabled={disabled}
                     className={`au-pill${maxOutputTokens === value ? ' on' : ''}`}
                     onClick={() => onMaxOutputTokensChange(value)}
                   >
@@ -46,8 +49,8 @@ export default function ChatComposer({
                 ))}
               </span>
             </label>
-            <button type="button" className="au-btn solid st-go" onClick={onSend} disabled={!quote || sending}>
-              {quote ? `${money(quote.minPriceVnd)} – ${money(quote.maxPriceVnd)}` : 'Đang ước tính'}
+            <button type="button" className="au-btn solid st-go" onClick={onSend} disabled={disabled || !quote || sending}>
+              {disabled ? 'Model không khả dụng' : quote ? `${money(quote.minPriceVnd)} – ${money(quote.maxPriceVnd)}` : 'Đang ước tính'}
               <span className="material-symbols-outlined">arrow_upward</span>
             </button>
           </div>

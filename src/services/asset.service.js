@@ -24,6 +24,11 @@ export function formatUploadLimit(bytes) {
   return `${Math.floor(bytes / 1_000_000)} MB`
 }
 
+export async function getStorageUsageApi() {
+  const { data } = await api.get('/assets/storage-usage')
+  return data
+}
+
 export async function uploadAssetApi(file) {
   const type = file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'audio'
   const limits = await getUploadLimitsApi()

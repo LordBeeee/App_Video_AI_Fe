@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   getLibraryAssetsApi,
+  getStorageUsageApi,
   setAssetFavoriteApi,
   uploadAssetApi,
   getElementsApi,
@@ -30,6 +31,8 @@ export default function Library() {
   const [itemsByTab, setItemsByTab] = useState({});
   const [loadingTab, setLoadingTab] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [storageUsage, setStorageUsage] = useState(null);
+  const [storageError, setStorageError] = useState("");
   const [toast, setToast] = useState(null);
   const closeToast = useCallback(() => setToast(null), []);
   const [creatingAssetKind, setCreatingAssetKind] = useState(null);
@@ -42,6 +45,25 @@ export default function Library() {
   const fileInputRef = useRef(null);
   const itemsByTabRef = useRef({});
   const requestIdsRef = useRef({});
+
+  const refreshStorage = useCallback(async () => {
+    try {
+      setStorageUsage(await getStorageUsageApi());
+      setStorageError("");
+    } catch {
+      setStorageError("Không tải được dung lượng thư viện. Hệ thống sẽ kiểm tra lại khi nhận yêu cầu.");
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshStorage();
+    const timer = setInterval(refreshStorage, 15000);
+    window.addEventListener("focus", refreshStorage);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", refreshStorage);
+    };
+  }, [refreshStorage]);
 
   const updateTabItems = useCallback((tab, nextItems) => {
     itemsByTabRef.current = { ...itemsByTabRef.current, [tab]: nextItems };
@@ -74,11 +96,12 @@ export default function Library() {
       console.error("Fetch library failed:", err);
       setFetchErrors((current) => ({ ...current, [tab]: err.message || "Không tải được thư viện" }));
     } finally {
+      void refreshStorage();
       if (requestIdsRef.current[tab] === requestId) {
         setLoadingTab((current) => current === tab ? null : current);
       }
     }
-  }, [updateTabItems]);
+  }, [updateTabItems, refreshStorage]);
 
   useEffect(() => {
     fetchItems(activeTab);
@@ -119,6 +142,7 @@ export default function Library() {
       setToast({ id: Date.now(), type: "error", message: err.message || "Tải file lên thất bại" });
     } finally {
       setUploading(false);
+      void refreshStorage();
     }
   };
 
@@ -245,6 +269,7 @@ export default function Library() {
           <LibraryAction
             activeTab={activeTab}
             uploading={uploading}
+            storageBlocked={storageUsage?.blocked}
             fileInputRef={fileInputRef}
             onUploadFile={handleUploadFile}
             onCreateCustomAsset={() => setCreatingAssetKind(activeTab.toLowerCase())}
@@ -252,6 +277,19 @@ export default function Library() {
           <TabBar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); setTypeFilter("all"); }} />
         </div>
       </header>
+
+      <div className="lb-storage" aria-live="polite">
+        {storageUsage && <>
+          <div className="lb-storage-label">
+            <span>Đã dùng {(storageUsage.usedBytes / 1_000_000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} / 500 MB</span>
+            <span>Còn {(storageUsage.remainingBytes / 1_000_000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} MB</span>
+          </div>
+          <progress max={storageUsage.limitBytes} value={Math.min(storageUsage.usedBytes, storageUsage.limitBytes)} aria-label="Dung lượng thư viện" />
+          {storageUsage.usedBytes >= storageUsage.limitBytes && <p role="status">Thư viện đã đầy. Vui lòng xóa bớt tài nguyên để tải lên hoặc tạo nội dung mới. Kết quả AI đang xử lý vẫn được lưu.</p>}
+          {storageUsage.unknownSizeCount > 0 && <p role="status">Chưa xác định được dung lượng {storageUsage.unknownSizeCount} file. Tạm dừng tải lên và tạo nội dung mới cho đến khi kiểm tra xong.</p>}
+        </>}
+        {storageError && <p role="status">{storageError}</p>}
+      </div>
 
       <FilterBar
         activeTab={activeTab}

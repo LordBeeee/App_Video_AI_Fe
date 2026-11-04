@@ -17,6 +17,7 @@ import {
 
 export default function Chat() {
   const [models, setModels] = useState([])
+  const [catalogLoaded, setCatalogLoaded] = useState(false)
   const [modelSlug, setModelSlug] = useState('')
   const [conversations, setConversations] = useState([])
   const [active, setActive] = useState(null)
@@ -29,13 +30,15 @@ export default function Chat() {
   const endRef = useRef(null)
   const quoteRequest = useRef(0)
   const selectedModel = useMemo(() => models.find((item) => item.id === modelSlug), [models, modelSlug])
+  const unavailableModel = catalogLoaded && !!active && !selectedModel
 
   const refreshConversations = async () => setConversations(await getConversations())
 
   useEffect(() => {
     getAiCatalog('chat').then((items) => {
       setModels(items)
-      if (items[0]) setModelSlug(items[0].id)
+      setModelSlug((current) => current || items[0]?.id || '')
+      setCatalogLoaded(true)
     }).catch((err) => setError(err.response?.data?.message || err.message))
     refreshConversations().catch(() => {})
   }, [])
@@ -51,7 +54,7 @@ export default function Chat() {
   useEffect(() => {
     const request = ++quoteRequest.current
     setQuote(null)
-    if (!draft.trim() || !modelSlug) return
+    if (!draft.trim() || !selectedModel) return
     const timer = setTimeout(() => {
       createPriceQuote({
         modality: 'chat', modelSlug, prompt: draft, options: { maxOutputTokens },
@@ -65,17 +68,18 @@ export default function Chat() {
       clearTimeout(timer)
       quoteRequest.current += 1
     }
-  }, [draft, modelSlug, maxOutputTokens])
+  }, [draft, modelSlug, maxOutputTokens, selectedModel])
 
   const newChat = () => {
     setActive(null)
+    setModelSlug(models[0]?.id || '')
     setMessages([])
     setDraft('')
     setError('')
   }
 
   const send = async () => {
-    if (!draft.trim() || !quote || sending) return
+    if (!draft.trim() || !quote || sending || !selectedModel) return
     setSending(true)
     setError('')
     const content = draft.trim()
@@ -135,7 +139,10 @@ export default function Chat() {
             onMaxOutputTokensChange={setMaxOutputTokens}
             quote={quote}
             sending={sending}
-            error={error}
+            error={unavailableModel
+              ? 'Model của hội thoại này không còn được hỗ trợ. Hãy tạo hội thoại mới với model OpenAI hoặc Google.'
+              : error || (catalogLoaded && !models.length ? 'Hiện chưa có model chat OpenAI hoặc Google khả dụng.' : '')}
+            disabled={!selectedModel}
             onSend={send}
           />
         </section>
