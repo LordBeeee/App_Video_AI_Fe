@@ -1160,7 +1160,7 @@
 @media (max-width: 1099px) { .au-cost-split { grid-template-columns: minmax(0, 1fr); } }
 .au-cost2 { flex: 1.05 1 0; }
 
-.au-prof.au-cost { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1.15fr); align-items: center; gap: 28px; padding: 22px 28px; }
+.au-prof.au-cost { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr) minmax(0, 0.85fr) minmax(0, 1.15fr); align-items: center; gap: 28px; padding: 22px 28px; }
 .au-prof.au-cost .au-who h1 { font-size: 24px; }
 .au-prof.au-cost .au-big { font-size: clamp(48px, 5.6vw, 88px); }
 .au-cost-main { min-width: 0; }

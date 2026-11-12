@@ -1,23 +1,23 @@
-import { FieldSelect } from "./OptionFields";
+import { MenuSelect } from "./OptionFields";
 
 export default function AudioOptions({ options, model, setOption }) {
   return (
       <div className="st-g g6">
-        <FieldSelect
+        <MenuSelect
           label="Giọng đọc"
           icon="record_voice_over"
           value={options.voice || ""}
           onChange={(v) => setOption("voice", v)}
           options={model?.voices || []}
-          className="c4"
+          className="c4 st-choice-up"
         />
-        <FieldSelect
+        <MenuSelect
           label="Tốc độ"
           icon="speed"
           value={options.speed || 1}
           onChange={(v) => setOption("speed", Number(v))}
-          options={[0.75, 1, 1.25, 1.5]}
-          className="c2"
+          options={model?.capabilities?.speeds || []}
+          className="c2 st-choice-up"
         />
       </div>
     );

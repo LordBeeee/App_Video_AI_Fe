@@ -21,7 +21,7 @@ export function FieldSelect({ label, icon, value, onChange, options, emptyLabel,
   );
 }
 
-export function MenuSelect({ label, icon, value, onChange, options, className = "" }) {
+export function MenuSelect({ label, icon, value, onChange, options = [], className = "" }) {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -42,6 +42,8 @@ export function MenuSelect({ label, icon, value, onChange, options, className = 
     };
   }, []);
 
+  if (!options.length) return null;
+
   return (
     <details className={`st-choice ${className}`} ref={ref}>
       <summary className="st-fs" aria-label={label}>
@@ -49,7 +51,7 @@ export function MenuSelect({ label, icon, value, onChange, options, className = 
         <span className="v">{options.find((item) => (item.value ?? item) === value)?.label ?? optionLabel(value)}</span>
         <span className="material-symbols-outlined st-choice-chevron">expand_more</span>
       </summary>
-      <div className="st-choice-options">
+      <div className="st-choice-options st-dd-list">
         {options.map((item) => {
           const optionValue = item.value ?? item;
           return (

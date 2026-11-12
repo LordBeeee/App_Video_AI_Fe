@@ -38,7 +38,7 @@ export default function GenerationControls({ modality, options, capabilities, mo
               {modality === "audio" && (
                 <>
                   {options.voice && <span>{options.voice}</span>}
-                  {options.speed && <span>· {options.speed}x</span>}
+                  {model?.capabilities?.speeds?.length > 0 && options.speed && <span>· {options.speed}x</span>}
                 </>
               )}
             </span>

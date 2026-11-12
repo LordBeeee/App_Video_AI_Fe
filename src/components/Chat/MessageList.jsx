@@ -1,6 +1,18 @@
 import { Empty } from '../Aurora/AuroraUI'
+import { formatVND } from '../../utils/expense.utils'
 
-const money = (value) => `${new Intl.NumberFormat('vi-VN').format(Number(value || 0))} ₫`
+export function ChatDocuments({ documents = [], disabled, onRemove }) {
+  if (!documents.length) return null
+  return <div className="st-chat-documents">
+    {documents.map((document, index) => <div className="st-chat-document" key={`${document.name}-${index}`}>
+      <span className="material-symbols-outlined" aria-hidden="true">description</span>
+      <span title={document.name}>{document.name}</span>
+      {onRemove && <button type="button" aria-label={`Bỏ ${document.name}`} disabled={disabled} onClick={() => onRemove(index)}>
+        <span className="material-symbols-outlined" aria-hidden="true">close</span>
+      </button>}
+    </div>)}
+  </div>
+}
 
 export default function MessageList({ messages, selectedModel, sending, endRef }) {
   return (
@@ -15,8 +27,9 @@ export default function MessageList({ messages, selectedModel, sending, endRef }
         )}
         {messages.map((message) => (
           <div key={message.id} className={`st-b ${message.role === 'user' ? 'user' : 'bot'}`}>
+            <ChatDocuments documents={message.documents} />
             <p>{message.content || (sending ? 'Đang suy nghĩ…' : '')}</p>
-            {message.chargedVnd != null && <div className="st-cost">{money(message.chargedVnd)}</div>}
+            {message.chargedVnd != null && <div className="st-cost">{formatVND(message.chargedVnd)}</div>}
           </div>
         ))}
         <div ref={endRef} />

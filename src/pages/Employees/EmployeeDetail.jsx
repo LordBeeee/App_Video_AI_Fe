@@ -10,6 +10,7 @@ import {
 import { Card, Avatar, Skeleton, ErrorBox } from '../../components/Aurora/AuroraUI'
 import useUploadLimits from '../../hooks/useUploadLimits'
 import { formatUploadLimit } from '../../services/asset.service'
+import { formatVND } from '../../utils/expense.utils'
 
 function Field({ id, label, required, error, className = '', children }) {
   return (
@@ -210,7 +211,7 @@ export default function EmployeeDetail() {
       if (avatarFile) fd.append('avatar', avatarFile)
 
       const updated = await updateEmployeeApi(id, fd)
-      applyUser(updated)
+      applyUser({ ...updated, wallet: user.wallet })
       setSaved(true)
       showToast('Đã lưu thông tin thành công')
       setTimeout(() => setSaved(false), 2000)
@@ -297,6 +298,9 @@ export default function EmployeeDetail() {
               {locked ? 'Đã khóa' : 'Hoạt động'}
             </span>
             <div className="au-ir-l">
+              <InfoRow icon="savings" label="Còn có thể dùng · hiện tại" value={user.wallet?.availableVnd != null ? formatVND(user.wallet.availableVnd) : '—'} />
+              <InfoRow icon="account_balance_wallet" label="Số dư tài khoản" value={user.wallet?.balanceVnd != null ? formatVND(user.wallet.balanceVnd) : '—'} />
+              <InfoRow icon="lock_clock" label="Đang tạm giữ cho yêu cầu xử lý" value={user.wallet?.heldVnd != null ? formatVND(user.wallet.heldVnd) : '—'} />
               <InfoRow icon="mail" label="Email" value={user.email} mono />
               <InfoRow icon="login" label="Truy cập lần cuối" value={formatDate(user.lastLoginAt)} />
               <InfoRow icon="calendar_add_on" label="Ngày tạo" value={formatDate(user.createdAt)} />
