@@ -40,6 +40,7 @@ export default function EmployeeAiUsage() {
 
   const k = data?.kpis
   const emp = data?.employee
+  const wallet = data?.wallet
   const cost = k?.cost || 0
   const rangeLabel = rangeText(range)
   const trend = useMemo(() => data?.trend || [], [data])
@@ -48,6 +49,7 @@ export default function EmployeeAiUsage() {
   const activeDays = useMemo(() => trend.filter((d) => d.requests > 0).length, [trend])
   const idx = useMemo(() => priceIndex(byTask), [byTask])
   const money = moneyParts(cost)
+  const availableMoney = wallet?.availableVnd != null ? moneyParts(wallet.availableVnd) : null
   const topTask = byTask[0]
   const successRate = k?.successRate
   const taskMax = (r) => Math.max(r.avgCost, r.teamAvgCost || 0) || 1
@@ -94,8 +96,14 @@ export default function EmployeeAiUsage() {
 
             <div className="au-cost-main">
               <div className="au-lab"><span className="material-symbols-outlined">payments</span>Tổng chi · {rangeLabel}<InfoTip info={INFO.empCost} tone="dark" /></div>
-              {loading ? <Skeleton h={72} w={260} /> : <div className="au-big au-fd" title={formatVND(cost)}>{money.v}<small>{money.u}</small></div>}
+              {loading ? <Skeleton h={72} /> : <div className="au-big au-fd" title={formatVND(cost)}>{money.v}<small>{money.u}</small></div>}
               <div className="au-note">{loading ? '' : cost ? formatVND(cost) : `Chưa có chi tiêu trong ${rangeLabel}`}</div>
+            </div>
+
+            <div className="au-cost-main">
+              <div className="au-lab"><span className="material-symbols-outlined">account_balance_wallet</span>Số dư khả dụng<InfoTip info="Số dư hiện tại sau khi trừ tiền tạm giữ cho yêu cầu đang xử lý, không phụ thuộc khoảng thời gian thống kê." tone="dark" /></div>
+              {loading ? <Skeleton h={72} /> : <div className="au-big au-fd" title={availableMoney ? formatVND(wallet.availableVnd) : undefined}>{availableMoney ? <>{availableMoney.v}<small>{availableMoney.u}</small></> : '—'}</div>}
+              <div className="au-note">{loading ? '' : availableMoney ? formatVND(wallet.availableVnd) : 'Chưa có thông tin số dư'}</div>
             </div>
 
             <div className="au-cost-side">

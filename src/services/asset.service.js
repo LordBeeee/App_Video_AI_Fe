@@ -24,6 +24,11 @@ export function formatUploadLimit(bytes) {
   return `${Math.floor(bytes / 1_000_000)} MB`
 }
 
+export async function getStorageUsageApi() {
+  const { data } = await api.get('/assets/storage-usage')
+  return data
+}
+
 export async function uploadAssetApi(file) {
   const type = file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'audio'
   const limits = await getUploadLimitsApi()
@@ -98,5 +103,15 @@ export async function deleteVoiceApi(assetId) {
   } catch (error) {
     const msg = error.response?.data?.message
     throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Xóa Voice thất bại')
+  }
+}
+
+export async function deleteLibraryAssetApi(assetId) {
+  try {
+    const { data } = await api.delete(`/assets/${assetId}`)
+    return data
+  } catch (error) {
+    const msg = error.response?.data?.message
+    throw new Error(Array.isArray(msg) ? msg[0] : msg || 'Xóa tài nguyên thất bại')
   }
 }

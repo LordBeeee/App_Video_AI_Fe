@@ -19,6 +19,14 @@ export const getGenerations = async (modality) =>
 export const createConversation = async (payload) =>
   (await api.post('/chat/conversations', payload)).data
 
+export const uploadChatDocument = async (file) => {
+  const payload = new FormData()
+  payload.append('file', file)
+  return (await api.post('/chat/conversations/documents', payload, {
+    headers: { 'Content-Type': undefined },
+  })).data
+}
+
 export const getConversations = async () =>
   (await api.get('/chat/conversations')).data
 

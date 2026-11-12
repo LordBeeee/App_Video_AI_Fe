@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { getColor, getInitials } from '../../utils/userDetail.utils'
 
 export function InfoRow({ icon, label, value, mono }) {
@@ -66,24 +67,33 @@ export function AvatarUploader({ user, avatarPreview, onFileChange, fallbackInit
   )
 }
 
-export function Toast({ message, type = 'success', onClose }) {
+export function Toast({ message, type = 'success', onClose, position = 'bottom-right', duration = 3000 }) {
   useEffect(() => {
-    const t = setTimeout(onClose, 3000)
-    return () => clearTimeout(t)
-  }, [onClose])
+    if (duration === null) return
+    const timer = setTimeout(onClose, duration)
+    return () => clearTimeout(timer)
+  }, [message, type, duration, onClose])
 
   const colors = {
-    success: 'bg-[#4ade80]/10 border-[#4ade80]/30 text-[#4ade80]',
-    error:   'bg-[#f87171]/10 border-[#f87171]/30 text-[#f87171]',
+    success: position === 'top-right' ? 'bg-[#f0fdf4] border-[#86efac] text-[#166534]' : 'bg-[#4ade80]/10 border-[#4ade80]/30 text-[#4ade80]',
+    info: 'bg-[#eff6ff] border-[#93c5fd] text-[#1e40af]',
+    error: position === 'top-right' ? 'bg-[#fef2f2] border-[#fca5a5] text-[#991b1b]' : 'bg-[#f87171]/10 border-[#f87171]/30 text-[#f87171]',
   }
+  const placement = position === 'top-right'
+    ? 'top-4 right-4 left-4 sm:top-6 sm:right-6 sm:left-auto'
+    : 'bottom-6 right-6'
+  const icon = type === 'success' ? 'check_circle' : type === 'info' ? 'info' : 'error'
 
-  return (
-    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium shadow-xl ${colors[type]}`}>
-      <span className="material-symbols-outlined text-sm">
-        {type === 'success' ? 'check_circle' : 'error'}
-      </span>
-      {message}
-    </div>
+  return createPortal(
+    <div role={type === 'error' ? 'alert' : 'status'} aria-atomic="true"
+      className={`fixed ${placement} z-[1000] flex items-start gap-2 px-4 py-3 rounded-xl border text-sm font-medium shadow-xl max-w-[calc(100vw-32px)] sm:w-fit sm:max-w-[420px] ${colors[type] || colors.info}`}>
+      <span className="material-symbols-outlined text-[20px] shrink-0" aria-hidden="true">{icon}</span>
+      <span className="min-w-0 flex-1 wrap-anywhere">{message}</span>
+      <button type="button" onClick={onClose} aria-label="Đóng thông báo"
+        className="flex shrink-0 items-center justify-center w-7 h-7 -my-1 -mr-1 rounded-md hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-current">
+        <span className="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
+      </button>
+    </div>,
+    document.body,
   )
 }
-

@@ -20,7 +20,7 @@ export function TabBar({ activeTab, setActiveTab }) {
   return <Pills items={FILTER_TABS} value={activeTab} onChange={setActiveTab} />;
 }
 
-export function LibraryAction({ activeTab, uploading, fileInputRef, onUploadFile, onCreateCustomAsset }) {
+export function LibraryAction({ activeTab, uploading, storageBlocked, fileInputRef, onUploadFile, onCreateCustomAsset }) {
   const limits = useUploadLimits();
   return (
     <>
@@ -38,7 +38,7 @@ export function LibraryAction({ activeTab, uploading, fileInputRef, onUploadFile
             what: <>Ảnh: tối đa {formatUploadLimit(limits.image)}.<br />Video: tối đa {formatUploadLimit(limits.video)}.<br />Âm thanh: tối đa {formatUploadLimit(limits.audio)}.</>,
             note: "Model có thể yêu cầu giới hạn thấp hơn khi dùng làm tham chiếu.",
           }} />
-          <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="au-btn solid">
+          <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading || storageBlocked} className="au-btn solid">
             <span className={`material-symbols-outlined${uploading ? " lb-spin" : ""}`}>{uploading ? "progress_activity" : "upload"}</span>
             {uploading ? "Đang tải lên..." : "Tải lên"}
           </button>

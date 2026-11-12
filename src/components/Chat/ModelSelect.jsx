@@ -49,7 +49,7 @@ export default function ModelSelect({ models, value, onChange, disabled }) {
         onClick={() => setOpen((v) => !v)}
       >
         <span className="ic"><span className="material-symbols-outlined">neurology</span></span>
-        <span className="tx">{current ? cur.name : 'Đang tải model…'}</span>
+        <span className="tx">{current ? cur.name : value ? 'Model không khả dụng' : 'Chưa có model'}</span>
         <span className="material-symbols-outlined chev">expand_more</span>
       </button>
       {open && (
